@@ -9,12 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as EmptyRouteImport } from './routes/empty'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as HowToPlayRouteImport } from './routes/how-to-play'
+import { Route as GameRouteImport } from './routes/game'
+import { Route as CreditsRouteImport } from './routes/credits'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EndingRevolutionRouteImport } from './routes/ending.revolution'
+import { Route as EndingBankruptcyRouteImport } from './routes/ending.bankruptcy'
 
-const EmptyRoute = EmptyRouteImport.update({
-  id: '/empty',
-  path: '/empty',
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowToPlayRoute = HowToPlayRouteImport.update({
+  id: '/how-to-play',
+  path: '/how-to-play',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GameRoute = GameRouteImport.update({
+  id: '/game',
+  path: '/game',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreditsRoute = CreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,40 +42,113 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EndingRevolutionRoute = EndingRevolutionRouteImport.update({
+  id: '/ending/revolution',
+  path: '/ending/revolution',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EndingBankruptcyRoute = EndingBankruptcyRouteImport.update({
+  id: '/ending/bankruptcy',
+  path: '/ending/bankruptcy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/empty': typeof EmptyRoute
+  '/credits': typeof CreditsRoute
+  '/game': typeof GameRoute
+  '/how-to-play': typeof HowToPlayRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/ending/bankruptcy': typeof EndingBankruptcyRoute
+  '/ending/revolution': typeof EndingRevolutionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/empty': typeof EmptyRoute
+  '/credits': typeof CreditsRoute
+  '/game': typeof GameRoute
+  '/how-to-play': typeof HowToPlayRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/ending/bankruptcy': typeof EndingBankruptcyRoute
+  '/ending/revolution': typeof EndingRevolutionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/empty': typeof EmptyRoute
+  '/credits': typeof CreditsRoute
+  '/game': typeof GameRoute
+  '/how-to-play': typeof HowToPlayRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/ending/bankruptcy': typeof EndingBankruptcyRoute
+  '/ending/revolution': typeof EndingRevolutionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/empty'
+  fullPaths:
+    | '/'
+    | '/credits'
+    | '/game'
+    | '/how-to-play'
+    | '/leaderboard'
+    | '/ending/bankruptcy'
+    | '/ending/revolution'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/empty'
-  id: '__root__' | '/' | '/empty'
+  to:
+    | '/'
+    | '/credits'
+    | '/game'
+    | '/how-to-play'
+    | '/leaderboard'
+    | '/ending/bankruptcy'
+    | '/ending/revolution'
+  id:
+    | '__root__'
+    | '/'
+    | '/credits'
+    | '/game'
+    | '/how-to-play'
+    | '/leaderboard'
+    | '/ending/bankruptcy'
+    | '/ending/revolution'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  EmptyRoute: typeof EmptyRoute
+  CreditsRoute: typeof CreditsRoute
+  GameRoute: typeof GameRoute
+  HowToPlayRoute: typeof HowToPlayRoute
+  LeaderboardRoute: typeof LeaderboardRoute
+  EndingBankruptcyRoute: typeof EndingBankruptcyRoute
+  EndingRevolutionRoute: typeof EndingRevolutionRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/empty': {
-      id: '/empty'
-      path: '/empty'
-      fullPath: '/empty'
-      preLoaderRoute: typeof EmptyRouteImport
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-to-play': {
+      id: '/how-to-play'
+      path: '/how-to-play'
+      fullPath: '/how-to-play'
+      preLoaderRoute: typeof HowToPlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/game': {
+      id: '/game'
+      path: '/game'
+      fullPath: '/game'
+      preLoaderRoute: typeof GameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/credits': {
+      id: '/credits'
+      path: '/credits'
+      fullPath: '/credits'
+      preLoaderRoute: typeof CreditsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -65,12 +158,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ending/revolution': {
+      id: '/ending/revolution'
+      path: '/ending/revolution'
+      fullPath: '/ending/revolution'
+      preLoaderRoute: typeof EndingRevolutionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ending/bankruptcy': {
+      id: '/ending/bankruptcy'
+      path: '/ending/bankruptcy'
+      fullPath: '/ending/bankruptcy'
+      preLoaderRoute: typeof EndingBankruptcyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  EmptyRoute: EmptyRoute,
+  CreditsRoute: CreditsRoute,
+  GameRoute: GameRoute,
+  HowToPlayRoute: HowToPlayRoute,
+  LeaderboardRoute: LeaderboardRoute,
+  EndingBankruptcyRoute: EndingBankruptcyRoute,
+  EndingRevolutionRoute: EndingRevolutionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

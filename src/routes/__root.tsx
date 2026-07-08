@@ -77,11 +77,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "DAS KAPITALIST — Trò chơi mô phỏng kinh tế chính trị" },
+      {
+        name: "description",
+        content:
+          "Trò chơi mô phỏng nghiêm túc dạy Kinh tế Chính trị Marx-Lenin qua vai trò một nhà tư bản điều hành nhà máy trong 24 quý.",
+      },
+      { name: "author", content: "Das Kapitalist Studio" },
+      { property: "og:title", content: "DAS KAPITALIST" },
+      {
+        property: "og:description",
+        content:
+          "Điều hành nhà máy, đối mặt mâu thuẫn giai cấp và học Kinh tế Chính trị Marx qua mô phỏng.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -92,6 +100,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
