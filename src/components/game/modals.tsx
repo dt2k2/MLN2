@@ -45,64 +45,62 @@ export function ModalShell({
   );
 }
 
+export interface EventModalChoice {
+  label: string;
+  tone: "accept" | "refuse";
+  previewLabel: string;
+}
+
 export function EventModal({
   open,
   onClose,
-  onAccept,
-  onIgnore,
+  title,
+  description,
+  quarterLabel,
+  choices,
+  onChoose,
 }: {
   open: boolean;
   onClose: () => void;
-  onAccept: () => void;
-  onIgnore: () => void;
+  title: string;
+  description: string;
+  quarterLabel: string;
+  choices: EventModalChoice[];
+  onChoose: (idx: number) => void;
 }) {
   return (
     <ModalShell open={open} onClose={onClose}>
-      <div className="relative h-40 overflow-hidden rounded-t-xl border-b border-border/60 bg-gradient-to-br from-[oklch(0.28_0.05_35)] to-[oklch(0.15_0.02_30)]">
+      <div className="relative h-32 overflow-hidden rounded-t-xl border-b border-border/60 bg-gradient-to-br from-[oklch(0.28_0.05_35)] to-[oklch(0.15_0.02_30)]">
         <div className="absolute -right-6 -top-6 text-destructive/40">
           <Gear size={140} slow />
         </div>
         <div className="absolute bottom-3 left-4 flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-destructive" />
           <span className="font-mono text-[10px] uppercase tracking-widest text-destructive">
-            Sự kiện — Quý III / 1857
+            Sự kiện — {quarterLabel}
           </span>
         </div>
       </div>
       <div className="p-6">
-        <h3 className="font-display text-2xl font-semibold text-foreground">
-          Công nhân đình công
-        </h3>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Sau ba quý làm việc 14 giờ mỗi ngày, công nhân xưởng dệt tổ chức đình công đòi giảm giờ làm và tăng lương. Mâu thuẫn giai cấp đang bộc lộ trực diện tại phân xưởng của bạn.
-        </p>
-        <div className="mt-5 grid grid-cols-3 gap-2 text-center text-[11px]">
-          <div className="rounded border border-border p-2">
-            <div className="text-muted-foreground">Sản xuất</div>
-            <div className="mt-1 font-mono text-destructive">−28%</div>
-          </div>
-          <div className="rounded border border-border p-2">
-            <div className="text-muted-foreground">Mâu thuẫn</div>
-            <div className="mt-1 font-mono text-[color:var(--contradiction)]">+12</div>
-          </div>
-          <div className="rounded border border-border p-2">
-            <div className="text-muted-foreground">Danh tiếng</div>
-            <div className="mt-1 font-mono text-destructive">−5</div>
-          </div>
-        </div>
-        <div className="mt-6 flex gap-3">
-          <button
-            onClick={onAccept}
-            className="flex-1 rounded-md border border-primary/60 bg-primary/10 px-4 py-2 text-sm font-semibold text-gold transition hover:bg-primary/20"
-          >
-            Nhượng bộ (Chấp nhận)
-          </button>
-          <button
-            onClick={onIgnore}
-            className="flex-1 rounded-md border border-destructive/60 bg-destructive/10 px-4 py-2 text-sm font-semibold text-destructive transition hover:bg-destructive/20"
-          >
-            Đàn áp (Bỏ qua)
-          </button>
+        <h3 className="font-display text-2xl font-semibold text-foreground">{title}</h3>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p>
+        <div className="mt-6 flex flex-col gap-2">
+          {choices.map((c, i) => (
+            <button
+              key={i}
+              onClick={() => onChoose(i)}
+              className={`rounded-md border px-4 py-3 text-left text-sm font-semibold transition ${
+                c.tone === "accept"
+                  ? "border-[color:var(--success)]/60 bg-[color:var(--success)]/10 text-[color:var(--success)] hover:bg-[color:var(--success)]/20"
+                  : "border-destructive/60 bg-destructive/10 text-destructive hover:bg-destructive/20"
+              }`}
+            >
+              <div>{c.label}</div>
+              <div className="mt-1 font-mono text-[11px] font-normal opacity-80">
+                {c.previewLabel}
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     </ModalShell>
@@ -137,17 +135,20 @@ export function ConceptModal({
         </div>
         <div className="space-y-3 text-sm">
           <p className="text-foreground">
-            <span className="font-mono text-gold">m = W − (c + v)</span>
+            <span className="font-mono text-gold">m = V′ − v</span>
           </p>
           <p className="leading-relaxed text-muted-foreground">
-            Giá trị thặng dư là phần giá trị mới do lao động của công nhân tạo ra vượt quá giá trị sức lao động (v), bị nhà tư bản chiếm không.
+            Giá trị thặng dư là phần giá trị mới do lao động sống của công nhân tạo ra, vượt quá
+            giá trị sức lao động (v), bị nhà tư bản chiếm không. Tư bản bất biến (c — máy móc,
+            nguyên liệu) chỉ chuyển giá trị của nó vào sản phẩm, không tạo ra giá trị mới.
           </p>
           <div className="rounded-md border border-border bg-panel-elevated p-3">
             <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-              Ý nghĩa thực tiễn
+              Quy luật xu hướng p′ giảm
             </div>
             <p className="leading-relaxed text-foreground">
-              Kéo dài giờ làm hoặc tăng cường độ lao động sẽ nâng m, nhưng đồng thời làm gay gắt mâu thuẫn giữa tư bản và lao động.
+              Khi bạn mua thêm máy, c tăng nhanh hơn v ⇒ cấu tạo hữu cơ c/v tăng ⇒ p′ = m′/(1+c/v)
+              giảm — dù cường độ bóc lột m′ không đổi.
             </p>
           </div>
         </div>
@@ -164,30 +165,30 @@ export function ConceptModal({
   );
 }
 
+export interface SummaryRow {
+  label: string;
+  value: string;
+  tone: "up" | "down" | "warn";
+}
+
 export function TurnSummaryModal({
   open,
   onClose,
+  title,
+  rows,
 }: {
   open: boolean;
   onClose: () => void;
+  title: string;
+  rows: SummaryRow[];
 }) {
-  const rows = [
-    { label: "Doanh thu quý", value: "+ $42.800", tone: "up" as const },
-    { label: "Chi phí bất biến (c)", value: "− $18.200", tone: "down" as const },
-    { label: "Chi phí khả biến (v)", value: "− $9.500", tone: "down" as const },
-    { label: "Lợi nhuận ròng", value: "+ $15.100", tone: "up" as const },
-    { label: "Sức khoẻ công nhân", value: "− 4%", tone: "down" as const },
-    { label: "Mâu thuẫn giai cấp", value: "+ 6", tone: "warn" as const },
-  ];
   return (
     <ModalShell open={open} onClose={onClose} maxWidth="max-w-xl">
       <div className="border-b border-border/60 p-5">
         <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
           Tổng kết
         </div>
-        <h3 className="font-display text-2xl font-semibold text-gold">
-          Kết thúc Quý — Lượt 8 / 24
-        </h3>
+        <h3 className="font-display text-2xl font-semibold text-gold">{title}</h3>
       </div>
       <div className="grid grid-cols-2 gap-2 p-5">
         {rows.map((r) => (
