@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as HowToPlayRouteImport } from './routes/how-to-play'
 import { Route as GameRouteImport } from './routes/game'
+import { Route as EmptyRouteImport } from './routes/empty'
 import { Route as CreditsRouteImport } from './routes/credits'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EndingRevolutionRouteImport } from './routes/ending.revolution'
@@ -30,6 +31,11 @@ const HowToPlayRoute = HowToPlayRouteImport.update({
 const GameRoute = GameRouteImport.update({
   id: '/game',
   path: '/game',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmptyRoute = EmptyRouteImport.update({
+  id: '/empty',
+  path: '/empty',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreditsRoute = CreditsRouteImport.update({
@@ -56,6 +62,7 @@ const EndingBankruptcyRoute = EndingBankruptcyRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/credits': typeof CreditsRoute
+  '/empty': typeof EmptyRoute
   '/game': typeof GameRoute
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/credits': typeof CreditsRoute
+  '/empty': typeof EmptyRoute
   '/game': typeof GameRoute
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/credits': typeof CreditsRoute
+  '/empty': typeof EmptyRoute
   '/game': typeof GameRoute
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/credits'
+    | '/empty'
     | '/game'
     | '/how-to-play'
     | '/leaderboard'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/credits'
+    | '/empty'
     | '/game'
     | '/how-to-play'
     | '/leaderboard'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/credits'
+    | '/empty'
     | '/game'
     | '/how-to-play'
     | '/leaderboard'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreditsRoute: typeof CreditsRoute
+  EmptyRoute: typeof EmptyRoute
   GameRoute: typeof GameRoute
   HowToPlayRoute: typeof HowToPlayRoute
   LeaderboardRoute: typeof LeaderboardRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/game'
       fullPath: '/game'
       preLoaderRoute: typeof GameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/empty': {
+      id: '/empty'
+      path: '/empty'
+      fullPath: '/empty'
+      preLoaderRoute: typeof EmptyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/credits': {
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreditsRoute: CreditsRoute,
+  EmptyRoute: EmptyRoute,
   GameRoute: GameRoute,
   HowToPlayRoute: HowToPlayRoute,
   LeaderboardRoute: LeaderboardRoute,
@@ -187,3 +208,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
