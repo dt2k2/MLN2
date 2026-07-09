@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import {
-  AreaChart, Area, ResponsiveContainer, BarChart, Bar, XAxis, Tooltip, Cell,
+  BarChart, Bar, ResponsiveContainer, XAxis, Tooltip as ReTooltip, Cell,
 } from "recharts";
 import {
   Clock, DollarSign, Cog, Warehouse, UserMinus, Landmark,
@@ -13,13 +13,21 @@ import { GameHeader } from "@/components/game/game-header";
 import { DashboardCard } from "@/components/game/dashboard-card";
 import { ActionButton } from "@/components/game/action-button";
 import { FactoryScene } from "@/components/game/factory-scene";
-import { MobileWarning } from "@/components/game/mobile-warning";
 import {
   EventModal, ConceptModal, TurnSummaryModal,
 } from "@/components/game/modals";
+import { StatTooltip } from "@/components/game/stat-tooltip";
+import { ContradictionCard } from "@/components/game/contradiction-card";
+import { ProfitChart } from "@/components/game/profit-chart";
+import { CodexPanel } from "@/components/game/codex-panel";
+import { EndTurnButton } from "@/components/game/end-turn-button";
+import { ActionPreview } from "@/components/game/action-preview";
+import { showAchievement } from "@/components/game/achievement-toast";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { useGameStore } from "@/game/state";
 import { ACTIONS } from "@/game/actions";
-import type { ActionId } from "@/game/types";
+import { CONCEPT_INFO, checkEureka, type ConceptKey } from "@/game/concepts";
+import type { ActionId, GameState } from "@/game/types";
 
 export const Route = createFileRoute("/game")({
   head: () => ({
@@ -52,17 +60,52 @@ function GameScreen() {
   const resolveEvent = useGameStore((s) => s.resolveEvent);
   const [concept, setConcept] = useState(false);
   const [summary, setSummary] = useState(false);
+  const [codex, setCodex] = useState<ConceptKey | null>(null);
+  const [discovered, setDiscovered] = useState<Record<ConceptKey, { quarter: number; year: number }>>(
+    {} as Record<ConceptKey, { quarter: number; year: number }>,
+  );
   const navigate = useNavigate();
+  const prevState = useRef<GameState>(state);
 
   // Auto navigate on ending
   useEffect(() => {
     if (state.ending === "revolution") navigate({ to: "/ending/revolution" });
     else if (state.ending === "bankruptcy") navigate({ to: "/ending/bankruptcy" });
-    // monopoly/reform/timeout — fallback to bankruptcy route until dedicated screens exist
     else if (state.ending) navigate({ to: "/ending/bankruptcy" });
   }, [state.ending, navigate]);
 
+  // Eureka detector — chạy sau khi state thay đổi (post endQuarter)
+  useEffect(() => {
+    if (prevState.current.turn !== state.turn) {
+      const k = checkEureka(prevState.current, state);
+      if (k) {
+        setDiscovered((d) =>
+          d[k] ? d : { ...d, [k]: { quarter: state.quarter, year: state.year } },
+        );
+        const info = CONCEPT_INFO[k];
+        showAchievement({
+          title:
+            k === "m"
+              ? "🏆 Nhà tư bản máu lạnh — m′ vượt 200%!"
+              : k === "pRate"
+                ? "📉 Cấu tạo hữu cơ tăng — p′ bắt đầu giảm"
+                : k === "contradiction"
+                  ? "⚠️ Ngòi nổ đã châm — Mâu thuẫn xuyên 50"
+                  : `Khai mở khái niệm — ${info.title}`,
+          description: info.short + " · " + info.formula,
+          conceptName: info.title,
+        });
+        setConcept(true);
+      }
+    }
+    prevState.current = state;
+  }, [state]);
+
   const last = state.last;
+  const prevProfitRate = useRef(last.profitRate);
+  useEffect(() => {
+    prevProfitRate.current = last.profitRate;
+  }, [last.profitRate]);
 
   const profitTrend = useMemo(
     () =>
@@ -84,10 +127,17 @@ function GameScreen() {
   const contradictionInt = Math.round(state.contradiction);
   const quarterLabel = `Quý ${roman(state.quarter)} · ${state.year}`;
 
+  const conceptChips: { key: ConceptKey; label: string }[] = [
+    { key: "c", label: "Tư bản bất biến (c)" },
+    { key: "v", label: "Tư bản khả biến (v)" },
+    { key: "m", label: "Giá trị thặng dư (m)" },
+    { key: "pRate", label: "Tỷ suất lợi nhuận (p′)" },
+    { key: "contradiction", label: "Mâu thuẫn (K)" },
+  ];
+
   return (
-    <>
-      <MobileWarning />
-      <div className="hidden min-h-screen flex-col gap-3 p-3 lg:flex">
+    <div className="min-h-screen p-3">
+      <div className="flex flex-col gap-3">
         <GameHeader
           turn={state.turn}
           quarter={quarterLabel}
@@ -96,9 +146,9 @@ function GameScreen() {
           onPause={() => setSummary(true)}
         />
 
-        <div className="grid flex-1 grid-cols-12 gap-3 min-h-0">
-          {/* LEFT PANEL — Factory */}
-          <section className="col-span-3 flex flex-col gap-3 min-h-0">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-12 lg:min-h-[calc(100vh-100px)]">
+          {/* LEFT PANEL — Factory (below fold on mobile) */}
+          <section className="order-4 flex flex-col gap-3 lg:order-1 lg:col-span-3 lg:min-h-0">
             <FactoryScene />
             <div className="panel-industrial rounded-lg p-4">
               <SectionTitle icon={<Users className="h-3.5 w-3.5" />} label="Lực lượng lao động" />
@@ -155,77 +205,58 @@ function GameScreen() {
           </section>
 
           {/* CENTER PANEL */}
-          <section className="col-span-6 flex flex-col gap-3 min-h-0">
-            <div className="grid grid-cols-4 gap-3">
-              <DashboardCard
-                label="Tư bản bất biến"
-                symbol="c"
-                value={Math.round(last.c)}
-                prefix="$"
-                icon={Cog}
-                tone="info"
-                hint="Máy móc + nguyên liệu"
-              />
-              <DashboardCard
-                label="Tư bản khả biến"
-                symbol="v"
-                value={Math.round(last.v)}
-                prefix="$"
-                icon={Users}
-                tone="gold"
-                hint="Tiền lương công nhân"
-              />
-              <DashboardCard
-                label="Giá trị thặng dư"
-                symbol="m = V′ − v"
-                value={Math.round(last.m)}
-                prefix="$"
-                icon={TrendingUp}
-                tone="success"
-                hint={`m′ = ${(last.exploitation * 100).toFixed(0)}%`}
-              />
-              <DashboardCard
-                label="Tỷ suất lợi nhuận"
-                symbol="p′ = m/(c+v)"
-                value={+(last.profitRate * 100).toFixed(1)}
-                suffix="%"
-                decimals={1}
-                icon={Zap}
-                tone="gold"
-                hint={`c/v = ${last.organic.toFixed(2)}`}
-              />
+          <section className="order-2 flex flex-col gap-3 lg:col-span-6 lg:min-h-0">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <StatTooltip conceptKey="c">
+                <DashboardCard
+                  label="Tư bản bất biến"
+                  symbol="c"
+                  value={Math.round(last.c)}
+                  prefix="$"
+                  icon={Cog}
+                  tone="info"
+                  hint="Máy móc + nguyên liệu"
+                />
+              </StatTooltip>
+              <StatTooltip conceptKey="v">
+                <DashboardCard
+                  label="Tư bản khả biến"
+                  symbol="v"
+                  value={Math.round(last.v)}
+                  prefix="$"
+                  icon={Users}
+                  tone="gold"
+                  hint="Tiền lương công nhân"
+                />
+              </StatTooltip>
+              <StatTooltip conceptKey="m">
+                <DashboardCard
+                  label="Giá trị thặng dư"
+                  symbol="m = V′ − v"
+                  value={Math.round(last.m)}
+                  prefix="$"
+                  icon={TrendingUp}
+                  tone="success"
+                  hint={`m′ = ${(last.exploitation * 100).toFixed(0)}%`}
+                />
+              </StatTooltip>
+              <StatTooltip conceptKey="pRate">
+                <DashboardCard
+                  label="Tỷ suất lợi nhuận"
+                  symbol="p′ = m/(c+v)"
+                  value={+(last.profitRate * 100).toFixed(1)}
+                  suffix="%"
+                  decimals={1}
+                  icon={Zap}
+                  tone="gold"
+                  hint={`c/v = ${last.organic.toFixed(2)}`}
+                  flashOnDrop
+                />
+              </StatTooltip>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <ChartCard title="Xu hướng p′" hint="theo quý">
-                <ResponsiveContainer width="100%" height={110}>
-                  <AreaChart data={profitTrend} margin={{ top: 6, right: 6, bottom: 0, left: 0 }}>
-                    <defs>
-                      <linearGradient id="pg" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stopColor="var(--gold)" stopOpacity={0.7} />
-                        <stop offset="100%" stopColor="var(--gold)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="q" hide />
-                    <Tooltip
-                      contentStyle={{
-                        background: "oklch(0.18 0.006 60)",
-                        border: "1px solid oklch(0.32 0.008 60)",
-                        borderRadius: 6,
-                        fontSize: 11,
-                      }}
-                      labelStyle={{ color: "oklch(0.7 0.02 70)" }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="v"
-                      stroke="var(--gold)"
-                      strokeWidth={2}
-                      fill="url(#pg)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </ChartCard>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <ProfitChart data={profitTrend} currentTurn={state.turn} />
 
               <ChartCard title="Cơ cấu tư bản" hint="c : v : m">
                 <ResponsiveContainer width="100%" height={110}>
@@ -234,7 +265,7 @@ function GameScreen() {
                     layout="vertical"
                     margin={{ top: 4, right: 8, bottom: 4, left: 8 }}
                   >
-                    <Tooltip
+                    <ReTooltip
                       contentStyle={{
                         background: "oklch(0.18 0.006 60)",
                         border: "1px solid oklch(0.32 0.008 60)",
@@ -257,32 +288,10 @@ function GameScreen() {
                 </div>
               </ChartCard>
 
-              <ChartCard title="Mâu thuẫn giai cấp" hint="Ngưỡng cách mạng · 100">
-                <div className="mt-2 flex h-[110px] flex-col justify-center">
-                  <div className="mb-1 flex items-end justify-between">
-                    <span className="font-mono text-4xl text-[color:var(--contradiction)]">
-                      {contradictionInt}
-                    </span>
-                    <span className="font-mono text-xs text-muted-foreground">/ 100</span>
-                  </div>
-                  <div className="relative h-3 overflow-hidden rounded bg-panel-elevated">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${contradictionInt}%` }}
-                      transition={{ duration: 1 }}
-                      className="h-full rounded bg-gradient-to-r from-[color:var(--gold)] via-[color:var(--danger)] to-[color:var(--contradiction)]"
-                    />
-                    <div className="absolute inset-y-0 left-[75%] w-px bg-destructive/70" />
-                  </div>
-                  <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <AlertTriangle className="h-3 w-3 text-[color:var(--contradiction)]" />
-                    Unrest hiện tại: {Math.round(state.unrest)}
-                  </div>
-                </div>
-              </ChartCard>
+              <ContradictionCard value={contradictionInt} unrest={state.unrest} />
             </div>
 
-            <div className="grid flex-1 grid-cols-4 gap-3 min-h-0">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <MarketCard
                 label="Cầu thị trường"
                 value={state.demand.toLocaleString("vi-VN")}
@@ -311,17 +320,22 @@ function GameScreen() {
 
             {/* Bottom log */}
             <div className="panel-industrial flex min-h-[190px] flex-col rounded-lg p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <SectionTitle
                   icon={<Clock className="h-3.5 w-3.5" />}
-                  label="Nhật ký · Dòng thời gian"
+                  label="Nhật ký · Codex"
                 />
-                <button
-                  onClick={() => setConcept(true)}
-                  className="flex items-center gap-1 rounded border border-border px-2 py-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:border-primary/50 hover:text-gold"
-                >
-                  <BookOpen className="h-3 w-3" /> Từ điển khái niệm
-                </button>
+                <div className="flex flex-wrap gap-1">
+                  {conceptChips.map((c) => (
+                    <button
+                      key={c.key}
+                      onClick={() => setCodex(c.key)}
+                      className="rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground transition hover:border-primary/60 hover:text-gold"
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="mt-3 flex-1 overflow-y-auto pr-1">
                 <ul className="space-y-1.5">
@@ -343,7 +357,7 @@ function GameScreen() {
           </section>
 
           {/* RIGHT PANEL — Decisions */}
-          <section className="col-span-3 flex flex-col gap-3 min-h-0">
+          <section className="order-3 flex flex-col gap-3 lg:col-span-3 lg:min-h-0">
             <div className="panel-industrial rounded-lg p-4">
               <SectionTitle
                 icon={<Info className="h-3.5 w-3.5" />}
@@ -355,49 +369,54 @@ function GameScreen() {
                 }
               />
             </div>
-            <div className="flex flex-col gap-2 overflow-y-auto pr-1 min-h-0 flex-1">
+            <div className="flex flex-col gap-2 lg:overflow-y-auto lg:pr-1 lg:min-h-0 lg:flex-1">
               {(Object.keys(ACTIONS) as ActionId[]).map((id) => {
                 const act = ACTIONS[id];
                 const cost = act.cost(state);
                 const disabled = usedActions.has(id) || !act.canApply(state);
                 return (
-                  <div key={id} className={disabled ? "pointer-events-none opacity-40" : ""}>
-                    <ActionButton
-                      icon={ACTION_ICONS[id]}
-                      title={act.title}
-                      description={act.description}
-                      cost={cost > 0 ? `$${cost.toLocaleString("vi-VN")}` : "—"}
-                      previews={act.preview(state)}
-                      onClick={() => applyAction(id)}
-                    />
-                  </div>
+                  <HoverCard key={id} openDelay={250} closeDelay={80}>
+                    <HoverCardTrigger asChild>
+                      <div className={disabled ? "pointer-events-none opacity-40" : ""}>
+                        <ActionButton
+                          icon={ACTION_ICONS[id]}
+                          title={act.title}
+                          description={act.description}
+                          cost={cost > 0 ? `$${cost.toLocaleString("vi-VN")}` : "—"}
+                          previews={act.preview(state)}
+                          onClick={() => applyAction(id)}
+                        />
+                      </div>
+                    </HoverCardTrigger>
+                    <HoverCardContent
+                      side="left"
+                      align="start"
+                      className="w-80 border-primary/40 bg-[oklch(0.16_0.008_60)] p-2"
+                    >
+                      <ActionPreview state={state} actionId={id} />
+                    </HoverCardContent>
+                  </HoverCard>
                 );
               })}
             </div>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => {
+            <EndTurnButton
+              onEnd={() => {
                 endQuarter();
                 setSummary(true);
               }}
-              className="relative overflow-hidden rounded-lg border-2 border-primary bg-gradient-to-b from-[oklch(0.8_0.14_78)] to-[oklch(0.62_0.14_70)] px-6 py-4 font-display text-base font-bold uppercase tracking-[0.3em] text-[oklch(0.15_0.01_60)] shadow-[0_10px_30px_oklch(0.4_0.1_60/0.4),inset_0_2px_0_oklch(0.95_0.05_80/0.6)]"
-            >
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                Kết thúc quý <ChevronRight className="h-5 w-5" />
-              </span>
-              <span
-                className="absolute inset-0 opacity-30 mix-blend-overlay"
-                style={{
-                  backgroundImage:
-                    "repeating-linear-gradient(45deg, transparent 0 6px, oklch(0.2 0.01 60 / 0.3) 6px 8px)",
-                }}
-              />
-            </motion.button>
+            />
           </section>
         </div>
 
-        <div className="fixed bottom-3 right-3 z-40 flex gap-2 rounded-md border border-border bg-panel/80 p-1.5 font-mono text-[10px] backdrop-blur">
+        {/* Codex FAB (mobile only) */}
+        <button
+          onClick={() => setCodex("m")}
+          className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 rounded-full border border-primary bg-[oklch(0.2_0.02_60)] px-4 py-2 font-mono text-xs text-gold shadow-lg lg:hidden"
+        >
+          📚 5/15
+        </button>
+
+        <div className="fixed bottom-3 right-3 z-40 hidden gap-2 rounded-md border border-border bg-panel/80 p-1.5 font-mono text-[10px] backdrop-blur lg:flex">
           <span className="px-1.5 py-0.5 text-muted-foreground">DEV</span>
           <Link
             to="/ending/revolution"
@@ -412,6 +431,18 @@ function GameScreen() {
           >
             Ending: Phá sản
           </Link>
+          <button
+            onClick={() =>
+              showAchievement({
+                title: "🏆 Nhà tư bản máu lạnh — m′ vượt 200%!",
+                description: "Bạn đã đạt mức bóc lột lịch sử",
+                conceptName: "Giá trị thặng dư",
+              })
+            }
+            className="rounded bg-primary/20 px-2 py-0.5 text-gold hover:bg-primary/30"
+          >
+            Demo toast
+          </button>
         </div>
 
         <EventModal
@@ -430,6 +461,12 @@ function GameScreen() {
           onChoose={(i) => resolveEvent(i)}
         />
         <ConceptModal open={concept} onClose={() => setConcept(false)} />
+        <CodexPanel
+          open={!!codex}
+          conceptKey={codex}
+          onClose={() => setCodex(null)}
+          discoveredAt={codex ? discovered[codex] : undefined}
+        />
         <TurnSummaryModal
           open={summary && !state.pendingEvent}
           onClose={() => setSummary(false)}
@@ -450,7 +487,7 @@ function GameScreen() {
           ]}
         />
       </div>
-    </>
+    </div>
   );
 }
 
@@ -466,7 +503,7 @@ function SectionTitle({
   right?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
         <span className="text-primary">{icon}</span>
         {label}

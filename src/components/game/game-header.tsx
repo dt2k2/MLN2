@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
+import { motion, AnimatePresence } from "framer-motion";
 import { Pause, Coins, Calendar, Factory } from "lucide-react";
 import { Gear } from "./particles";
 import { AnimatedNumber } from "./animated-number";
+
 
 export function GameHeader({
   turn,
@@ -34,11 +36,22 @@ export function GameHeader({
           label="Lượt"
           value={
             <span>
-              <span className="font-mono">{turn}</span>
+              <AnimatePresence mode="popLayout">
+                <motion.span
+                  key={turn}
+                  initial={{ scale: 1.5, color: "var(--gold)" }}
+                  animate={{ scale: 1, color: "currentColor" }}
+                  transition={{ duration: 0.35 }}
+                  className="inline-block font-mono"
+                >
+                  {turn}
+                </motion.span>
+              </AnimatePresence>
               <span className="text-muted-foreground"> / 24</span>
             </span>
           }
         />
+
         <HeaderStat icon={<Calendar className="h-3.5 w-3.5" />} label="Quý" value={quarter} />
         <HeaderStat
           icon={<Coins className="h-3.5 w-3.5 text-gold" />}

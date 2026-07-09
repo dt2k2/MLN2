@@ -220,3 +220,25 @@
 .animate-gear-slow { animation: gear-spin 24s linear infinite; }
 .animate-gear-reverse { animation: gear-spin-reverse 18s linear infinite; }
 .animate-flicker { animation: flicker 4s ease-in-out infinite; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.animate-shake { animation: shake 0.5s ease-in-out; }
+
+@keyframes pulse-danger {
+  0%, 100% {
+    border-color: oklch(0.58 0.19 28 / 0.7);
+    box-shadow: 0 0 0 0 oklch(0.58 0.19 28 / 0.4);
+  }
+  50% {
+    border-color: oklch(0.58 0.19 28 / 1);
+    box-shadow: 0 0 18px 2px oklch(0.58 0.19 28 / 0.45);
+  }
+}
+.pulse-danger { animation: pulse-danger 2s ease-in-out infinite; }
+
