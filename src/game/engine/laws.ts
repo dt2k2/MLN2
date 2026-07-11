@@ -19,6 +19,10 @@ export function computeQuarter(s: GameState): QuarterRecord {
   const rawCapacity = s.machines * BAL.machineCapacity + workers * 8;
   const laborOutput = workers * perWorker * (hours / 8) * 12; // đvsp/quý
   const output = Math.max(0, Math.min(rawCapacity, laborOutput));
+  const laborHours = workers * hours * 12;
+  const laborProductivity = laborHours > 0 ? output / laborHours : 0;
+  const individualLaborTime = output > 0 ? laborHours / output : 0;
+  const socialLaborTime = BAL.baseSocialLaborTime / s.industryProductivity;
 
   // 2. c: khấu hao + nguyên liệu
   const depreciation = s.machines * BAL.machinePrice * BAL.machineDepreciation;
@@ -31,7 +35,7 @@ export function computeQuarter(s: GameState): QuarterRecord {
 
   // 4. Giá trị mới V' (chỉ lao động sống tạo ra)
   const healthEff = 0.6 + s.health / 250;
-  const Vnew = workers * hours * 12 * BAL.valuePerLaborHour * healthEff * (perWorker / 1.8);
+  const Vnew = laborHours * BAL.valuePerLaborHour * healthEff * (perWorker / 1.8);
 
   // 5. m
   const m = Math.max(0, Vnew - v);
@@ -55,23 +59,33 @@ export function computeQuarter(s: GameState): QuarterRecord {
     turn: s.turn,
     year: s.year,
     quarter: s.quarter,
-    c, v, m, W, profit,
-    profitRate, profitRateReal,
-    exploitation, organic,
+    c,
+    v,
+    m,
+    W,
+    profit,
+    profitRate,
+    profitRateReal,
+    exploitation,
+    organic,
     contradiction: s.contradiction,
     unrest: s.unrest,
     health: s.health,
-    output, demand: s.demand,
+    output,
+    demand: s.demand,
     inventory: inventoryNext,
     sellPrice: s.sellPrice,
     materialPrice: s.materialPrice,
+    laborProductivity,
+    individualLaborTime,
+    socialLaborTime,
   };
 }
 
 export function applySocialUpdate(s: GameState, rec: QuarterRecord) {
   // Sức khoẻ
   const strain = Math.max(0, s.workHours - 8) * BAL.strainPerHourAbove8;
-  const recovery = Math.max(0, (s.wagePerWorker - BAL.baseWagePerWorker)) * BAL.recoveryFromWage;
+  const recovery = Math.max(0, s.wagePerWorker - BAL.baseWagePerWorker) * BAL.recoveryFromWage;
   s.health = clamp(s.health + recovery - strain + 1); // +1 baseline hồi phục
 
   // Unrest ngắn hạn

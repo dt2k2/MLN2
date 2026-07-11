@@ -5,17 +5,17 @@ export const BAL = {
   startQuarter: 3,
 
   // Lao động
-  baseWagePerWorker: 220,      // $/quý ở 8h
-  baseWorkHours: 10,           // giờ/ngày
+  baseWagePerWorker: 220, // $/quý ở 8h
+  baseWorkHours: 10, // giờ/ngày
   minWorkHours: 6,
   maxWorkHours: 16,
-  valuePerLaborHour: 3.2,      // giá trị mới do 1 giờ lao động tạo ra (đơn vị $)
+  valuePerLaborHour: 3.2, // giá trị mới do 1 giờ lao động tạo ra (đơn vị $)
 
   // Máy móc
   machinePrice: 18000,
-  machineCapacity: 220,        // đvsp/quý mỗi máy
-  machineDepreciation: 0.05,   // 5%/quý
-  unitMaterial: 1.2,           // đvsp cần bao nhiêu $ nguyên liệu (nhân materialPrice)
+  machineCapacity: 220, // đvsp/quý mỗi máy
+  machineDepreciation: 0.05, // 5%/quý
+  unitMaterial: 1.2, // đvsp cần bao nhiêu $ nguyên liệu (nhân materialPrice)
 
   // Thị trường
   baseSellPrice: 38,
@@ -23,18 +23,20 @@ export const BAL = {
   baseMaterialPrice: 8,
   competitorProductivityGrowth: 0.015, // 1.5% mỗi quý → giá trị xã hội giảm
   demandCyclePeriod: 8,
+  baseSocialLaborTime: 7.3,
 
   // Xã hội
   strainPerHourAbove8: 1.4,
-  recoveryFromWage: 0.02,      // /100$ trên mức tối thiểu
+  recoveryFromWage: 0.02, // /100$ trên mức tối thiểu
   unrestFromLongHours: 1.2,
-  unrestFromLayoff: 1.5,       // per worker
-  unrestReliefFromRaise: 0.5,  // per % raise
+  unrestFromLayoff: 1.5, // per worker
+  unrestReliefFromRaise: 0.5, // per % raise
   contradictionPerUnrest: 0.15,
 
   // Tài chính
-  loanRate: 0.06,              // 6% / quý
+  loanRate: 0.06, // 6% / quý
   loanUnit: 25000,
+  maxDebt: 100000,
 
   // Ending thresholds
   contradictionRevolution: 100,

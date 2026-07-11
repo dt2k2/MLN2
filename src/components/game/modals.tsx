@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, BookOpen, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
 import { Gear } from "./particles";
+import { CONCEPT_INFO } from "@/game/concepts";
+import type { ConceptDiscovery, ConceptKey } from "@/game/types";
 
 export function ModalShell({
   open,
@@ -110,10 +112,15 @@ export function EventModal({
 export function ConceptModal({
   open,
   onClose,
+  discovery,
 }: {
   open: boolean;
   onClose: () => void;
+  discovery?: ConceptDiscovery;
 }) {
+  if (!discovery) return null;
+  const info = CONCEPT_INFO[discovery.key];
+
   return (
     <ModalShell open={open} onClose={onClose}>
       <div className="flex items-center gap-3 border-b border-border/60 p-5">
@@ -122,35 +129,39 @@ export function ConceptModal({
         </div>
         <div>
           <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
-            Khái niệm
+            Khoảnh khắc Eureka
           </div>
-          <h3 className="font-display text-xl font-semibold text-gold">
-            Giá trị thặng dư (m)
-          </h3>
+          <h3 className="font-display text-xl font-semibold text-gold">{info.title}</h3>
         </div>
       </div>
       <div className="grid grid-cols-[120px_1fr] gap-5 p-6">
-        <div className="flex items-center justify-center rounded border border-border bg-panel-elevated p-3 text-primary">
+        <div className="hidden items-center justify-center rounded border border-border bg-panel-elevated p-3 text-primary sm:flex">
           <Gear size={80} />
         </div>
         <div className="space-y-3 text-sm">
-          <p className="text-foreground">
-            <span className="font-mono text-gold">m = V′ − v</span>
-          </p>
-          <p className="leading-relaxed text-muted-foreground">
-            Giá trị thặng dư là phần giá trị mới do lao động sống của công nhân tạo ra, vượt quá
-            giá trị sức lao động (v), bị nhà tư bản chiếm không. Tư bản bất biến (c — máy móc,
-            nguyên liệu) chỉ chuyển giá trị của nó vào sản phẩm, không tạo ra giá trị mới.
-          </p>
           <div className="rounded-md border border-border bg-panel-elevated p-3">
-            <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-              Quy luật xu hướng p′ giảm
-            </div>
-            <p className="leading-relaxed text-foreground">
-              Khi bạn mua thêm máy, c tăng nhanh hơn v ⇒ cấu tạo hữu cơ c/v tăng ⇒ p′ = m′/(1+c/v)
-              giảm — dù cường độ bóc lột m′ không đổi.
-            </p>
+            <p className="font-semibold text-foreground">{discovery.action}</p>
+            <p className="mt-2 leading-relaxed text-muted-foreground">{discovery.consequence}</p>
           </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+              Hiện tượng này được gọi là
+            </div>
+            <div className="mt-1 font-display text-lg font-semibold text-gold">
+              {info.title} <span className="font-mono text-xs text-primary/70">({info.short})</span>
+            </div>
+          </div>
+          <p className="leading-relaxed text-foreground/90">{info.definition}</p>
+          {info.formula ? (
+            <p className="rounded border border-primary/30 bg-panel-elevated px-3 py-2 font-mono text-xs text-gold">
+              {info.formula}
+            </p>
+          ) : null}
+          {info.quote ? (
+            <blockquote className="border-l-2 border-gold/60 pl-3 text-xs italic text-muted-foreground">
+              “{info.quote.text}” — {info.quote.source}
+            </blockquote>
+          ) : null}
         </div>
       </div>
       <div className="flex justify-end border-t border-border/60 p-4">
@@ -159,6 +170,64 @@ export function ConceptModal({
           className="rounded-md bg-gold px-5 py-2 text-sm font-semibold transition hover:brightness-110"
         >
           Tiếp tục
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
+
+export function EraRecapModal({
+  open,
+  onClose,
+  startTurn,
+  endTurn,
+  conceptKeys,
+}: {
+  open: boolean;
+  onClose: () => void;
+  startTurn: number;
+  endTurn: number;
+  conceptKeys: ConceptKey[];
+}) {
+  return (
+    <ModalShell open={open} onClose={onClose} maxWidth="max-w-2xl">
+      <div className="border-b border-border/60 p-5">
+        <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+          Phán quyết lịch sử · Lượt {startTurn}–{endTurn}
+        </div>
+        <h3 className="font-display text-2xl font-semibold text-gold">
+          Một thời kỳ sản xuất đã khép lại
+        </h3>
+      </div>
+      <div className="max-h-[55vh] space-y-3 overflow-y-auto p-5">
+        {conceptKeys.length > 0 ? (
+          <>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Trong giai đoạn này, bạn đã trực tiếp chứng kiến:
+            </p>
+            {conceptKeys.map((key) => (
+              <div key={key} className="border-l-2 border-primary/60 pl-3">
+                <div className="font-display text-base font-semibold text-gold">
+                  {CONCEPT_INFO[key].title}
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-foreground/80">
+                  {CONCEPT_INFO[key].definition}
+                </p>
+              </div>
+            ))}
+          </>
+        ) : (
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Xưởng đã vận hành thêm sáu lượt, nhưng chưa tạo ra một hiện tượng học thuật mới.
+          </p>
+        )}
+      </div>
+      <div className="border-t border-border/60 p-4">
+        <button
+          onClick={onClose}
+          className="w-full rounded-md bg-gold px-5 py-3 font-display text-sm font-semibold uppercase tracking-widest transition hover:brightness-110"
+        >
+          Bước vào thời kỳ tiếp theo
         </button>
       </div>
     </ModalShell>
@@ -185,9 +254,7 @@ export function TurnSummaryModal({
   return (
     <ModalShell open={open} onClose={onClose} maxWidth="max-w-xl">
       <div className="border-b border-border/60 p-5">
-        <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
-          Tổng kết
-        </div>
+        <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Tổng kết</div>
         <h3 className="font-display text-2xl font-semibold text-gold">{title}</h3>
       </div>
       <div className="grid grid-cols-2 gap-2 p-5">

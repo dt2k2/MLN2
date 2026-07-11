@@ -1,20 +1,35 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { BarChart, Bar, ResponsiveContainer, XAxis, Tooltip as ReTooltip, Cell } from "recharts";
 import {
-  BarChart, Bar, ResponsiveContainer, XAxis, Tooltip as ReTooltip, Cell,
-} from "recharts";
-import {
-  Clock, DollarSign, Cog, Warehouse, UserMinus, Landmark,
-  Heart, Users, Package, TrendingUp, Activity, Zap, Info,
-  BookOpen, AlertTriangle, ChevronRight, Flag,
+  Clock,
+  DollarSign,
+  Cog,
+  Warehouse,
+  UserMinus,
+  Landmark,
+  Heart,
+  Users,
+  Package,
+  TrendingUp,
+  Activity,
+  Zap,
+  Info,
+  BookOpen,
+  AlertTriangle,
+  ChevronRight,
+  Flag,
 } from "lucide-react";
 import { GameHeader } from "@/components/game/game-header";
 import { DashboardCard } from "@/components/game/dashboard-card";
 import { ActionButton } from "@/components/game/action-button";
 import { FactoryScene } from "@/components/game/factory-scene";
 import {
-  EventModal, ConceptModal, TurnSummaryModal,
+  EventModal,
+  ConceptModal,
+  EraRecapModal,
+  TurnSummaryModal,
 } from "@/components/game/modals";
 import { StatTooltip } from "@/components/game/stat-tooltip";
 import { ContradictionCard } from "@/components/game/contradiction-card";
@@ -24,10 +39,10 @@ import { EndTurnButton } from "@/components/game/end-turn-button";
 import { ActionPreview } from "@/components/game/action-preview";
 import { showAchievement } from "@/components/game/achievement-toast";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
-import { useGameStore } from "@/game/state";
+import { MAX_ACTIONS_PER_TURN, useGameStore } from "@/game/state";
 import { ACTIONS } from "@/game/actions";
-import { CONCEPT_INFO, checkEureka, type ConceptKey } from "@/game/concepts";
-import type { ActionId, GameState } from "@/game/types";
+import { CONCEPT_INFO, CONCEPT_KEYS } from "@/game/concepts";
+import type { ActionId, ConceptKey } from "@/game/types";
 
 export const Route = createFileRoute("/game")({
   head: () => ({
@@ -58,54 +73,44 @@ function GameScreen() {
   const applyAction = useGameStore((s) => s.applyAction);
   const endQuarter = useGameStore((s) => s.endQuarter);
   const resolveEvent = useGameStore((s) => s.resolveEvent);
-  const [concept, setConcept] = useState(false);
-  const [summary, setSummary] = useState(false);
+  const presentationQueue = useGameStore((s) => s.presentationQueue);
+  const dismissPresentation = useGameStore((s) => s.dismissPresentation);
+  const showCurrentSummary = useGameStore((s) => s.showCurrentSummary);
+  const [codexOpen, setCodexOpen] = useState(false);
   const [codex, setCodex] = useState<ConceptKey | null>(null);
-  const [discovered, setDiscovered] = useState<Record<ConceptKey, { quarter: number; year: number }>>(
-    {} as Record<ConceptKey, { quarter: number; year: number }>,
-  );
   const navigate = useNavigate();
-  const prevState = useRef<GameState>(state);
+  const activePresentation = presentationQueue[0];
 
-  // Auto navigate on ending
   useEffect(() => {
-    if (state.ending === "revolution") navigate({ to: "/ending/revolution" });
-    else if (state.ending === "bankruptcy") navigate({ to: "/ending/bankruptcy" });
-    else if (state.ending) navigate({ to: "/ending/bankruptcy" });
-  }, [state.ending, navigate]);
-
-  // Eureka detector — chạy sau khi state thay đổi (post endQuarter)
-  useEffect(() => {
-    if (prevState.current.turn !== state.turn) {
-      const k = checkEureka(prevState.current, state);
-      if (k) {
-        setDiscovered((d) =>
-          d[k] ? d : { ...d, [k]: { quarter: state.quarter, year: state.year } },
-        );
-        const info = CONCEPT_INFO[k];
-        showAchievement({
-          title:
-            k === "m"
-              ? "🏆 Nhà tư bản máu lạnh — m′ vượt 200%!"
-              : k === "pRate"
-                ? "📉 Cấu tạo hữu cơ tăng — p′ bắt đầu giảm"
-                : k === "contradiction"
-                  ? "⚠️ Ngòi nổ đã châm — Mâu thuẫn xuyên 50"
-                  : `Khai mở khái niệm — ${info.title}`,
-          description: info.short + " · " + info.formula,
-          conceptName: info.title,
-        });
-        setConcept(true);
-      }
+    if (presentationQueue.length > 0 || state.pendingEvent || !state.ending) return;
+    if (state.ending === "revolution") {
+      navigate({ to: "/ending/revolution" });
+    } else if (state.ending === "bankruptcy") {
+      navigate({ to: "/ending/bankruptcy" });
+    } else {
+      navigate({ to: "/ending/outcome", search: { result: state.ending } });
     }
-    prevState.current = state;
-  }, [state]);
+  }, [state.ending, state.pendingEvent, presentationQueue.length, navigate]);
+
+  useEffect(() => {
+    if (activePresentation?.kind !== "achievement") return;
+    showAchievement(
+      activePresentation.achievementId,
+      CONCEPT_INFO[activePresentation.conceptKey].title,
+    );
+    dismissPresentation();
+  }, [activePresentation, dismissPresentation]);
 
   const last = state.last;
-  const prevProfitRate = useRef(last.profitRate);
-  useEffect(() => {
-    prevProfitRate.current = last.profitRate;
-  }, [last.profitRate]);
+  const eurekaDiscovery =
+    activePresentation?.kind === "eureka"
+      ? state.discoveredConcepts[activePresentation.conceptKey]
+      : undefined;
+  const summaryRecord =
+    activePresentation?.kind === "summary"
+      ? state.history.find((record) => record.turn === activePresentation.completedTurn)
+      : undefined;
+  const displayRecord = summaryRecord ?? last;
 
   const profitTrend = useMemo(
     () =>
@@ -127,28 +132,22 @@ function GameScreen() {
   const contradictionInt = Math.round(state.contradiction);
   const quarterLabel = `Quý ${roman(state.quarter)} · ${state.year}`;
 
-  const conceptChips: { key: ConceptKey; label: string }[] = [
-    { key: "c", label: "Tư bản bất biến (c)" },
-    { key: "v", label: "Tư bản khả biến (v)" },
-    { key: "m", label: "Giá trị thặng dư (m)" },
-    { key: "pRate", label: "Tỷ suất lợi nhuận (p′)" },
-    { key: "contradiction", label: "Mâu thuẫn (K)" },
-  ];
+  const discoveredCount = Object.keys(state.discoveredConcepts).length;
 
   return (
-    <div className="min-h-screen p-3">
-      <div className="flex flex-col gap-3">
+    <div className="min-h-screen min-w-0 overflow-x-hidden p-3">
+      <div className="flex min-w-0 flex-col gap-3">
         <GameHeader
           turn={state.turn}
           quarter={quarterLabel}
           company={state.companyName}
           money={Math.round(state.cash)}
-          onPause={() => setSummary(true)}
+          onPause={showCurrentSummary}
         />
 
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-12 lg:min-h-[calc(100vh-100px)]">
           {/* LEFT PANEL — Factory (below fold on mobile) */}
-          <section className="order-4 flex flex-col gap-3 lg:order-1 lg:col-span-3 lg:min-h-0">
+          <section className="order-4 flex min-w-0 flex-col gap-3 lg:order-1 lg:col-span-3 lg:min-h-0">
             <FactoryScene />
             <div className="panel-industrial rounded-lg p-4">
               <SectionTitle icon={<Users className="h-3.5 w-3.5" />} label="Lực lượng lao động" />
@@ -196,32 +195,36 @@ function GameScreen() {
                 </div>
                 <div className="mt-1 flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Lương</span>
-                  <span className="font-mono text-foreground">
-                    ${state.wagePerWorker}/quý
-                  </span>
+                  <span className="font-mono text-foreground">${state.wagePerWorker}/quý</span>
                 </div>
               </div>
             </div>
           </section>
 
           {/* CENTER PANEL */}
-          <section className="order-2 flex flex-col gap-3 lg:col-span-6 lg:min-h-0">
+          <section className="order-2 flex min-w-0 flex-col gap-3 lg:col-span-6 lg:min-h-0">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <StatTooltip conceptKey="c">
+              <StatTooltip conceptKey="constantCapital">
                 <DashboardCard
-                  label="Tư bản bất biến"
-                  symbol="c"
+                  label={
+                    state.discoveredConcepts.constantCapital ? "Tư bản bất biến" : "Chi phí tư liệu"
+                  }
+                  symbol={state.discoveredConcepts.constantCapital ? "c" : "Máy + vật liệu"}
                   value={Math.round(last.c)}
                   prefix="$"
                   icon={Cog}
                   tone="info"
-                  hint="Máy móc + nguyên liệu"
+                  hint={
+                    state.discoveredConcepts.constantCapital
+                      ? "Máy móc + nguyên liệu"
+                      : "Chi phí sản xuất"
+                  }
                 />
               </StatTooltip>
-              <StatTooltip conceptKey="v">
+              <StatTooltip conceptKey="variableCapital">
                 <DashboardCard
-                  label="Tư bản khả biến"
-                  symbol="v"
+                  label={state.discoveredConcepts.variableCapital ? "Tư bản khả biến" : "Quỹ lương"}
+                  symbol={state.discoveredConcepts.variableCapital ? "v" : "Tiền công"}
                   value={Math.round(last.v)}
                   prefix="$"
                   icon={Users}
@@ -229,36 +232,61 @@ function GameScreen() {
                   hint="Tiền lương công nhân"
                 />
               </StatTooltip>
-              <StatTooltip conceptKey="m">
+              <StatTooltip conceptKey="surplusValue">
                 <DashboardCard
-                  label="Giá trị thặng dư"
-                  symbol="m = V′ − v"
+                  label={
+                    state.discoveredConcepts.surplusValue ? "Giá trị thặng dư" : "Giá trị dôi ra"
+                  }
+                  symbol={
+                    state.discoveredConcepts.surplusValue ? "m = giá trị mới − v" : "Sau tiền lương"
+                  }
                   value={Math.round(last.m)}
                   prefix="$"
                   icon={TrendingUp}
                   tone="success"
-                  hint={`m′ = ${(last.exploitation * 100).toFixed(0)}%`}
+                  hint={
+                    state.discoveredConcepts.surplusRate
+                      ? `m′ = ${(last.exploitation * 100).toFixed(0)}%`
+                      : "So với quỹ lương"
+                  }
                 />
               </StatTooltip>
-              <StatTooltip conceptKey="pRate">
+              <StatTooltip conceptKey="profitRate">
                 <DashboardCard
-                  label="Tỷ suất lợi nhuận"
-                  symbol="p′ = m/(c+v)"
+                  label={
+                    state.discoveredConcepts.profitRate ? "Tỷ suất lợi nhuận" : "Hiệu suất tổng vốn"
+                  }
+                  symbol={state.discoveredConcepts.profitRate ? "p′ = m/(c+v)" : "Theo quý"}
                   value={+(last.profitRate * 100).toFixed(1)}
                   suffix="%"
                   decimals={1}
                   icon={Zap}
                   tone="gold"
-                  hint={`c/v = ${last.organic.toFixed(2)}`}
+                  hint={
+                    state.discoveredConcepts.organicComposition
+                      ? `c/v = ${last.organic.toFixed(2)}`
+                      : "Cơ cấu chi phí"
+                  }
                   flashOnDrop
                 />
               </StatTooltip>
             </div>
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              <ProfitChart data={profitTrend} currentTurn={state.turn} />
+              <ProfitChart
+                data={profitTrend}
+                currentTurn={state.turn}
+                unlocked={!!state.discoveredConcepts.profitRate}
+              />
 
-              <ChartCard title="Cơ cấu tư bản" hint="c : v : m">
+              <ChartCard
+                title={
+                  state.discoveredConcepts.organicComposition ? "Cơ cấu tư bản" : "Cơ cấu chi phí"
+                }
+                hint={
+                  state.discoveredConcepts.surplusValue ? "c : v : m" : "tư liệu : lương : dôi ra"
+                }
+              >
                 <ResponsiveContainer width="100%" height={110}>
                   <BarChart
                     data={capitalRatio}
@@ -282,9 +310,19 @@ function GameScreen() {
                   </BarChart>
                 </ResponsiveContainer>
                 <div className="mt-1 flex justify-around text-[10px] font-mono text-muted-foreground">
-                  <span><span className="text-[color:var(--info)]">■</span> c {capitalRatio[0].v}%</span>
-                  <span><span className="text-gold">■</span> v {capitalRatio[1].v}%</span>
-                  <span><span className="text-[color:var(--success)]">■</span> m {capitalRatio[2].v}%</span>
+                  <span>
+                    <span className="text-[color:var(--info)]">■</span>{" "}
+                    {state.discoveredConcepts.constantCapital ? "c" : "Tư liệu"} {capitalRatio[0].v}
+                    %
+                  </span>
+                  <span>
+                    <span className="text-gold">■</span>{" "}
+                    {state.discoveredConcepts.variableCapital ? "v" : "Lương"} {capitalRatio[1].v}%
+                  </span>
+                  <span>
+                    <span className="text-[color:var(--success)]">■</span>{" "}
+                    {state.discoveredConcepts.surplusValue ? "m" : "Dôi ra"} {capitalRatio[2].v}%
+                  </span>
                 </div>
               </ChartCard>
 
@@ -321,20 +359,24 @@ function GameScreen() {
             {/* Bottom log */}
             <div className="panel-industrial flex min-h-[190px] flex-col rounded-lg p-4">
               <div className="flex items-center justify-between gap-2">
-                <SectionTitle
-                  icon={<Clock className="h-3.5 w-3.5" />}
-                  label="Nhật ký · Codex"
-                />
+                <SectionTitle icon={<Clock className="h-3.5 w-3.5" />} label="Nhật ký · Codex" />
                 <div className="flex flex-wrap gap-1">
-                  {conceptChips.map((c) => (
-                    <button
-                      key={c.key}
-                      onClick={() => setCodex(c.key)}
-                      className="rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground transition hover:border-primary/60 hover:text-gold"
-                    >
-                      {c.label}
-                    </button>
-                  ))}
+                  {CONCEPT_KEYS.map((key) => {
+                    const unlocked = !!state.discoveredConcepts[key];
+                    return (
+                      <button
+                        key={key}
+                        disabled={!unlocked}
+                        onClick={() => {
+                          setCodex(key);
+                          setCodexOpen(true);
+                        }}
+                        className="rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground transition enabled:hover:border-primary/60 enabled:hover:text-gold disabled:opacity-35"
+                      >
+                        {unlocked ? CONCEPT_INFO[key].short : "?"}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div className="mt-3 flex-1 overflow-y-auto pr-1">
@@ -344,9 +386,7 @@ function GameScreen() {
                       key={i}
                       className="flex items-start gap-3 rounded border border-border/40 bg-panel-elevated/40 px-3 py-1.5 text-xs"
                     >
-                      <span className="font-mono text-[10px] text-muted-foreground">
-                        T{l.turn}
-                      </span>
+                      <span className="font-mono text-[10px] text-muted-foreground">T{l.turn}</span>
                       <LogIcon type={l.type} />
                       <span className="text-foreground">{l.text}</span>
                     </li>
@@ -357,7 +397,7 @@ function GameScreen() {
           </section>
 
           {/* RIGHT PANEL — Decisions */}
-          <section className="order-3 flex flex-col gap-3 lg:col-span-3 lg:min-h-0">
+          <section className="order-3 flex min-w-0 flex-col gap-3 lg:col-span-3 lg:min-h-0">
             <div className="panel-industrial rounded-lg p-4">
               <SectionTitle
                 icon={<Info className="h-3.5 w-3.5" />}
@@ -373,7 +413,13 @@ function GameScreen() {
               {(Object.keys(ACTIONS) as ActionId[]).map((id) => {
                 const act = ACTIONS[id];
                 const cost = act.cost(state);
-                const disabled = usedActions.has(id) || !act.canApply(state);
+                const disabled =
+                  usedActions.has(id) ||
+                  usedActions.size >= MAX_ACTIONS_PER_TURN ||
+                  presentationQueue.length > 0 ||
+                  !!state.pendingEvent ||
+                  !!state.ending ||
+                  !act.canApply(state);
                 return (
                   <HoverCard key={id} openDelay={250} closeDelay={80}>
                     <HoverCardTrigger asChild>
@@ -399,21 +445,20 @@ function GameScreen() {
                 );
               })}
             </div>
-            <EndTurnButton
-              onEnd={() => {
-                endQuarter();
-                setSummary(true);
-              }}
-            />
+            <EndTurnButton onEnd={endQuarter} />
           </section>
         </div>
 
         {/* Codex FAB (mobile only) */}
         <button
-          onClick={() => setCodex("m")}
+          onClick={() => {
+            setCodexOpen(true);
+            const first = CONCEPT_KEYS.find((key) => state.discoveredConcepts[key]);
+            setCodex(first ?? null);
+          }}
           className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 rounded-full border border-primary bg-[oklch(0.2_0.02_60)] px-4 py-2 font-mono text-xs text-gold shadow-lg lg:hidden"
         >
-          📚 5/15
+          <BookOpen className="h-3.5 w-3.5" /> {discoveredCount}/15
         </button>
 
         <div className="fixed bottom-3 right-3 z-40 hidden gap-2 rounded-md border border-border bg-panel/80 p-1.5 font-mono text-[10px] backdrop-blur lg:flex">
@@ -431,22 +476,10 @@ function GameScreen() {
           >
             Ending: Phá sản
           </Link>
-          <button
-            onClick={() =>
-              showAchievement({
-                title: "🏆 Nhà tư bản máu lạnh — m′ vượt 200%!",
-                description: "Bạn đã đạt mức bóc lột lịch sử",
-                conceptName: "Giá trị thặng dư",
-              })
-            }
-            className="rounded bg-primary/20 px-2 py-0.5 text-gold hover:bg-primary/30"
-          >
-            Demo toast
-          </button>
         </div>
 
         <EventModal
-          open={!!state.pendingEvent}
+          open={presentationQueue.length === 0 && !!state.pendingEvent}
           onClose={() => {}}
           title={state.pendingEvent?.title ?? ""}
           description={state.pendingEvent?.description ?? ""}
@@ -460,31 +493,74 @@ function GameScreen() {
           }
           onChoose={(i) => resolveEvent(i)}
         />
-        <ConceptModal open={concept} onClose={() => setConcept(false)} />
+        <ConceptModal
+          open={activePresentation?.kind === "eureka"}
+          onClose={dismissPresentation}
+          discovery={eurekaDiscovery}
+        />
         <CodexPanel
-          open={!!codex}
+          open={codexOpen}
           conceptKey={codex}
-          onClose={() => setCodex(null)}
-          discoveredAt={codex ? discovered[codex] : undefined}
+          onSelect={setCodex}
+          onClose={() => setCodexOpen(false)}
         />
         <TurnSummaryModal
-          open={summary && !state.pendingEvent}
-          onClose={() => setSummary(false)}
-          title={`Kết thúc quý — Lượt ${state.turn} / 24`}
+          open={activePresentation?.kind === "summary"}
+          onClose={dismissPresentation}
+          title={`Kết thúc quý — Lượt ${summaryRecord?.turn ?? state.turn} / 24`}
           rows={[
-            { label: "Doanh thu W", value: `+ $${Math.round(last.W).toLocaleString("vi-VN")}`, tone: "up" },
-            { label: "Bất biến c", value: `− $${Math.round(last.c).toLocaleString("vi-VN")}`, tone: "down" },
-            { label: "Khả biến v", value: `− $${Math.round(last.v).toLocaleString("vi-VN")}`, tone: "down" },
+            {
+              label: "Doanh thu W",
+              value: `+ $${Math.round(displayRecord.W).toLocaleString("vi-VN")}`,
+              tone: "up",
+            },
+            {
+              label: state.discoveredConcepts.constantCapital ? "Bất biến c" : "Chi phí tư liệu",
+              value: `− $${Math.round(displayRecord.c).toLocaleString("vi-VN")}`,
+              tone: "down",
+            },
+            {
+              label: state.discoveredConcepts.variableCapital ? "Khả biến v" : "Quỹ lương",
+              value: `− $${Math.round(displayRecord.v).toLocaleString("vi-VN")}`,
+              tone: "down",
+            },
             {
               label: "Lợi nhuận",
-              value: `${last.profit >= 0 ? "+" : "−"} $${Math.abs(Math.round(last.profit)).toLocaleString("vi-VN")}`,
-              tone: last.profit >= 0 ? "up" : "down",
+              value: `${displayRecord.profit >= 0 ? "+" : "−"} $${Math.abs(Math.round(displayRecord.profit)).toLocaleString("vi-VN")}`,
+              tone: displayRecord.profit >= 0 ? "up" : "down",
             },
-            { label: "p′ lý thuyết", value: `${(last.profitRate * 100).toFixed(1)}%`, tone: "warn" },
-            { label: "c/v", value: last.organic.toFixed(2), tone: "warn" },
-            { label: "Sức khoẻ", value: `${Math.round(state.health)}%`, tone: state.health >= 60 ? "up" : "down" },
-            { label: "Mâu thuẫn", value: `${Math.round(state.contradiction)}/100`, tone: "warn" },
+            {
+              label: state.discoveredConcepts.profitRate ? "p′ lý thuyết" : "Hiệu suất vốn",
+              value: `${(displayRecord.profitRate * 100).toFixed(1)}%`,
+              tone: "warn",
+            },
+            {
+              label: state.discoveredConcepts.organicComposition ? "c/v" : "Tỷ trọng tư liệu/lương",
+              value: displayRecord.organic.toFixed(2),
+              tone: "warn",
+            },
+            {
+              label: "Sức khoẻ",
+              value: `${Math.round(state.health)}%`,
+              tone: state.health >= 60 ? "up" : "down",
+            },
+            {
+              label: state.discoveredConcepts.capitalistContradiction
+                ? "Mâu thuẫn"
+                : "Áp lực xã hội",
+              value: `${Math.round(state.contradiction)}/100`,
+              tone: "warn",
+            },
           ]}
+        />
+        <EraRecapModal
+          open={activePresentation?.kind === "eraRecap"}
+          onClose={dismissPresentation}
+          startTurn={activePresentation?.kind === "eraRecap" ? activePresentation.startTurn : 1}
+          endTurn={activePresentation?.kind === "eraRecap" ? activePresentation.endTurn : 6}
+          conceptKeys={
+            activePresentation?.kind === "eraRecap" ? activePresentation.conceptKeys : []
+          }
         />
       </div>
     </div>
@@ -496,7 +572,9 @@ function roman(n: number) {
 }
 
 function SectionTitle({
-  icon, label, right,
+  icon,
+  label,
+  right,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -514,7 +592,10 @@ function SectionTitle({
 }
 
 function MiniStat({
-  label, value, mono, tone = "default",
+  label,
+  value,
+  mono,
+  tone = "default",
 }: {
   label: string;
   value: string;
@@ -532,7 +613,10 @@ function MiniStat({
 }
 
 function StatBar({
-  label, value, tone, icon,
+  label,
+  value,
+  tone,
+  icon,
 }: {
   label: string;
   value: number;
@@ -566,7 +650,9 @@ function StatBar({
 }
 
 function ChartCard({
-  title, hint, children,
+  title,
+  hint,
+  children,
 }: {
   title: string;
   hint: string;
@@ -586,7 +672,10 @@ function ChartCard({
 }
 
 function MarketCard({
-  label, value, unit, tone,
+  label,
+  value,
+  unit,
+  tone,
 }: {
   label: string;
   value: string;
@@ -617,7 +706,6 @@ function LogIcon({ type }: { type: string }) {
     return <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-[color:var(--contradiction)]" />;
   if (type === "concept")
     return <BookOpen className="h-3.5 w-3.5 shrink-0 text-[color:var(--info)]" />;
-  if (type === "decision")
-    return <ChevronRight className="h-3.5 w-3.5 shrink-0 text-gold" />;
+  if (type === "decision") return <ChevronRight className="h-3.5 w-3.5 shrink-0 text-gold" />;
   return <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />;
 }

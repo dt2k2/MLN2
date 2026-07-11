@@ -17,9 +17,11 @@ interface Row {
 export function ProfitChart({
   data,
   currentTurn,
+  unlocked,
 }: {
   data: { q: string; v: number; i: number }[];
   currentTurn: number;
+  unlocked: boolean;
 }) {
   const rows: Row[] = data.map((d, i) => ({
     ...d,
@@ -31,7 +33,7 @@ export function ProfitChart({
     <div className="panel-industrial rounded-lg p-3">
       <div className="flex items-center justify-between">
         <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Xu hướng p′
+          {unlocked ? "Xu hướng tỷ suất lợi nhuận p′" : "Xu hướng hiệu suất tổng vốn"}
         </div>
         <div className="font-mono text-[10px] text-muted-foreground/70">
           {last ? phaseFor(last.turn) : "—"}
@@ -63,7 +65,9 @@ export function ProfitChart({
                     <div className="text-muted-foreground">
                       Quý {p.turn} · <span className="text-gold">{phaseFor(p.turn)}</span>
                     </div>
-                    <div className="mt-0.5 text-gold">p′ = {p.v.toFixed(1)}%</div>
+                    <div className="mt-0.5 text-gold">
+                      {unlocked ? "p′" : "Hiệu suất"} = {p.v.toFixed(1)}%
+                    </div>
                   </div>
                 );
               }}

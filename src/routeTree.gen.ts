@@ -16,6 +16,7 @@ import { Route as EmptyRouteImport } from './routes/empty'
 import { Route as CreditsRouteImport } from './routes/credits'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EndingRevolutionRouteImport } from './routes/ending.revolution'
+import { Route as EndingOutcomeRouteImport } from './routes/ending.outcome'
 import { Route as EndingBankruptcyRouteImport } from './routes/ending.bankruptcy'
 
 const LeaderboardRoute = LeaderboardRouteImport.update({
@@ -53,6 +54,11 @@ const EndingRevolutionRoute = EndingRevolutionRouteImport.update({
   path: '/ending/revolution',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EndingOutcomeRoute = EndingOutcomeRouteImport.update({
+  id: '/ending/outcome',
+  path: '/ending/outcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EndingBankruptcyRoute = EndingBankruptcyRouteImport.update({
   id: '/ending/bankruptcy',
   path: '/ending/bankruptcy',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
   '/ending/bankruptcy': typeof EndingBankruptcyRoute
+  '/ending/outcome': typeof EndingOutcomeRoute
   '/ending/revolution': typeof EndingRevolutionRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
   '/ending/bankruptcy': typeof EndingBankruptcyRoute
+  '/ending/outcome': typeof EndingOutcomeRoute
   '/ending/revolution': typeof EndingRevolutionRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
   '/ending/bankruptcy': typeof EndingBankruptcyRoute
+  '/ending/outcome': typeof EndingOutcomeRoute
   '/ending/revolution': typeof EndingRevolutionRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/how-to-play'
     | '/leaderboard'
     | '/ending/bankruptcy'
+    | '/ending/outcome'
     | '/ending/revolution'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/how-to-play'
     | '/leaderboard'
     | '/ending/bankruptcy'
+    | '/ending/outcome'
     | '/ending/revolution'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/how-to-play'
     | '/leaderboard'
     | '/ending/bankruptcy'
+    | '/ending/outcome'
     | '/ending/revolution'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   HowToPlayRoute: typeof HowToPlayRoute
   LeaderboardRoute: typeof LeaderboardRoute
   EndingBankruptcyRoute: typeof EndingBankruptcyRoute
+  EndingOutcomeRoute: typeof EndingOutcomeRoute
   EndingRevolutionRoute: typeof EndingRevolutionRoute
 }
 
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EndingRevolutionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ending/outcome': {
+      id: '/ending/outcome'
+      path: '/ending/outcome'
+      fullPath: '/ending/outcome'
+      preLoaderRoute: typeof EndingOutcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ending/bankruptcy': {
       id: '/ending/bankruptcy'
       path: '/ending/bankruptcy'
@@ -203,8 +223,19 @@ const rootRouteChildren: RootRouteChildren = {
   HowToPlayRoute: HowToPlayRoute,
   LeaderboardRoute: LeaderboardRoute,
   EndingBankruptcyRoute: EndingBankruptcyRoute,
+  EndingOutcomeRoute: EndingOutcomeRoute,
   EndingRevolutionRoute: EndingRevolutionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

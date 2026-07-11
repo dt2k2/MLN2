@@ -27,13 +27,13 @@ export const ACTIONS: Record<ActionId, ActionMeta> = {
     preview: (s) => [
       { label: "Giờ", value: `→${Math.min(BAL.maxWorkHours, s.workHours + 2)}h`, tone: "up" },
       { label: "Sức khoẻ", value: "−", tone: "down" },
-      { label: "Mâu thuẫn", value: "+", tone: "warn" },
+      { label: "Áp lực xã hội", value: "+", tone: "warn" },
     ],
   },
   RAISE_WAGE: {
     id: "RAISE_WAGE",
     title: "Nâng tiền lương",
-    description: "Tăng v 10% để xoa dịu công nhân.",
+    description: "Tăng lương 10% để xoa dịu công nhân.",
     cost: (s) => Math.round(s.workersActive * s.wagePerWorker * 0.1),
     canApply: () => true,
     apply: (s) => {
@@ -42,22 +42,22 @@ export const ACTIONS: Record<ActionId, ActionMeta> = {
     },
     preview: () => [
       { label: "Tinh thần", value: "+", tone: "up" },
-      { label: "p′", value: "−", tone: "down" },
+      { label: "Hiệu suất vốn", value: "−", tone: "down" },
     ],
   },
   BUY_MACHINE: {
     id: "BUY_MACHINE",
     title: "Mua máy móc",
-    description: "Tăng năng suất, tăng c (cấu tạo hữu cơ tăng).",
+    description: "Tăng năng suất bằng một máy dệt mới.",
     cost: () => BAL.machinePrice,
-    canApply: (s) => s.cash + s.debt < 200000,
+    canApply: (s) => s.cash >= BAL.machinePrice,
     apply: (s) => {
       s.cash -= BAL.machinePrice;
       s.machines += 1;
     },
     preview: () => [
       { label: "Sản lượng", value: "+", tone: "up" },
-      { label: "c/v", value: "↑", tone: "warn" },
+      { label: "Tỷ trọng máy", value: "↑", tone: "warn" },
     ],
   },
   EXPAND_FACTORY: {
@@ -65,7 +65,7 @@ export const ACTIONS: Record<ActionId, ActionMeta> = {
     title: "Mở rộng xưởng",
     description: "Xây phân xưởng mới, +20 công nhân.",
     cost: () => 32000,
-    canApply: () => true,
+    canApply: (s) => s.cash >= 32000,
     apply: (s) => {
       s.cash -= 32000;
       s.workersActive += 20;
@@ -90,8 +90,8 @@ export const ACTIONS: Record<ActionId, ActionMeta> = {
       s.contradiction = clamp(s.contradiction + 2);
     },
     preview: () => [
-      { label: "v", value: "−", tone: "up" },
-      { label: "Mâu thuẫn", value: "+", tone: "warn" },
+      { label: "Quỹ lương", value: "−", tone: "up" },
+      { label: "Áp lực xã hội", value: "+", tone: "warn" },
     ],
   },
   BORROW: {
@@ -99,7 +99,7 @@ export const ACTIONS: Record<ActionId, ActionMeta> = {
     title: "Vay tư bản",
     description: `Vay ngân hàng ${BAL.loanRate * 100}% / quý.`,
     cost: () => 0,
-    canApply: (s) => s.debt < 100000,
+    canApply: (s) => s.debt + BAL.loanUnit <= BAL.maxDebt,
     apply: (s) => {
       s.cash += BAL.loanUnit;
       s.debt += BAL.loanUnit;

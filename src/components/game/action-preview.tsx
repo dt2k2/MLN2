@@ -5,7 +5,13 @@ import { ACTIONS } from "@/game/actions";
 import { computeQuarter } from "@/game/engine/laws";
 import type { ActionId, GameState } from "@/game/types";
 
-type Metric = { key: string; label: string; before: number; after: number; kind: "money" | "pct" | "num" };
+type Metric = {
+  key: string;
+  label: string;
+  before: number;
+  after: number;
+  kind: "money" | "pct" | "num";
+};
 
 function fmt(n: number, kind: Metric["kind"]) {
   if (kind === "pct") return `${(n * 100).toFixed(1)}%`;
@@ -22,13 +28,19 @@ export function ActionPreview({ state, actionId }: { state: GameState; actionId:
       const before = state.last;
       const after = computeQuarter(next);
       return [
-        { key: "c", label: "c", before: before.c, after: after.c, kind: "money" },
-        { key: "v", label: "v", before: before.v, after: after.v, kind: "money" },
-        { key: "m", label: "m", before: before.m, after: after.m, kind: "money" },
-        { key: "p", label: "p′", before: before.profitRate, after: after.profitRate, kind: "pct" },
+        { key: "c", label: "Tư liệu", before: before.c, after: after.c, kind: "money" },
+        { key: "v", label: "Lương", before: before.v, after: after.v, kind: "money" },
+        { key: "m", label: "Dôi ra", before: before.m, after: after.m, kind: "money" },
+        {
+          key: "p",
+          label: "Hiệu suất",
+          before: before.profitRate,
+          after: after.profitRate,
+          kind: "pct",
+        },
         {
           key: "k",
-          label: "K",
+          label: "Xã hội",
           before: state.contradiction,
           after: next.contradiction,
           kind: "num",

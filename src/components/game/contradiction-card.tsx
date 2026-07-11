@@ -3,18 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle } from "lucide-react";
 import { StatTooltip } from "./stat-tooltip";
 import { showWarning } from "./achievement-toast";
+import { useGameStore } from "@/game/state";
 
-export function ContradictionCard({
-  value,
-  unrest,
-}: {
-  value: number;
-  unrest: number;
-}) {
+export function ContradictionCard({ value, unrest }: { value: number; unrest: number }) {
   const prev = useRef(value);
+  const unlocked = useGameStore(
+    (store) => !!store.state.discoveredConcepts.capitalistContradiction,
+  );
   useEffect(() => {
     if (prev.current < 75 && value >= 75 && value < 100) {
-      showWarning("⚠️ Nguy hiểm — Mâu thuẫn đang leo thang!");
+      showWarning("Áp lực xã hội đang leo thang đến mức nguy hiểm.");
     }
     prev.current = value;
   }, [value]);
@@ -24,7 +22,7 @@ export function ContradictionCard({
 
   return (
     <>
-      <StatTooltip conceptKey="contradiction">
+      <StatTooltip conceptKey="capitalistContradiction">
         <div
           className={`panel-industrial relative rounded-lg p-3 transition-colors ${
             danger ? "border-destructive/70 pulse-danger" : ""
@@ -32,7 +30,7 @@ export function ContradictionCard({
         >
           <div className="flex items-center justify-between">
             <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Mâu thuẫn giai cấp
+              {unlocked ? "Mâu thuẫn cơ bản" : "Áp lực xã hội"}
             </div>
             <div className="font-mono text-[10px] text-muted-foreground/70">Ngưỡng · 100</div>
           </div>
@@ -52,7 +50,7 @@ export function ContradictionCard({
             </div>
             <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
               <AlertTriangle className="h-3 w-3 text-[color:var(--contradiction)]" />
-              Unrest hiện tại: {Math.round(unrest)}
+              Bất ổn hiện tại: {Math.round(unrest)}
             </div>
           </div>
         </div>
