@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as IntroRouteImport } from './routes/intro'
 import { Route as HowToPlayRouteImport } from './routes/how-to-play'
 import { Route as GameRouteImport } from './routes/game'
 import { Route as EmptyRouteImport } from './routes/empty'
@@ -22,6 +23,11 @@ import { Route as EndingBankruptcyRouteImport } from './routes/ending.bankruptcy
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntroRoute = IntroRouteImport.update({
+  id: '/intro',
+  path: '/intro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HowToPlayRoute = HowToPlayRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/empty': typeof EmptyRoute
   '/game': typeof GameRoute
   '/how-to-play': typeof HowToPlayRoute
+  '/intro': typeof IntroRoute
   '/leaderboard': typeof LeaderboardRoute
   '/ending/bankruptcy': typeof EndingBankruptcyRoute
   '/ending/outcome': typeof EndingOutcomeRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/empty': typeof EmptyRoute
   '/game': typeof GameRoute
   '/how-to-play': typeof HowToPlayRoute
+  '/intro': typeof IntroRoute
   '/leaderboard': typeof LeaderboardRoute
   '/ending/bankruptcy': typeof EndingBankruptcyRoute
   '/ending/outcome': typeof EndingOutcomeRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/empty': typeof EmptyRoute
   '/game': typeof GameRoute
   '/how-to-play': typeof HowToPlayRoute
+  '/intro': typeof IntroRoute
   '/leaderboard': typeof LeaderboardRoute
   '/ending/bankruptcy': typeof EndingBankruptcyRoute
   '/ending/outcome': typeof EndingOutcomeRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/empty'
     | '/game'
     | '/how-to-play'
+    | '/intro'
     | '/leaderboard'
     | '/ending/bankruptcy'
     | '/ending/outcome'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/empty'
     | '/game'
     | '/how-to-play'
+    | '/intro'
     | '/leaderboard'
     | '/ending/bankruptcy'
     | '/ending/outcome'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/empty'
     | '/game'
     | '/how-to-play'
+    | '/intro'
     | '/leaderboard'
     | '/ending/bankruptcy'
     | '/ending/outcome'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   EmptyRoute: typeof EmptyRoute
   GameRoute: typeof GameRoute
   HowToPlayRoute: typeof HowToPlayRoute
+  IntroRoute: typeof IntroRoute
   LeaderboardRoute: typeof LeaderboardRoute
   EndingBankruptcyRoute: typeof EndingBankruptcyRoute
   EndingOutcomeRoute: typeof EndingOutcomeRoute
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/intro': {
+      id: '/intro'
+      path: '/intro'
+      fullPath: '/intro'
+      preLoaderRoute: typeof IntroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/how-to-play': {
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmptyRoute: EmptyRoute,
   GameRoute: GameRoute,
   HowToPlayRoute: HowToPlayRoute,
+  IntroRoute: IntroRoute,
   LeaderboardRoute: LeaderboardRoute,
   EndingBankruptcyRoute: EndingBankruptcyRoute,
   EndingOutcomeRoute: EndingOutcomeRoute,
