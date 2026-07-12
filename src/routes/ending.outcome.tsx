@@ -45,7 +45,7 @@ export const Route = createFileRoute("/ending/outcome")({
 
 function OutcomeEnding() {
   const { result } = Route.useSearch();
-  const outcome = OUTCOMES[result];
+  const outcome = OUTCOMES[result as keyof typeof OUTCOMES];
   const Icon = outcome.Icon;
   const reset = useGameStore((store) => store.reset);
 
