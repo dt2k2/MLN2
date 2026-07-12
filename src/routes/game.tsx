@@ -218,28 +218,24 @@ function GameScreen() {
 
           {/* CENTER PANEL */}
           <section className="order-2 flex min-w-0 flex-col gap-3 lg:col-span-6 lg:min-h-0">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
               <StatTooltip conceptKey="constantCapital">
                 <DashboardCard
                   label={
                     state.discoveredConcepts.constantCapital ? "Tư bản bất biến" : "Chi phí tư liệu"
                   }
-                  symbol={state.discoveredConcepts.constantCapital ? "c" : "Máy + vật liệu"}
+                  symbol={state.discoveredConcepts.constantCapital ? "c" : undefined}
                   value={Math.round(last.c)}
                   prefix="$"
                   icon={Cog}
                   tone="info"
-                  hint={
-                    state.discoveredConcepts.constantCapital
-                      ? "Máy móc + nguyên liệu"
-                      : "Chi phí sản xuất"
-                  }
+                  hint="Máy + nguyên liệu"
                 />
               </StatTooltip>
               <StatTooltip conceptKey="variableCapital">
                 <DashboardCard
                   label={state.discoveredConcepts.variableCapital ? "Tư bản khả biến" : "Quỹ lương"}
-                  symbol={state.discoveredConcepts.variableCapital ? "v" : "Tiền công"}
+                  symbol={state.discoveredConcepts.variableCapital ? "v" : undefined}
                   value={Math.round(last.v)}
                   prefix="$"
                   icon={Users}
@@ -252,9 +248,7 @@ function GameScreen() {
                   label={
                     state.discoveredConcepts.surplusValue ? "Giá trị thặng dư" : "Giá trị dôi ra"
                   }
-                  symbol={
-                    state.discoveredConcepts.surplusValue ? "m = giá trị mới − v" : "Sau tiền lương"
-                  }
+                  symbol={state.discoveredConcepts.surplusValue ? "m" : undefined}
                   value={Math.round(last.m)}
                   prefix="$"
                   icon={TrendingUp}
@@ -269,9 +263,9 @@ function GameScreen() {
               <StatTooltip conceptKey="profitRate">
                 <DashboardCard
                   label={
-                    state.discoveredConcepts.profitRate ? "Tỷ suất lợi nhuận" : "Hiệu suất tổng vốn"
+                    state.discoveredConcepts.profitRate ? "Tỷ suất lợi nhuận" : "Hiệu suất vốn"
                   }
-                  symbol={state.discoveredConcepts.profitRate ? "p′ = m/(c+v)" : "Theo quý"}
+                  symbol={state.discoveredConcepts.profitRate ? "p′" : undefined}
                   value={+(last.profitRate * 100).toFixed(1)}
                   suffix="%"
                   decimals={1}
