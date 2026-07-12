@@ -20,6 +20,20 @@ import type {
 } from "./types";
 
 export const MAX_DECISION_GROUPS_PER_TURN = 3;
+export const MAX_OWNER_SIGNALS = 4;
+export const OWNER_SIGNAL_LIFETIME = 4;
+
+function appendOwnerSignal(
+  state: GameState,
+  signal: GameState["ownerSignals"][number] | undefined,
+) {
+  const recent = state.ownerSignals.filter(
+    (item) => state.turn - item.turn <= OWNER_SIGNAL_LIFETIME,
+  );
+  state.ownerSignals = signal
+    ? [...recent, signal].slice(-MAX_OWNER_SIGNALS)
+    : recent.slice(-MAX_OWNER_SIGNALS);
+}
 
 const ACHIEVEMENT_BY_CONCEPT: Partial<Record<ConceptKey, AchievementId>> = {
   surplusRate: "surplus-rate",
@@ -124,6 +138,7 @@ export function initialState(seed = Date.now() & 0xffff): GameState {
     activeEffects: [],
     eventHistory: {},
     seenStoryIds: {},
+    ownerSignals: [],
     history: [],
     log: [
       {
@@ -255,6 +270,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const previous = store.state;
     const next = produce(previous, (draft) => {
       decision.apply(draft);
+      const stance =
+        typeof decision.ownerStance === "function"
+          ? decision.ownerStance(previous, draft as GameState)
+          : decision.ownerStance;
+      appendOwnerSignal(
+        draft,
+        stance ? { turn: draft.turn, stance, source: `decision:${decision.id}` } : undefined,
+      );
       draft.log.unshift({
         turn: draft.turn,
         type: "decision",
@@ -290,6 +313,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const advanced = produce(store.state, (draft) => {
       advanceQuarter(draft);
+      appendOwnerSignal(draft, undefined);
     });
     const registered = registerDiscoveries(advanced, checkQuarterDiscoveries(advanced));
     const completedTurn = registered.state.history.at(-1)?.turn ?? store.state.turn;
@@ -349,6 +373,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (!draft.pendingEvent) return;
       const eventTitle = draft.pendingEvent.title;
       choice.apply(draft);
+      appendOwnerSignal(
+        draft,
+        choice.ownerStance
+          ? {
+              turn: draft.turn,
+              stance: choice.ownerStance,
+              source: `event:${draft.pendingEvent.id}:${choiceIndex}`,
+            }
+          : undefined,
+      );
       draft.log.unshift({
         turn: draft.turn,
         type: "decision",

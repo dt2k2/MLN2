@@ -55,6 +55,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Thu hồi và dệt lại",
+          ownerStance: "pragmatic",
           tone: "accept",
           previewLabel: "Chi $2.000 · giữ uy tín",
           canChoose: (state) => state.cash >= 2_000,
@@ -66,6 +67,7 @@ export const EVENTS: EventDef[] = [
         },
         {
           label: "Bán hạ giá",
+          ownerStance: "pragmatic",
           tone: "refuse",
           previewLabel: "Thu $1.000 · cầu quý sau −8%",
           apply: (state) => {
@@ -88,6 +90,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Tăng lương 5%",
+          ownerStance: "reformist",
           tone: "accept",
           previewLabel: "Lương +5% · bất ổn −7",
           apply: (state) => {
@@ -97,6 +100,7 @@ export const EVENTS: EventDef[] = [
         },
         {
           label: "Bác thỉnh nguyện",
+          ownerStance: "coercive",
           tone: "refuse",
           previewLabel: "Bất ổn +7",
           apply: (state) => {
@@ -118,6 +122,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Nhận đơn hàng",
+          ownerStance: "expansionist",
           tone: "accept",
           previewLabel: "Cầu quý sau +25% · sức khỏe −3",
           apply: (state) => {
@@ -127,6 +132,7 @@ export const EVENTS: EventDef[] = [
         },
         {
           label: "Giữ đơn hàng dân sự",
+          ownerStance: "pragmatic",
           tone: "refuse",
           previewLabel: "Không đổi",
           apply: noChange,
@@ -146,6 +152,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Mua máy với giá $12.000",
+          ownerStance: "expansionist",
           tone: "accept",
           previewLabel: "Máy +1 · tiền mặt −$12.000",
           canChoose: (state) => state.cash >= 12_000,
@@ -154,7 +161,13 @@ export const EVENTS: EventDef[] = [
             buyMachine(state, 12_000);
           },
         },
-        { label: "Từ chối", tone: "refuse", previewLabel: "Không đổi", apply: noChange },
+        {
+          label: "Từ chối",
+          tone: "refuse",
+          ownerStance: "pragmatic",
+          previewLabel: "Không đổi",
+          apply: noChange,
+        },
       ],
     }),
   },
@@ -170,6 +183,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Cho phép thanh tra",
+          ownerStance: "reformist",
           tone: "accept",
           previewLabel: "Chi $2.500 · sức khỏe +5 · mâu thuẫn −3",
           canChoose: (state) => state.cash >= 2_500,
@@ -182,6 +196,7 @@ export const EVENTS: EventDef[] = [
         },
         {
           label: "Đóng cổng xưởng",
+          ownerStance: "coercive",
           tone: "refuse",
           previewLabel: "Bất ổn +8 · mâu thuẫn +4",
           apply: (state) => {
@@ -204,6 +219,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Mua hợp đồng bảo hiểm",
+          ownerStance: "pragmatic",
           tone: "accept",
           previewLabel: "Chi $5.000 · nguyên liệu +10% trong 2 quý",
           canChoose: (state) => state.cash >= 5_000,
@@ -215,6 +231,7 @@ export const EVENTS: EventDef[] = [
         },
         {
           label: "Mua theo giá thị trường",
+          ownerStance: "speculative",
           tone: "refuse",
           previewLabel: "Nguyên liệu +40% trong 2 quý",
           apply: (state) =>
@@ -235,6 +252,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Công nhận đại diện",
+          ownerStance: "reformist",
           tone: "accept",
           previewLabel: "Lương +3% · bất ổn −8",
           apply: (state) => {
@@ -244,6 +262,7 @@ export const EVENTS: EventDef[] = [
         },
         {
           label: "Sa thải ban tổ chức",
+          ownerStance: "coercive",
           tone: "refuse",
           previewLabel: "4 người mất việc · mâu thuẫn +9",
           apply: (state) => {
@@ -267,6 +286,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Thương lượng",
+          ownerStance: "reformist",
           tone: "accept",
           previewLabel: "Lương +7% · sản lượng quý sau −20%",
           apply: (state) => {
@@ -277,6 +297,7 @@ export const EVENTS: EventDef[] = [
         },
         {
           label: "Đối đầu",
+          ownerStance: "coercive",
           tone: "refuse",
           previewLabel: "Sản lượng quý sau −55% · mâu thuẫn +10",
           apply: (state) => {
@@ -299,6 +320,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Thi hành và cải thiện an toàn",
+          ownerStance: "reformist",
           tone: "accept",
           previewLabel: "Trần 12 giờ · chi $3.000 · sức khỏe +6",
           canChoose: (state) => state.cash >= 3_000,
@@ -312,6 +334,7 @@ export const EVENTS: EventDef[] = [
         },
         {
           label: "Chỉ tuân thủ tối thiểu",
+          ownerStance: "coercive",
           tone: "refuse",
           previewLabel: "Trần 12 giờ · bất ổn +3",
           apply: (state) => {
@@ -335,6 +358,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Hạ giá cạnh tranh",
+          ownerStance: "speculative",
           tone: "accept",
           previewLabel: "Cầu của xưởng −10% trong 2 quý",
           apply: (state) =>
@@ -342,6 +366,7 @@ export const EVENTS: EventDef[] = [
         },
         {
           label: "Giữ biên lợi nhuận",
+          ownerStance: "pragmatic",
           tone: "refuse",
           previewLabel: "Cầu của xưởng −25% trong 2 quý",
           apply: (state) =>
@@ -365,6 +390,7 @@ export const EVENTS: EventDef[] = [
         choices: [
           {
             label: "Bán máy và trả nợ",
+            ownerStance: "pragmatic",
             tone: "accept",
             previewLabel: `Máy −1 · nợ −$${demanded.toLocaleString("en-US")}`,
             canChoose: (current) =>
@@ -378,6 +404,7 @@ export const EVENTS: EventDef[] = [
           },
           {
             label: "Tái cơ cấu khoản vay",
+            ownerStance: "speculative",
             tone: "refuse",
             previewLabel: "Nợ +$2.000 · lãi suất gấp đôi trong 2 quý",
             apply: (current) => {
@@ -409,6 +436,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Chấp nhận sáp nhập",
+          ownerStance: "speculative",
           tone: "accept",
           previewLabel: "Kết thúc: tập trung tư bản",
           apply: (state) => {
@@ -417,6 +445,7 @@ export const EVENTS: EventDef[] = [
         },
         {
           label: "Giữ độc lập",
+          ownerStance: "pragmatic",
           tone: "refuse",
           previewLabel: "Cầu −15% trong 2 quý",
           apply: (state) =>
@@ -440,6 +469,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Cắt sản xuất có kế hoạch",
+          ownerStance: "pragmatic",
           tone: "accept",
           previewLabel: "Sản lượng −30% trong 2 quý · cầu ổn định hơn",
           apply: (state) =>
@@ -454,6 +484,7 @@ export const EVENTS: EventDef[] = [
         },
         {
           label: "Tiếp tục tranh thị phần",
+          ownerStance: "expansionist",
           tone: "refuse",
           previewLabel: "Cầu −25% trong 2 quý · mâu thuẫn +6",
           apply: (state) => {
@@ -477,6 +508,7 @@ export const EVENTS: EventDef[] = [
       choices: [
         {
           label: "Mở quỹ cứu trợ",
+          ownerStance: "reformist",
           tone: "accept",
           previewLabel: "Chi $6.000 · bất ổn −15",
           canChoose: (state) => state.cash >= 6_000,
@@ -488,6 +520,7 @@ export const EVENTS: EventDef[] = [
         },
         {
           label: "Yêu cầu trấn áp",
+          ownerStance: "coercive",
           tone: "refuse",
           previewLabel: "Bất ổn +10 · mâu thuẫn +12",
           apply: (state) => {

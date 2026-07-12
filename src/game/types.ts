@@ -21,6 +21,14 @@ export type DecisionOptionId =
 
 export type GamePhase = 1 | 2 | 3 | 4;
 
+export type OwnerStance = "pragmatic" | "reformist" | "coercive" | "speculative" | "expansionist";
+
+export interface OwnerSignal {
+  turn: number;
+  stance: OwnerStance;
+  source: string;
+}
+
 export type ConceptKey =
   | "commodity"
   | "socialLabor"
@@ -175,6 +183,7 @@ export interface EventChoice {
   previewLabel: string;
   canChoose?: (s: GameState) => boolean;
   disabledReason?: string;
+  ownerStance?: OwnerStance;
 }
 
 export interface EventOccurrence {
@@ -240,6 +249,7 @@ export interface GameState {
   activeEffects: TimedEffect[];
   eventHistory: Record<string, EventHistoryEntry>;
   seenStoryIds: Record<string, true>;
+  ownerSignals: OwnerSignal[];
 
   history: QuarterRecord[];
   log: LogEntry[];

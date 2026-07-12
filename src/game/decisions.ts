@@ -1,7 +1,7 @@
 import { BAL } from "./balance";
 import { adjustWage, buyMachine, hireWorkers, layoffWorkers, sellMachine } from "./economy";
 import { effectiveWorkHoursCap } from "./engine/effects";
-import type { DecisionGroupId, DecisionOptionId, GameState } from "./types";
+import type { DecisionGroupId, DecisionOptionId, GameState, OwnerStance } from "./types";
 
 export interface DecisionOption {
   id: DecisionOptionId;
@@ -11,6 +11,7 @@ export interface DecisionOption {
   canApply: (state: GameState) => boolean;
   disabledReason: (state: GameState) => string;
   apply: (state: GameState) => void;
+  ownerStance?: OwnerStance | ((previous: GameState, next: GameState) => OwnerStance);
 }
 
 const allowed = () => true;
@@ -56,6 +57,7 @@ function repaymentOption(
       state.cash -= paid;
       state.debt -= paid;
     },
+    ownerStance: "pragmatic",
   };
 }
 
@@ -73,6 +75,8 @@ function reinvestmentOption(
     apply: (state) => {
       state.reinvestmentRate = rate;
     },
+    ownerStance: (previous, next) =>
+      next.reinvestmentRate > previous.reinvestmentRate ? "expansionist" : "pragmatic",
   };
 }
 
@@ -89,6 +93,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
       state.health = Math.min(100, state.health + 5);
       state.unrest = Math.max(0, state.unrest - 4);
     },
+    ownerStance: "reformist",
   },
   EXTEND_HOURS: {
     id: "EXTEND_HOURS",
@@ -104,6 +109,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
       state.health = Math.max(0, state.health - 4);
       state.unrest = Math.min(100, state.unrest + 5);
     },
+    ownerStance: "coercive",
   },
   RAISE_WAGE: {
     id: "RAISE_WAGE",
@@ -117,6 +123,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
       state.health = Math.min(100, state.health + 3);
       state.unrest = Math.max(0, state.unrest - 5);
     },
+    ownerStance: "reformist",
   },
   CUT_WAGE: {
     id: "CUT_WAGE",
@@ -130,6 +137,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
       state.health = Math.max(0, state.health - 3);
       state.unrest = Math.min(100, state.unrest + 6);
     },
+    ownerStance: "coercive",
   },
   HIRE_WORKERS: {
     id: "HIRE_WORKERS",
@@ -141,6 +149,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
     apply: (state) => {
       hireWorkers(state, BAL.staffingUnit);
     },
+    ownerStance: "reformist",
   },
   LAYOFF: {
     id: "LAYOFF",
@@ -153,6 +162,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
       layoffWorkers(state, BAL.staffingUnit);
       state.unrest = Math.min(100, state.unrest + 8);
     },
+    ownerStance: "coercive",
   },
   BUY_MACHINE: {
     id: "BUY_MACHINE",
@@ -164,6 +174,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
     apply: (state) => {
       buyMachine(state);
     },
+    ownerStance: "expansionist",
   },
   SELL_MACHINE: {
     id: "SELL_MACHINE",
@@ -175,6 +186,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
     apply: (state) => {
       sellMachine(state);
     },
+    ownerStance: "pragmatic",
   },
   REINVEST_25: reinvestmentOption("REINVEST_25", 0.25),
   REINVEST_50: reinvestmentOption("REINVEST_50", 0.5),
@@ -191,6 +203,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
       state.cash += BAL.loanUnit;
       state.debt += BAL.loanUnit;
     },
+    ownerStance: "speculative",
   },
   REPAY_5000: repaymentOption("REPAY_5000", 5_000),
   REPAY_15000: repaymentOption("REPAY_15000", 15_000),
