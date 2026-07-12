@@ -16,9 +16,11 @@ const PHASE_TONE: Record<ScalePhase, string> = {
 export function HistoricalScale({
   state,
   variant = "card",
+  fill = false,
 }: {
   state: GameState;
   variant?: "card" | "hero";
+  fill?: boolean;
 }) {
   const r = readScale(state);
   const stableCrack = useRef(0);
@@ -47,10 +49,13 @@ export function HistoricalScale({
   const isExploitation = r.phase === "exploitation";
 
   return (
-    <StatTooltip conceptKey="capitalistContradiction">
+    <StatTooltip
+      conceptKey="capitalistContradiction"
+      className={fill ? "min-h-[140px] flex-1" : "h-auto shrink-0"}
+    >
       <div
         className={`panel-industrial relative overflow-hidden rounded-lg transition-colors ${
-          isHero ? "p-4 flex-1 flex flex-col" : "p-3"
+          isHero ? "flex flex-1 flex-col p-4" : fill ? "flex h-full flex-col p-3" : "p-3"
         } ${isRupture ? "pulse-danger border-destructive/70" : ""}`}
         role="img"
         aria-label={`Cán cân lịch sử: ${r.phaseLabel}. Tư bản ${Math.round(r.capital)}, Lao động ${Math.round(r.labor)}, Thị trường ${Math.round(r.market)}.`}
@@ -104,11 +109,15 @@ export function HistoricalScale({
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className={`relative z-10 mt-1 flex ${isHero ? "flex-1 items-center" : "items-center"} justify-center`}
+          className={`relative z-10 mt-1 flex ${
+            isHero || fill ? "min-h-0 flex-1 items-center" : "items-center"
+          } justify-center`}
         >
           <svg
             viewBox={isHero ? "0 0 240 220" : "0 0 200 110"}
-            className={`w-full ${isHero ? "h-full min-h-[240px]" : "h-[110px]"}`}
+            className={`w-full ${
+              isHero ? "h-full min-h-[240px]" : fill ? "h-full min-h-[110px]" : "h-[110px]"
+            }`}
           >
             <defs>
               <linearGradient id="hs-sky" x1="0" y1="0" x2="0" y2="1">

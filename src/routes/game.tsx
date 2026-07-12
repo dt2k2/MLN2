@@ -172,8 +172,8 @@ function GameScreen() {
           {/* LEFT PANEL — Factory (below fold on mobile) */}
           <section className="order-4 flex min-w-0 flex-col gap-3 lg:order-1 lg:col-span-3 lg:min-h-0">
             <HeinrichPortrait state={state} />
-            <HistoricalScale state={state} variant="card" />
-            <div className="panel-industrial flex flex-1 flex-col rounded-lg p-4">
+            <HistoricalScale state={state} variant="card" fill />
+            <div className="panel-industrial flex shrink-0 flex-col rounded-lg p-4">
               <SectionTitle icon={<Users className="h-3.5 w-3.5" />} label="Lực lượng lao động" />
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <MiniStat label="Công nhân" value={String(state.workersActive)} mono />
@@ -385,7 +385,7 @@ function GameScreen() {
             </div>
 
             {/* Bottom log */}
-            <div className="panel-industrial flex min-h-[190px] flex-col rounded-lg p-4">
+            <div className="panel-industrial flex min-h-[190px] flex-1 flex-col rounded-lg p-4">
               <SectionTitle icon={<Clock className="h-3.5 w-3.5" />} label="Nhật ký · Codex" />
               <div className="mt-2 -mx-1 flex gap-1 overflow-x-auto px-1 pb-1">
                 {CONCEPT_KEYS.map((key) => {

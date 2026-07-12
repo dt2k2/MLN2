@@ -6,9 +6,11 @@ import type { ConceptKey } from "@/game/types";
 export function StatTooltip({
   conceptKey,
   children,
+  className,
 }: {
   conceptKey: ConceptKey;
   children: React.ReactNode;
+  className?: string;
 }) {
   const state = useGameStore((s) => s.state);
   const info = CONCEPT_INFO[conceptKey];
@@ -16,7 +18,7 @@ export function StatTooltip({
   return (
     <Tooltip delayDuration={200}>
       <TooltipTrigger asChild>
-        <div className="h-full">{children}</div>
+        <div className={className ?? "h-full"}>{children}</div>
       </TooltipTrigger>
       <TooltipContent
         side="bottom"
