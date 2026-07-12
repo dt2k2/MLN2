@@ -38,7 +38,6 @@ import { CodexPanel } from "@/components/game/codex-panel";
 import { EndTurnButton } from "@/components/game/end-turn-button";
 import { ActionPreview } from "@/components/game/action-preview";
 import { showAchievement } from "@/components/game/achievement-toast";
-import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MAX_DECISION_GROUPS_PER_TURN, useGameStore } from "@/game/state";
 import { DECISION_GROUPS, DECISIONS } from "@/game/decisions";
