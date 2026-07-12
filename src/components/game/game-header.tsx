@@ -23,24 +23,25 @@ export function GameHeader({
   debtRatio: number;
   onPause?: () => void;
 }) {
+  const hasDebt = debt > 0;
   return (
-    <header className="panel-industrial flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-3 rounded-lg px-4 py-3 lg:flex-nowrap lg:gap-6 lg:py-0">
-      <Link to="/" className="flex shrink-0 items-center gap-3">
+    <header className="panel-industrial flex min-h-16 shrink-0 flex-wrap items-center gap-x-4 gap-y-2 rounded-lg px-3 py-2 lg:flex-nowrap lg:gap-6 lg:px-4">
+      <Link to="/" className="flex shrink-0 items-center gap-2">
         <span className="text-primary">
-          <Gear size={32} />
+          <Gear size={28} />
         </span>
-        <span className="font-display text-xl font-bold tracking-widest text-gold">
+        <span className="hidden font-display text-lg font-bold tracking-widest text-gold md:inline">
           DAS KAPITALIST
         </span>
       </Link>
 
-      <div className="order-3 grid w-full min-w-0 grid-cols-2 gap-3 text-xs sm:grid-cols-4 lg:order-none lg:flex lg:w-auto lg:items-center lg:gap-6">
-        <HeaderStat icon={<Factory className="h-3.5 w-3.5" />} label="Xí nghiệp" value={company} />
+      <div className="order-3 grid w-full min-w-0 grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-4 lg:order-none lg:flex lg:w-auto lg:flex-1 lg:items-center lg:gap-6">
+        <HeaderStat icon={<Factory className="h-3.5 w-3.5" />} label="Hãng" value={company} />
         <HeaderStat
           icon={<Calendar className="h-3.5 w-3.5" />}
           label="Lượt"
           value={
-            <span>
+            <span className="whitespace-nowrap">
               <AnimatePresence mode="popLayout">
                 <motion.span
                   key={turn}
@@ -56,31 +57,48 @@ export function GameHeader({
             </span>
           }
         />
-
         <HeaderStat icon={<Calendar className="h-3.5 w-3.5" />} label="Quý" value={quarter} />
         <HeaderStat
           icon={<Coins className="h-3.5 w-3.5 text-gold" />}
-          label="Tư bản tiền tệ"
+          label="Tiền mặt"
           value={<AnimatedNumber value={money} prefix="$" className="text-gold" />}
         />
-        <HeaderStat
-          icon={<Landmark className="h-3.5 w-3.5" />}
-          label="Dư nợ · lãi tới · nợ/tài sản"
-          value={
-            <span className="font-mono">
-              {"$"}
-              {Math.round(debt).toLocaleString("vi-VN")} · {"$"}
-              {Math.round(nextInterest).toLocaleString("vi-VN")}
-              {" · "}
-              {(debtRatio * 100).toFixed(0)}%
-            </span>
-          }
-        />
+        {hasDebt ? (
+          <>
+            <HeaderStat
+              icon={<Landmark className="h-3.5 w-3.5" />}
+              label="Dư nợ"
+              value={
+                <span className="whitespace-nowrap font-mono">
+                  ${Math.round(debt).toLocaleString("vi-VN")}
+                </span>
+              }
+            />
+            <HeaderStat
+              icon={<Landmark className="h-3.5 w-3.5" />}
+              label="Lãi quý tới"
+              value={
+                <span className="whitespace-nowrap font-mono text-destructive">
+                  ${Math.round(nextInterest).toLocaleString("vi-VN")}
+                </span>
+              }
+            />
+            <HeaderStat
+              icon={<Landmark className="h-3.5 w-3.5" />}
+              label="Nợ / Tài sản"
+              value={
+                <span className="whitespace-nowrap font-mono">
+                  {(debtRatio * 100).toFixed(0)}%
+                </span>
+              }
+            />
+          </>
+        ) : null}
       </div>
 
       <button
         onClick={onPause}
-        className="flex items-center gap-2 rounded-md border border-border bg-panel-elevated px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary/50 hover:text-primary"
+        className="ml-auto flex shrink-0 items-center gap-2 rounded-md border border-border bg-panel-elevated px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary/50 hover:text-primary"
       >
         <Pause className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Tạm dừng</span>
       </button>
@@ -99,10 +117,10 @@ function HeaderStat({
 }) {
   return (
     <div className="flex min-w-0 flex-col">
-      <span className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+      <span className="flex items-center gap-1 whitespace-nowrap text-[10px] uppercase tracking-widest text-muted-foreground">
         {icon} {label}
       </span>
-      <span className="mt-0.5 break-words font-display text-sm text-foreground">{value}</span>
+      <span className="mt-0.5 truncate font-display text-sm text-foreground">{value}</span>
     </div>
   );
 }
