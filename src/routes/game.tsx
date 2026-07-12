@@ -389,7 +389,7 @@ function GameScreen() {
                         setCodexOpen(true);
                       }}
                       title={unlocked ? CONCEPT_INFO[key].title : "Chưa khám phá"}
-                      className="shrink-0 rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground transition enabled:hover:border-primary/60 enabled:hover:text-gold disabled:cursor-help disabled:opacity-35"
+                      className="shrink-0 cursor-pointer rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground transition enabled:hover:border-primary/60 enabled:hover:text-gold disabled:cursor-help disabled:opacity-35"
                     >
                       {unlocked ? CONCEPT_INFO[key].short : "?"}
                     </button>
@@ -439,7 +439,7 @@ function GameScreen() {
                         key={group.id}
                         value={group.id}
                         title={group.title}
-                        className="relative h-10 px-0 data-[state=active]:bg-primary/15 data-[state=active]:text-gold"
+                        className="relative h-10 cursor-pointer px-0 data-[state=active]:bg-primary/15 data-[state=active]:text-gold"
                       >
                         <Icon className="h-4 w-4" />
                         {used ? (
@@ -493,7 +493,7 @@ function GameScreen() {
                               type="button"
                               disabled={disabled}
                               onClick={() => applyDecision(optionId)}
-                              className="w-full rounded bg-panel px-3 py-2 text-left text-sm font-semibold text-foreground transition hover:border-primary/60 disabled:cursor-not-allowed disabled:opacity-40"
+                              className="w-full cursor-pointer rounded bg-panel px-3 py-2 text-left text-sm font-semibold text-foreground transition hover:border-primary/60 hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               {option.label}
                             </button>
@@ -524,7 +524,7 @@ function GameScreen() {
             const first = CONCEPT_KEYS.find((key) => state.discoveredConcepts[key]);
             setCodex(first ?? null);
           }}
-          className="fixed bottom-4 left-4 z-40 flex items-center gap-1.5 rounded-full border border-primary bg-[oklch(0.2_0.02_60)] px-4 py-2 font-mono text-xs text-gold shadow-lg lg:hidden"
+          className="fixed bottom-4 left-4 z-40 flex cursor-pointer items-center gap-1.5 rounded-full border border-primary bg-[oklch(0.2_0.02_60)] px-4 py-2 font-mono text-xs text-gold shadow-lg lg:hidden"
         >
           <BookOpen className="h-3.5 w-3.5" /> {discoveredCount}/15
         </button>
