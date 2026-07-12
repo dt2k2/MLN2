@@ -33,6 +33,7 @@ import {
 } from "@/components/game/modals";
 import { StatTooltip } from "@/components/game/stat-tooltip";
 import { HistoricalScale } from "@/components/game/historical-scale";
+import { HeinrichPortrait } from "@/components/game/heinrich-portrait";
 import { ContradictionCard } from "@/components/game/contradiction-card";
 import { ProfitChart } from "@/components/game/profit-chart";
 import { CodexPanel } from "@/components/game/codex-panel";
@@ -170,7 +171,8 @@ function GameScreen() {
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-12 lg:min-h-[calc(100vh-100px)]">
           {/* LEFT PANEL — Factory (below fold on mobile) */}
           <section className="order-4 flex min-w-0 flex-col gap-3 lg:order-1 lg:col-span-3 lg:min-h-0">
-            <HistoricalScale state={state} variant="hero" />
+            <HeinrichPortrait state={state} />
+            <HistoricalScale state={state} variant="card" />
             <div className="panel-industrial rounded-lg p-4">
               <SectionTitle icon={<Users className="h-3.5 w-3.5" />} label="Lực lượng lao động" />
               <div className="mt-3 grid grid-cols-2 gap-3">
