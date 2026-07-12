@@ -1,18 +1,21 @@
 // Central balance constants — tinh chỉnh ở đây, không đụng logic.
 export const BAL = {
   maxTurns: 24,
-  startYear: 1857,
-  startQuarter: 3,
+  startYear: 1852,
+  startQuarter: 1,
 
   // Lao động
   baseWagePerWorker: 220, // $/quý ở 8h
   baseWorkHours: 10, // giờ/ngày
   minWorkHours: 6,
   maxWorkHours: 16,
+  staffingUnit: 8,
+  minimumWorkers: 8,
   valuePerLaborHour: 3.4, // biểu hiện tiền tệ của 1 giờ lao động xã hội
 
   // Máy móc
   machinePrice: 18000,
+  machineLiquidationValue: 12000,
   machineCapacity: 220, // đvsp/quý mỗi máy
   machineDepreciation: 0.05, // 5%/quý
   unitMaterial: 1.2, // đvsp cần bao nhiêu $ nguyên liệu (nhân materialPrice)
@@ -20,10 +23,11 @@ export const BAL = {
   // Thị trường
   baseSellPrice: 38,
   baseDemand: 1800,
+  baseIndustryDemand: 4200,
   baseMaterialPrice: 8,
   competitorProductivityGrowth: 0.015, // 1.5% mỗi quý → giá trị xã hội giảm
   demandCyclePeriod: 8,
-  baseSocialLaborTime: 6.2,
+  baseSocialLaborTime: 4.4,
 
   // Xã hội
   strainPerHourAbove8: 0.6,
@@ -34,9 +38,12 @@ export const BAL = {
   contradictionPerUnrest: 0.15,
 
   // Tài chính
-  loanRate: 0.06, // 6% / quý
-  loanUnit: 25000,
-  maxDebt: 100000,
+  annualLoanRate: 0.08,
+  quarterlyLoanRate: 0.02,
+  loanUnit: 15000,
+  maxDebt: 90000,
+  eventChance: 0.45,
+  inventoryCrisisRatio: 0.7,
   bankruptcyCashFloor: -15000,
   bankruptcyStressTurns: 3,
 

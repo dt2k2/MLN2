@@ -23,13 +23,13 @@ import {
 } from "lucide-react";
 import { GameHeader } from "@/components/game/game-header";
 import { DashboardCard } from "@/components/game/dashboard-card";
-import { ActionButton } from "@/components/game/action-button";
 import { FactoryScene } from "@/components/game/factory-scene";
 import {
   EventModal,
   ConceptModal,
   EraRecapModal,
   TurnSummaryModal,
+  StoryModal,
 } from "@/components/game/modals";
 import { StatTooltip } from "@/components/game/stat-tooltip";
 import { ContradictionCard } from "@/components/game/contradiction-card";
@@ -39,10 +39,12 @@ import { EndTurnButton } from "@/components/game/end-turn-button";
 import { ActionPreview } from "@/components/game/action-preview";
 import { showAchievement } from "@/components/game/achievement-toast";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
-import { MAX_ACTIONS_PER_TURN, useGameStore } from "@/game/state";
-import { ACTIONS } from "@/game/actions";
+import { MAX_DECISION_GROUPS_PER_TURN, useGameStore } from "@/game/state";
+import { DECISION_GROUPS, DECISIONS } from "@/game/decisions";
+import { BAL } from "@/game/balance";
+import { effectMultiplier } from "@/game/engine/effects";
 import { CONCEPT_INFO, CONCEPT_KEYS } from "@/game/concepts";
-import type { ActionId, ConceptKey } from "@/game/types";
+import type { ConceptKey, DecisionGroupId } from "@/game/types";
 
 export const Route = createFileRoute("/game")({
   head: () => ({
@@ -58,19 +60,19 @@ export const Route = createFileRoute("/game")({
   component: GameScreen,
 });
 
-const ACTION_ICONS: Record<ActionId, typeof Clock> = {
-  EXTEND_HOURS: Clock,
-  RAISE_WAGE: DollarSign,
-  BUY_MACHINE: Cog,
-  EXPAND_FACTORY: Warehouse,
-  LAYOFF: UserMinus,
-  BORROW: Landmark,
+const GROUP_ICONS: Record<DecisionGroupId, typeof Clock> = {
+  WORKDAY: Clock,
+  WAGES: DollarSign,
+  STAFFING: UserMinus,
+  MACHINERY: Cog,
+  ACCUMULATION: Warehouse,
+  CREDIT: Landmark,
 };
 
 function GameScreen() {
   const state = useGameStore((s) => s.state);
-  const usedActions = useGameStore((s) => s.usedActions);
-  const applyAction = useGameStore((s) => s.applyAction);
+  const usedDecisionGroups = useGameStore((s) => s.usedDecisionGroups);
+  const applyDecision = useGameStore((s) => s.applyDecision);
   const endQuarter = useGameStore((s) => s.endQuarter);
   const resolveEvent = useGameStore((s) => s.resolveEvent);
   const presentationQueue = useGameStore((s) => s.presentationQueue);
@@ -142,6 +144,19 @@ function GameScreen() {
           quarter={quarterLabel}
           company={state.companyName}
           money={Math.round(state.cash)}
+          debt={state.debt}
+          nextInterest={
+            state.debt * BAL.quarterlyLoanRate * effectMultiplier(state, "interestRateMultiplier")
+          }
+          debtRatio={
+            state.debt /
+            Math.max(
+              1,
+              Math.max(0, state.cash) +
+                state.machines * BAL.machinePrice +
+                state.inventory * Math.max(1, state.sellPrice * 0.6),
+            )
+          }
           onPause={showCurrentSummary}
         />
 
@@ -329,12 +344,24 @@ function GameScreen() {
               <ContradictionCard value={contradictionInt} unrest={state.unrest} />
             </div>
 
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
               <MarketCard
-                label="Cầu thị trường"
+                label="Phần cầu của xưởng"
                 value={state.demand.toLocaleString("vi-VN")}
                 unit="đvsp"
                 tone="info"
+              />
+              <MarketCard
+                label="Cầu hiệu dụng ngành"
+                value={state.effectiveDemand.toLocaleString("vi-VN")}
+                unit="đvsp"
+                tone="info"
+              />
+              <MarketCard
+                label="Tổng cung ngành"
+                value={Math.round(state.industrySupply).toLocaleString("vi-VN")}
+                unit="đvsp"
+                tone={state.industrySupply > state.effectiveDemand ? "danger" : "success"}
               />
               <MarketCard
                 label="Sản lượng"
@@ -404,44 +431,70 @@ function GameScreen() {
                 label={`Quyết định — ${quarterLabel}`}
                 right={
                   <span className="font-mono text-[10px] text-muted-foreground">
-                    {usedActions.size} / 3 đã dùng
+                    {usedDecisionGroups.size} / 3 đã dùng
                   </span>
                 }
               />
             </div>
             <div className="flex flex-col gap-2 lg:overflow-y-auto lg:pr-1 lg:min-h-0 lg:flex-1">
-              {(Object.keys(ACTIONS) as ActionId[]).map((id) => {
-                const act = ACTIONS[id];
-                const cost = act.cost(state);
-                const disabled =
-                  usedActions.has(id) ||
-                  usedActions.size >= MAX_ACTIONS_PER_TURN ||
+              {DECISION_GROUPS.map((group) => {
+                const Icon = GROUP_ICONS[group.id];
+                const groupUsed = usedDecisionGroups.has(group.id);
+                const groupLocked =
+                  groupUsed ||
+                  usedDecisionGroups.size >= MAX_DECISION_GROUPS_PER_TURN ||
                   presentationQueue.length > 0 ||
                   !!state.pendingEvent ||
-                  !!state.ending ||
-                  !act.canApply(state);
+                  !!state.ending;
                 return (
-                  <HoverCard key={id} openDelay={250} closeDelay={80}>
-                    <HoverCardTrigger asChild>
-                      <div className={disabled ? "pointer-events-none opacity-40" : ""}>
-                        <ActionButton
-                          icon={ACTION_ICONS[id]}
-                          title={act.title}
-                          description={act.description}
-                          cost={cost > 0 ? `$${cost.toLocaleString("vi-VN")}` : "—"}
-                          previews={act.preview(state)}
-                          onClick={() => applyAction(id)}
-                        />
-                      </div>
-                    </HoverCardTrigger>
-                    <HoverCardContent
-                      side="left"
-                      align="start"
-                      className="w-80 border-primary/40 bg-[oklch(0.16_0.008_60)] p-2"
-                    >
-                      <ActionPreview state={state} actionId={id} />
-                    </HoverCardContent>
-                  </HoverCard>
+                  <div key={group.id} className="panel-industrial rounded-lg p-3">
+                    <div className="mb-2 flex items-center gap-2">
+                      <Icon className="h-4 w-4 text-primary" />
+                      <span className="font-display text-sm font-semibold text-foreground">
+                        {group.title}
+                      </span>
+                      {groupUsed ? (
+                        <span className="ml-auto font-mono text-[10px] text-muted-foreground">
+                          Đã dùng
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {group.options.map((optionId) => {
+                        const option = DECISIONS[optionId];
+                        const disabled = groupLocked || !option.canApply(state);
+                        return (
+                          <HoverCard key={optionId} openDelay={250} closeDelay={80}>
+                            <HoverCardTrigger asChild>
+                              <button
+                                type="button"
+                                disabled={disabled}
+                                title={
+                                  !option.canApply(state)
+                                    ? option.disabledReason(state)
+                                    : option.description
+                                }
+                                onClick={() => applyDecision(optionId)}
+                                className="min-h-11 rounded border border-border bg-panel-elevated px-2 py-1.5 text-left text-xs text-foreground transition hover:border-primary/60 disabled:cursor-not-allowed disabled:opacity-35"
+                              >
+                                {option.label}
+                              </button>
+                            </HoverCardTrigger>
+                            <HoverCardContent
+                              side="left"
+                              align="start"
+                              className="w-80 border-primary/40 bg-[oklch(0.16_0.008_60)] p-2"
+                            >
+                              <p className="mb-2 text-xs text-muted-foreground">
+                                {option.description}
+                              </p>
+                              <ActionPreview state={state} actionId={optionId} />
+                            </HoverCardContent>
+                          </HoverCard>
+                        );
+                      })}
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -479,7 +532,7 @@ function GameScreen() {
         </div>
 
         <EventModal
-          open={presentationQueue.length === 0 && !!state.pendingEvent}
+          open={activePresentation?.kind === "event" && !!state.pendingEvent}
           onClose={() => {}}
           title={state.pendingEvent?.title ?? ""}
           description={state.pendingEvent?.description ?? ""}
@@ -489,6 +542,8 @@ function GameScreen() {
               label: c.label,
               tone: c.tone,
               previewLabel: c.previewLabel,
+              disabled: c.canChoose ? !c.canChoose(state) : false,
+              disabledReason: c.disabledReason,
             })) ?? []
           }
           onChoose={(i) => resolveEvent(i)}
@@ -530,6 +585,16 @@ function GameScreen() {
               tone: displayRecord.profit >= 0 ? "up" : "down",
             },
             {
+              label: "Lãi tín dụng đã trả",
+              value: `− $${Math.round(displayRecord.interestPaid).toLocaleString("vi-VN")}`,
+              tone: "down",
+            },
+            {
+              label: "Lợi nhuận tái đầu tư",
+              value: `+ $${Math.round(displayRecord.reinvestedProfit).toLocaleString("vi-VN")}`,
+              tone: "up",
+            },
+            {
               label: state.discoveredConcepts.profitRate ? "p′ lý thuyết" : "Hiệu suất vốn",
               value: `${(displayRecord.profitRate * 100).toFixed(1)}%`,
               tone: "warn",
@@ -561,6 +626,11 @@ function GameScreen() {
           conceptKeys={
             activePresentation?.kind === "eraRecap" ? activePresentation.conceptKeys : []
           }
+        />
+        <StoryModal
+          open={activePresentation?.kind === "story"}
+          onClose={dismissPresentation}
+          story={activePresentation?.kind === "story" ? activePresentation.story : undefined}
         />
       </div>
     </div>

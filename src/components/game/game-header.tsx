@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { Pause, Coins, Calendar, Factory } from "lucide-react";
+import { Pause, Coins, Calendar, Factory, Landmark } from "lucide-react";
 import { Gear } from "./particles";
 import { AnimatedNumber } from "./animated-number";
 
@@ -9,12 +9,18 @@ export function GameHeader({
   quarter,
   company,
   money,
+  debt,
+  nextInterest,
+  debtRatio,
   onPause,
 }: {
   turn: number;
   quarter: string;
   company: string;
   money: number;
+  debt: number;
+  nextInterest: number;
+  debtRatio: number;
   onPause?: () => void;
 }) {
   return (
@@ -56,6 +62,19 @@ export function GameHeader({
           icon={<Coins className="h-3.5 w-3.5 text-gold" />}
           label="Tư bản tiền tệ"
           value={<AnimatedNumber value={money} prefix="$" className="text-gold" />}
+        />
+        <HeaderStat
+          icon={<Landmark className="h-3.5 w-3.5" />}
+          label="Dư nợ · lãi tới · nợ/tài sản"
+          value={
+            <span className="font-mono">
+              {"$"}
+              {Math.round(debt).toLocaleString("vi-VN")} · {"$"}
+              {Math.round(nextInterest).toLocaleString("vi-VN")}
+              {" · "}
+              {(debtRatio * 100).toFixed(0)}%
+            </span>
+          }
         />
       </div>
 

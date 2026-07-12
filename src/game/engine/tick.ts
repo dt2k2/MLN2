@@ -1,67 +1,53 @@
-import { BAL } from "../balance";
 import type { GameState } from "../types";
-import { applySocialUpdate, computeQuarter } from "./laws";
 import { checkEnding } from "./endings";
+import { tickEffects } from "./effects";
 import { rollEvent } from "./events";
+import { applySocialUpdate, computeQuarter } from "./laws";
 import { tickMarket } from "./market";
 import { makeRng } from "./rng";
+import { quarterNews } from "../story";
 
-/**
- * Chạy 1 quý — mutate draft (dùng với immer).
- * Trả về sự kiện phát sinh (nếu có) để store xử lý.
- */
-export function advanceQuarter(s: GameState) {
-  const rng = makeRng(s.seed + s.turn * 9973);
+export function advanceQuarter(state: GameState) {
+  const rng = makeRng(state.seed + state.turn * 9973);
+  const record = computeQuarter(state);
 
-  // 1. Tính quý
-  const rec = computeQuarter(s);
-  s.last = rec;
+  state.cash += record.reinvestedProfit;
+  state.ownerConsumption += record.ownerConsumption;
+  state.inventory = record.inventory;
 
-  // 2. Doanh thu → tiền mặt, tồn kho
-  s.cash += rec.profit;
-  s.inventory = rec.inventory;
+  applySocialUpdate(state, record);
+  state.riotStreak = state.unrest >= 80 ? state.riotStreak + 1 : 0;
+  state.last = record;
+  state.history.push(record);
+  if (state.history.length > 40) state.history.shift();
 
-  // 3. Khấu hao & lãi (đã trừ trong profit)
-  s.debt *= 1 + BAL.loanRate * 0.0; // lãi đã tính trong rec.profit; nợ gốc giữ nguyên
-
-  // 4. Xã hội
-  applySocialUpdate(s, rec);
-  if (s.unrest >= 80) s.riotStreak += 1;
-  else s.riotStreak = 0;
-
-  // 5. Ghi lịch sử
-  s.history.push(rec);
-  if (s.history.length > 40) s.history.shift();
-
-  s.log.unshift({
-    turn: s.turn,
+  state.log.unshift({
+    turn: state.turn,
     type: "system",
-    text: `Q${s.quarter}/${s.year}: lợi nhuận ${rec.profit >= 0 ? "+" : ""}$${Math.round(rec.profit).toLocaleString("vi-VN")}, p′=${(rec.profitRate * 100).toFixed(1)}%`,
+    text: `Q${state.quarter}/${state.year}: lợi nhuận ${record.profit >= 0 ? "+" : ""}$${Math.round(record.profit).toLocaleString("vi-VN")}, p′=${(record.profitRate * 100).toFixed(1)}%`,
   });
-  if (s.log.length > 30) s.log.pop();
+  state.log.unshift({ turn: state.turn, type: "news", text: quarterNews(state) });
 
-  // 6. Sang quý mới
-  s.turn += 1;
-  s.quarter += 1;
-  if (s.quarter > 4) {
-    s.quarter = 1;
-    s.year += 1;
+  state.activeEffects = tickEffects(state.activeEffects);
+  state.turn += 1;
+  state.quarter += 1;
+  if (state.quarter > 4) {
+    state.quarter = 1;
+    state.year += 1;
   }
 
-  // 7. Market tick
-  tickMarket(s, rng);
+  tickMarket(state, rng);
 
-  // 8. Ending?
-  const ending = checkEnding(s);
+  const ending = checkEnding(state);
   if (ending) {
-    s.ending = ending;
-    return;
+    state.ending = ending;
+  } else {
+    const event = rollEvent(state, rng);
+    if (event) {
+      state.pendingEvent = event;
+      state.log.unshift({ turn: state.turn, type: "event", text: event.title });
+    }
   }
 
-  // 9. Event
-  const ev = rollEvent(s, rng);
-  if (ev) {
-    s.pendingEvent = ev;
-    s.log.unshift({ turn: s.turn, type: "event", text: ev.title });
-  }
+  if (state.log.length > 40) state.log.length = 40;
 }

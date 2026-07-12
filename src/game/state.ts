@@ -1,21 +1,25 @@
 import { create } from "zustand";
 import { produce } from "immer";
 import { BAL } from "./balance";
+import { checkActionDiscoveries, checkQuarterDiscoveries } from "./concepts";
+import { DECISIONS } from "./decisions";
+import { createInitialCompetitors } from "./engine/competitors";
+import { checkEnding } from "./engine/endings";
+import { advanceQuarter } from "./engine/tick";
+import { collectStories } from "./story";
 import type {
   AchievementId,
-  ActionId,
   ConceptDiscovery,
   ConceptKey,
+  DecisionGroupId,
+  DecisionOptionId,
   GameState,
   PresentationItem,
   QuarterRecord,
+  StoryPresentation,
 } from "./types";
-import { ACTIONS } from "./actions";
-import { checkActionDiscoveries, checkQuarterDiscoveries } from "./concepts";
-import { advanceQuarter } from "./engine/tick";
-import { checkEnding } from "./engine/endings";
 
-export const MAX_ACTIONS_PER_TURN = 3;
+export const MAX_DECISION_GROUPS_PER_TURN = 3;
 
 const ACHIEVEMENT_BY_CONCEPT: Partial<Record<ConceptKey, AchievementId>> = {
   surplusRate: "surplus-rate",
@@ -36,6 +40,10 @@ function emptyRecord(): QuarterRecord {
     extraSurplusValue: 0,
     W: 0,
     profit: 0,
+    reinvestedProfit: 0,
+    ownerConsumption: 0,
+    interestPaid: 0,
+    debtRatio: 0,
     profitRate: 0,
     profitRateReal: 0,
     exploitation: 0,
@@ -44,12 +52,14 @@ function emptyRecord(): QuarterRecord {
     unrest: 15,
     health: 80,
     output: 0,
-    demand: BAL.baseDemand,
+    demand: 1_050,
+    effectiveDemand: BAL.baseIndustryDemand,
+    industrySupply: 3_750,
     inventory: 0,
     sellPrice: BAL.baseSellPrice,
     materialPrice: BAL.baseMaterialPrice,
-    laborProductivity: 0,
-    individualLaborTime: 0,
+    laborProductivity: 0.16,
+    individualLaborTime: 6.25,
     socialLaborTime: BAL.baseSocialLaborTime,
   };
 }
@@ -61,28 +71,46 @@ export function initialState(seed = Date.now() & 0xffff): GameState {
     year: BAL.startYear,
     quarter: BAL.startQuarter,
     companyName: "Müller & Söhne Textilwerk",
-    cash: 60000,
+    protagonistName: "Heinrich Müller",
+    cash: 60_000,
     debt: 0,
+    ownerConsumption: 0,
+    reinvestmentRate: 0.75,
     machines: 3,
     inventory: 200,
-    workersActive: 40,
+    workersActive: 32,
     workersIdle: 8,
     wagePerWorker: BAL.baseWagePerWorker,
     workHours: BAL.baseWorkHours,
+    legalMaxWorkHours: BAL.maxWorkHours,
     health: 80,
     unrest: 15,
     contradiction: 20,
+    socialUnemployment: 12,
+    purchasingPowerIndex: 0.988,
     last: emptyRecord(),
     sellPrice: BAL.baseSellPrice,
     materialPrice: BAL.baseMaterialPrice,
-    demand: BAL.baseDemand,
+    demand: 1_050,
+    effectiveDemand: BAL.baseIndustryDemand,
+    industrySupply: 3_750,
     industryProductivity: 1,
-    marketShare: 0.2,
+    marketShare: 0.25,
+    competitors: createInitialCompetitors(),
     overstockStreak: 0,
     debtStressStreak: 0,
     riotStreak: 0,
+    activeEffects: [],
+    eventHistory: {},
+    seenStoryIds: {},
     history: [],
-    log: [{ turn: 1, type: "system", text: "Ván chơi bắt đầu — quý III năm 1857." }],
+    log: [
+      {
+        turn: 1,
+        type: "system",
+        text: "Ván chơi bắt đầu — quý I năm 1852.",
+      },
+    ],
     discoveredConcepts: {},
     achievements: {},
     pendingEvent: null,
@@ -114,87 +142,111 @@ function registerDiscoveries(
     }
   });
 
-  const presentations: PresentationItem[] = [
-    ...fresh.map((item): PresentationItem => ({
-      id: `eureka-${item.key}-${item.turn}`,
-      kind: "eureka",
-      conceptKey: item.key,
-    })),
-    ...achievements.map((item): PresentationItem => ({
-      id: `achievement-${item.id}`,
-      kind: "achievement",
-      achievementId: item.id,
-      conceptKey: item.conceptKey,
-    })),
-  ];
-  return { state: next, presentations };
+  return {
+    state: next,
+    presentations: [
+      ...fresh.map((item): PresentationItem => ({
+        id: `eureka-${item.key}-${item.turn}`,
+        kind: "eureka",
+        conceptKey: item.key,
+      })),
+      ...achievements.map((item): PresentationItem => ({
+        id: `achievement-${item.id}`,
+        kind: "achievement",
+        achievementId: item.id,
+        conceptKey: item.conceptKey,
+      })),
+    ],
+  };
+}
+
+function storyItems(stories: StoryPresentation[]): PresentationItem[] {
+  return stories.map((story) => ({
+    id: story.id,
+    kind: "story",
+    story,
+  }));
+}
+
+function markStories(state: GameState, stories: StoryPresentation[]): GameState {
+  if (stories.length === 0) return state;
+  return produce(state, (draft) => {
+    for (const story of stories) draft.seenStoryIds[story.id] = true;
+  });
+}
+
+function withOpening(seed?: number) {
+  let state = initialState(seed);
+  const stories = collectStories(state);
+  state = markStories(state, stories);
+  return { state, queue: storyItems(stories) };
 }
 
 export interface GameStore {
   state: GameState;
-  usedActions: Set<ActionId>;
-  investmentThisTurn: number;
+  usedDecisionGroups: Set<DecisionGroupId>;
   layoffsThisTurn: number;
   workersAtTurnStart: number;
   presentationQueue: PresentationItem[];
-  applyAction: (id: ActionId) => void;
+  applyDecision: (optionId: DecisionOptionId) => void;
   endQuarter: () => void;
-  resolveEvent: (choiceIdx: number) => void;
+  resolveEvent: (choiceIndex: number) => void;
   dismissPresentation: () => void;
   showCurrentSummary: () => void;
   reset: () => void;
 }
 
-export const useGameStore = create<GameStore>((set, get) => ({
-  state: initialState(),
-  usedActions: new Set(),
-  investmentThisTurn: 0,
-  layoffsThisTurn: 0,
-  workersAtTurnStart: 40,
-  presentationQueue: [],
+const opening = withOpening();
 
-  applyAction: (id) => {
+export const useGameStore = create<GameStore>((set, get) => ({
+  state: opening.state,
+  usedDecisionGroups: new Set(),
+  layoffsThisTurn: 0,
+  workersAtTurnStart: opening.state.workersActive,
+  presentationQueue: opening.queue,
+
+  applyDecision: (optionId) => {
     const store = get();
+    const decision = DECISIONS[optionId];
     if (
+      !decision ||
       store.presentationQueue.length > 0 ||
       store.state.pendingEvent ||
       store.state.ending ||
-      store.usedActions.has(id) ||
-      store.usedActions.size >= MAX_ACTIONS_PER_TURN
+      store.usedDecisionGroups.has(decision.groupId) ||
+      store.usedDecisionGroups.size >= MAX_DECISION_GROUPS_PER_TURN ||
+      !decision.canApply(store.state)
     ) {
       return;
     }
 
-    const action = ACTIONS[id];
-    if (!action.canApply(store.state)) return;
-
     const previous = store.state;
-    const nextState = produce(previous, (draft) => {
-      action.apply(draft);
-      draft.log.unshift({ turn: draft.turn, type: "decision", text: action.title });
+    const next = produce(previous, (draft) => {
+      decision.apply(draft);
+      draft.log.unshift({
+        turn: draft.turn,
+        type: "decision",
+        text: `${decision.label} (${decision.groupId})`,
+      });
     });
-    const investment =
-      store.investmentThisTurn +
-      (id === "BUY_MACHINE" || id === "EXPAND_FACTORY" ? action.cost(previous) : 0);
     const layoffs =
-      store.layoffsThisTurn + Math.max(0, previous.workersActive - nextState.workersActive);
+      store.layoffsThisTurn + Math.max(0, previous.workersActive - next.workersActive);
     const discoveries = checkActionDiscoveries({
       prev: previous,
-      next: nextState,
-      actionId: id,
-      investmentThisTurn: investment,
+      next,
+      actionId: optionId,
+      investmentThisTurn: 0,
       layoffsThisTurn: layoffs,
       workersAtTurnStart: store.workersAtTurnStart,
       discovered: previous.discoveredConcepts,
     });
-    const registered = registerDiscoveries(nextState, discoveries);
-    const usedActions = new Set(store.usedActions);
-    usedActions.add(id);
+    const registered = registerDiscoveries(next, discoveries);
+    const usedDecisionGroups = new Set(store.usedDecisionGroups);
+    usedDecisionGroups.add(decision.groupId);
 
     set({
       state: registered.state,
-      usedActions,
-      investmentThisTurn: investment,
+      usedDecisionGroups,
       layoffsThisTurn: layoffs,
       presentationQueue: [...store.presentationQueue, ...registered.presentations],
     });
@@ -202,8 +254,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   endQuarter: () => {
     const store = get();
-    if (store.state.pendingEvent || store.state.ending || store.presentationQueue.length > 0)
+    if (store.state.pendingEvent || store.state.ending || store.presentationQueue.length > 0) {
       return;
+    }
 
     const advanced = produce(store.state, (draft) => {
       advanceQuarter(draft);
@@ -230,64 +283,93 @@ export const useGameStore = create<GameStore>((set, get) => ({
             completedTurn,
           };
 
+    const stories = collectStories(registered.state);
+    const marked = markStories(registered.state, stories);
+    const eventPresentation: PresentationItem[] = marked.pendingEvent
+      ? [
+          {
+            id: `event-${marked.pendingEvent.id}-${marked.turn}`,
+            kind: "event",
+            eventId: marked.pendingEvent.id,
+          },
+        ]
+      : [];
     set({
-      state: registered.state,
-      usedActions: new Set(),
-      investmentThisTurn: 0,
+      state: marked,
+      usedDecisionGroups: new Set(),
       layoffsThisTurn: 0,
-      workersAtTurnStart: registered.state.workersActive,
-      presentationQueue: [...registered.presentations, periodPresentation],
+      workersAtTurnStart: marked.workersActive,
+      presentationQueue: [
+        ...registered.presentations,
+        periodPresentation,
+        ...eventPresentation,
+        ...storyItems(stories),
+      ],
     });
   },
 
-  resolveEvent: (idx) => {
+  resolveEvent: (choiceIndex) => {
     const store = get();
-    if (!store.state.pendingEvent || store.presentationQueue.length > 0) return;
-    const choice = store.state.pendingEvent.choices[idx];
-    if (!choice) return;
+    if (!store.state.pendingEvent || store.presentationQueue[0]?.kind !== "event") return;
+    const choice = store.state.pendingEvent.choices[choiceIndex];
+    if (!choice || (choice.canChoose && !choice.canChoose(store.state))) return;
 
-    const resolved = produce(store.state, (draft) => {
+    let resolved = produce(store.state, (draft) => {
       if (!draft.pendingEvent) return;
+      const eventTitle = draft.pendingEvent.title;
       choice.apply(draft);
       draft.log.unshift({
         turn: draft.turn,
         type: "decision",
-        text: `${draft.pendingEvent.title}: ${choice.label}`,
+        text: `${eventTitle}: ${choice.label}`,
       });
       draft.pendingEvent = null;
-      const ending = checkEnding(draft);
-      if (ending) draft.ending = ending;
+      if (!draft.ending) draft.ending = checkEnding(draft);
     });
     const registered = registerDiscoveries(resolved, checkQuarterDiscoveries(resolved));
+    resolved = registered.state;
+    const eventStories = collectStories(resolved);
+    resolved = markStories(resolved, eventStories);
     set({
-      state: registered.state,
-      presentationQueue: [...store.presentationQueue, ...registered.presentations],
+      state: resolved,
+      presentationQueue: [
+        ...registered.presentations,
+        ...store.presentationQueue.slice(1),
+        ...storyItems(eventStories),
+      ],
     });
   },
 
   dismissPresentation: () =>
-    set((store) => ({ presentationQueue: store.presentationQueue.slice(1) })),
+    set((store) => ({
+      presentationQueue: store.presentationQueue.slice(1),
+    })),
 
   showCurrentSummary: () => {
     const store = get();
     const completedTurn = store.state.history.at(-1)?.turn;
-    if (!completedTurn || store.presentationQueue.length > 0 || store.state.pendingEvent) return;
+    if (!completedTurn || store.presentationQueue.length > 0 || store.state.pendingEvent) {
+      return;
+    }
     set({
       presentationQueue: [
-        { id: `manual-summary-${completedTurn}`, kind: "summary", completedTurn },
+        {
+          id: `manual-summary-${completedTurn}`,
+          kind: "summary",
+          completedTurn,
+        },
       ],
     });
   },
 
   reset: () => {
-    const state = initialState();
+    const fresh = withOpening();
     set({
-      state,
-      usedActions: new Set(),
-      investmentThisTurn: 0,
+      state: fresh.state,
+      usedDecisionGroups: new Set(),
       layoffsThisTurn: 0,
-      workersAtTurnStart: state.workersActive,
-      presentationQueue: [],
+      workersAtTurnStart: fresh.state.workersActive,
+      presentationQueue: fresh.queue,
     });
   },
 }));

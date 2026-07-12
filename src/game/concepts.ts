@@ -1,5 +1,11 @@
 import { productivityPerWorker } from "./engine/laws";
-import type { ActionId, ConceptDiscovery, ConceptKey, DiscoveryState, GameState } from "./types";
+import type {
+  ConceptDiscovery,
+  ConceptKey,
+  DecisionOptionId,
+  DiscoveryState,
+  GameState,
+} from "./types";
 
 export interface ConceptInfo {
   key: ConceptKey;
@@ -187,7 +193,7 @@ function discovery(
 interface ActionDiscoveryInput {
   prev: GameState;
   next: GameState;
-  actionId: ActionId;
+  actionId: DecisionOptionId;
   investmentThisTurn: number;
   layoffsThisTurn: number;
   workersAtTurnStart: number;
@@ -300,6 +306,13 @@ export function checkQuarterDiscoveries(state: GameState): ConceptDiscovery[] {
       `Lao động sống tạo ${money(record.newValue)} giá trị mới; m đạt ${money(record.m)}, còn lợi nhuận thực hiện là ${money(record.profit)}.`,
     );
   }
+  if (record.profit > 0 && record.reinvestedProfit > record.profit * 0.5) {
+    add(
+      "capitalAccumulation",
+      "Bạn vừa giữ lại phần lớn lợi nhuận để tiếp tục vận động như tư bản.",
+      `${money(record.reinvestedProfit)} trong ${money(record.profit)} lợi nhuận được tái đầu tư; chủ sở hữu tiêu dùng ${money(record.ownerConsumption)}.`,
+    );
+  }
   if (record.exploitation > 1) {
     add(
       "surplusRate",
@@ -321,7 +334,10 @@ export function checkQuarterDiscoveries(state: GameState): ConceptDiscovery[] {
       `p′ giảm từ ${percent(previous.profitRate)} xuống ${percent(record.profitRate)}.`,
     );
   }
-  if (record.inventory / Math.max(1, record.demand) > 0.7) {
+  if (
+    record.industrySupply > record.effectiveDemand &&
+    record.inventory / Math.max(1, record.demand) > 0.7
+  ) {
     add(
       "overproductionCrisis",
       "Bạn vừa sản xuất nhiều hơn khả năng hấp thụ của thị trường.",

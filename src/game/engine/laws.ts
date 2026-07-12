@@ -1,64 +1,67 @@
 import { BAL } from "../balance";
 import type { GameState, QuarterRecord } from "../types";
+import { effectMultiplier } from "./effects";
 
 const clamp = (x: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, x));
 
 export function productivityPerWorker(machines: number, workersActive: number, health: number) {
-  // Mỗi máy tăng năng suất, nhưng giảm dần khi thiếu người vận hành
   const machineCoverage = Math.min(1, (machines * 4) / Math.max(1, workersActive));
-  const healthFactor = 0.5 + health / 200; // 0.5 – 1.0
+  const healthFactor = 0.78 + health / 400;
   return (1 + machineCoverage * 1.2) * healthFactor;
 }
 
 export function computeQuarter(s: GameState): QuarterRecord {
   const workers = s.workersActive;
   const hours = s.workHours;
+  const outputEffect = effectMultiplier(s, "outputMultiplier");
+  const demandEffect = effectMultiplier(s, "demandMultiplier");
+  const materialEffect = effectMultiplier(s, "materialPriceMultiplier");
+  const interestEffect = effectMultiplier(s, "interestRateMultiplier");
 
-  // 1. Sản xuất
   const perWorker = productivityPerWorker(s.machines, workers, s.health);
   const rawCapacity = s.machines * BAL.machineCapacity + workers * 8;
-  const laborOutput = workers * perWorker * (hours / 8) * 12; // đvsp/quý
-  const output = Math.max(0, Math.min(rawCapacity, laborOutput));
+  const laborOutput = workers * perWorker * (hours / 8) * 12;
+  const output = Math.max(0, Math.min(rawCapacity, laborOutput) * outputEffect);
   const laborHours = workers * hours * 12;
   const laborProductivity = laborHours > 0 ? output / laborHours : 0;
   const individualLaborTime = output > 0 ? laborHours / output : 0;
   const socialLaborTime = BAL.baseSocialLaborTime / s.industryProductivity;
 
-  // 2. c: khấu hao + nguyên liệu
   const depreciation = s.machines * BAL.machinePrice * BAL.machineDepreciation;
-  const materialCost = output * BAL.unitMaterial * s.materialPrice;
+  const materialCost = output * BAL.unitMaterial * s.materialPrice * materialEffect;
   const c = depreciation + materialCost;
 
-  // 3. v: tiền lương (giờ dài hơn tính tăng ca nhẹ)
   const overtimeFactor = hours > 8 ? 1 + (hours - 8) * 0.06 : 1;
   const v = workers * s.wagePerWorker * overtimeFactor;
 
-  // 4. Giá trị mới chỉ do lao động sống tạo ra. Sức khỏe biểu hiện cường độ
-  // lao động thực tế, nhưng chỉ tác động một lần và trong biên độ hẹp.
+  // Only living labour creates new value. Machinery changes productivity and
+  // transfers its own value through depreciation; it does not create value.
   const laborIntensity = 0.9 + s.health / 800;
   const newValue = laborHours * BAL.valuePerLaborHour * laborIntensity;
-
-  // 5. Giá trị thặng dư cơ bản và siêu ngạch. Máy móc không tạo giá trị mới;
-  // nó giúp giá trị cá biệt thấp hơn giá trị xã hội trong một thời gian.
   const baseSurplusValue = Math.max(0, newValue - v);
   const extraSurplusValue =
     output * Math.max(0, socialLaborTime - individualLaborTime) * BAL.valuePerLaborHour;
   const m = baseSurplusValue + extraSurplusValue;
 
-  // 6–7. Doanh thu: bán theo giá trị xã hội (sellPrice do market quy định)
+  const quarterDemand = s.demand * demandEffect;
+  const effectiveDemand = s.effectiveDemand * demandEffect;
   const salable = output + s.inventory;
-  const sold = Math.min(salable, s.demand);
+  const sold = Math.min(salable, quarterDemand);
   const W = sold * s.sellPrice;
   const inventoryNext = Math.max(0, salable - sold);
-
-  // 8. Lợi nhuận thực tế
-  const interest = s.debt * BAL.loanRate;
-  const profit = W - c - v - interest;
+  const interestPaid = s.debt * BAL.quarterlyLoanRate * interestEffect;
+  const profit = W - c - v - interestPaid;
+  const reinvestedProfit = profit > 0 ? profit * s.reinvestmentRate : profit;
+  const ownerConsumption = profit > 0 ? profit - reinvestedProfit : 0;
 
   const organic = v > 0 ? c / v : 0;
   const exploitation = v > 0 ? m / v : 0;
   const profitRate = c + v > 0 ? m / (c + v) : 0;
   const profitRateReal = c + v > 0 ? profit / (c + v) : 0;
+  const productiveAssets =
+    Math.max(0, s.cash) +
+    s.machines * BAL.machinePrice +
+    s.inventory * Math.max(1, s.sellPrice * 0.6);
 
   return {
     turn: s.turn,
@@ -72,6 +75,10 @@ export function computeQuarter(s: GameState): QuarterRecord {
     extraSurplusValue,
     W,
     profit,
+    reinvestedProfit,
+    ownerConsumption,
+    interestPaid,
+    debtRatio: s.debt / Math.max(1, productiveAssets),
     profitRate,
     profitRateReal,
     exploitation,
@@ -80,10 +87,12 @@ export function computeQuarter(s: GameState): QuarterRecord {
     unrest: s.unrest,
     health: s.health,
     output,
-    demand: s.demand,
+    demand: quarterDemand,
+    effectiveDemand,
+    industrySupply: s.industrySupply,
     inventory: inventoryNext,
     sellPrice: s.sellPrice,
-    materialPrice: s.materialPrice,
+    materialPrice: s.materialPrice * materialEffect,
     laborProductivity,
     individualLaborTime,
     socialLaborTime,
@@ -91,29 +100,38 @@ export function computeQuarter(s: GameState): QuarterRecord {
 }
 
 export function applySocialUpdate(s: GameState, rec: QuarterRecord) {
-  // Sức khoẻ
   const strain = Math.max(0, s.workHours - 8) * BAL.strainPerHourAbove8;
   const recovery = Math.max(0, s.wagePerWorker - BAL.baseWagePerWorker) * BAL.recoveryFromWage;
-  s.health = clamp(s.health + recovery - strain + 1); // +1 baseline hồi phục
+  s.health = clamp(s.health + recovery - strain + 1);
 
-  // Unrest ngắn hạn
   const longHours = Math.max(0, s.workHours - 10) * BAL.unrestFromLongHours;
   const wagePremium = (s.wagePerWorker - BAL.baseWagePerWorker) / BAL.baseWagePerWorker;
   const relief = Math.max(0, wagePremium * 100) * BAL.unrestReliefFromRaise * 0.3;
   const healthDrag = s.health < 50 ? (50 - s.health) * 0.15 : 0;
-  s.unrest = clamp(s.unrest + longHours + healthDrag - relief - 0.5);
+  const employmentRelief = Math.max(0, 12 - s.socialUnemployment) * 0.08;
+  s.unrest = clamp(s.unrest + longHours + healthDrag - relief - employmentRelief - 0.4);
 
-  // Contradiction dài hạn (chỉ dâng, rất khó hạ)
-  s.contradiction = clamp(s.contradiction + s.unrest * BAL.contradictionPerUnrest * 0.1);
+  const conflictPressure =
+    s.unrest * BAL.contradictionPerUnrest * 0.075 +
+    Math.max(0, rec.exploitation - 1) * 0.6 +
+    Math.max(0, rec.industrySupply / Math.max(1, rec.effectiveDemand) - 1) * 1.5;
+  const reformRelief = s.workHours <= 8 && wagePremium > 0 ? 0.8 : 0;
+  s.contradiction = clamp(s.contradiction + conflictPressure - reformRelief);
 
-  // Overstock streak
-  if (rec.inventory > 2 * s.demand) s.overstockStreak += 1;
-  else s.overstockStreak = 0;
+  const inventoryRatio = rec.inventory / Math.max(1, rec.demand);
+  const industryOverproduction = rec.industrySupply > rec.effectiveDemand;
+  s.overstockStreak =
+    industryOverproduction && inventoryRatio > BAL.inventoryCrisisRatio ? s.overstockStreak + 1 : 0;
 
-  // Debt stress
-  if (s.debt > BAL.bankruptcyDebtRatio * Math.max(1, s.cash + s.machines * BAL.machinePrice)) {
-    s.debtStressStreak += 1;
-  } else {
-    s.debtStressStreak = 0;
-  }
+  s.debtStressStreak = rec.debtRatio > BAL.bankruptcyDebtRatio ? s.debtStressStreak + 1 : 0;
+
+  const wageIndex = s.wagePerWorker / BAL.baseWagePerWorker;
+  s.purchasingPowerIndex = Math.max(
+    0.72,
+    Math.min(1.12, 1 + (wageIndex - 1) * 0.2 - (s.socialUnemployment - 10) * 0.006),
+  );
+
+  rec.contradiction = s.contradiction;
+  rec.unrest = s.unrest;
+  rec.health = s.health;
 }

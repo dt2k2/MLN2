@@ -1,5 +1,25 @@
-export type ActionId =
-  "EXTEND_HOURS" | "RAISE_WAGE" | "BUY_MACHINE" | "EXPAND_FACTORY" | "LAYOFF" | "BORROW";
+export type DecisionGroupId =
+  "WORKDAY" | "WAGES" | "STAFFING" | "MACHINERY" | "ACCUMULATION" | "CREDIT";
+
+export type DecisionOptionId =
+  | "EXTEND_HOURS"
+  | "REDUCE_HOURS"
+  | "RAISE_WAGE"
+  | "CUT_WAGE"
+  | "HIRE_WORKERS"
+  | "LAYOFF"
+  | "BUY_MACHINE"
+  | "SELL_MACHINE"
+  | "REINVEST_25"
+  | "REINVEST_50"
+  | "REINVEST_75"
+  | "REINVEST_100"
+  | "BORROW"
+  | "REPAY_5000"
+  | "REPAY_15000"
+  | "REPAY_ALL";
+
+export type GamePhase = 1 | 2 | 3 | 4;
 
 export type ConceptKey =
   | "commodity"
@@ -32,6 +52,14 @@ export interface ConceptDiscovery {
 export type DiscoveryState = Partial<Record<ConceptKey, ConceptDiscovery>>;
 export type AchievementState = Partial<Record<AchievementId, true>>;
 
+export interface StoryPresentation {
+  id: string;
+  kind: "chapter" | "beat";
+  eyebrow: string;
+  title: string;
+  body: string;
+}
+
 export type PresentationItem =
   | { id: string; kind: "eureka"; conceptKey: ConceptKey }
   | {
@@ -47,9 +75,43 @@ export type PresentationItem =
       startTurn: number;
       endTurn: number;
       conceptKeys: ConceptKey[];
-    };
+    }
+  | { id: string; kind: "event"; eventId: string }
+  | { id: string; kind: "event"; eventId: string }
+  | { id: string; kind: "story"; story: StoryPresentation };
 
 export type EndingId = "revolution" | "bankruptcy" | "monopoly" | "reform" | "timeout";
+
+export type TimedEffectKind =
+  | "outputMultiplier"
+  | "demandMultiplier"
+  | "materialPriceMultiplier"
+  | "interestRateMultiplier"
+  | "workHoursCap";
+
+export interface TimedEffect {
+  id: string;
+  source: string;
+  kind: TimedEffectKind;
+  value: number;
+  remainingTurns: number;
+}
+
+export interface CompetitorSnapshot {
+  id: "bauer" | "schmidt" | "krupp";
+  name: string;
+  archetype: string;
+  techLevel: number;
+  scale: number;
+  output: number;
+  priceIndex: number;
+  marketShare: number;
+}
+
+export interface EventHistoryEntry {
+  count: number;
+  lastTurn: number;
+}
 
 export interface QuarterRecord {
   turn: number;
@@ -63,38 +125,48 @@ export interface QuarterRecord {
   extraSurplusValue: number;
   W: number;
   profit: number;
-  profitRate: number; // p′ = m/(c+v)
-  profitRateReal: number; // profit / (c+v)
-  exploitation: number; // m′
-  organic: number; // c/v
+  reinvestedProfit: number;
+  ownerConsumption: number;
+  interestPaid: number;
+  debtRatio: number;
+  profitRate: number;
+  profitRateReal: number;
+  exploitation: number;
+  organic: number;
   contradiction: number;
   unrest: number;
   health: number;
   output: number;
   demand: number;
+  effectiveDemand: number;
+  industrySupply: number;
   inventory: number;
   sellPrice: number;
   materialPrice: number;
-  laborProductivity: number; // units produced per labor hour
-  individualLaborTime: number; // labor hours per unit in this factory
-  socialLaborTime: number; // socially necessary labor hours per unit
+  laborProductivity: number;
+  individualLaborTime: number;
+  socialLaborTime: number;
+}
+
+export interface EventChoice {
+  label: string;
+  tone: "accept" | "refuse";
+  apply: (s: GameState) => void;
+  previewLabel: string;
+  canChoose?: (s: GameState) => boolean;
+  disabledReason?: string;
 }
 
 export interface EventOccurrence {
   id: string;
   title: string;
   description: string;
-  choices: {
-    label: string;
-    tone: "accept" | "refuse";
-    apply: (s: GameState) => void; // mutates via immer draft
-    previewLabel: string;
-  }[];
+  choices: EventChoice[];
 }
 
 export interface LogEntry {
   turn: number;
-  type: "event" | "decision" | "concept" | "system";
+  type: "event" | "decision" | "concept" | "system" | "news";
   text: string;
 }
 
@@ -103,46 +175,51 @@ export interface GameState {
   turn: number;
   year: number;
   quarter: number;
-
   companyName: string;
+  protagonistName: string;
 
-  // Tư bản
   cash: number;
   debt: number;
+  ownerConsumption: number;
+  reinvestmentRate: number;
   machines: number;
   inventory: number;
 
-  // Lao động
   workersActive: number;
   workersIdle: number;
   wagePerWorker: number;
   workHours: number;
+  legalMaxWorkHours: number;
 
-  // Xã hội
-  health: number; // 0–100
-  unrest: number; // 0–100
-  contradiction: number; // 0–100 (chậm)
+  health: number;
+  unrest: number;
+  contradiction: number;
+  socialUnemployment: number;
+  purchasingPowerIndex: number;
 
-  // Chỉ số quý gần nhất (để hiển thị)
   last: QuarterRecord;
 
-  // Thị trường
   sellPrice: number;
   materialPrice: number;
   demand: number;
-  industryProductivity: number; // 1.0 chuẩn hoá
-  marketShare: number; // 0–1
+  effectiveDemand: number;
+  industrySupply: number;
+  industryProductivity: number;
+  marketShare: number;
+  competitors: CompetitorSnapshot[];
   overstockStreak: number;
   debtStressStreak: number;
   riotStreak: number;
 
+  activeEffects: TimedEffect[];
+  eventHistory: Record<string, EventHistoryEntry>;
+  seenStoryIds: Record<string, true>;
+
   history: QuarterRecord[];
   log: LogEntry[];
-
   discoveredConcepts: DiscoveryState;
   achievements: AchievementState;
 
-  // Trạng thái luồng
   pendingEvent: EventOccurrence | null;
   ending: EndingId | null;
 }

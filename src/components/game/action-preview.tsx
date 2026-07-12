@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { produce } from "immer";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { ACTIONS } from "@/game/actions";
+import { DECISIONS } from "@/game/decisions";
 import { computeQuarter } from "@/game/engine/laws";
-import type { ActionId, GameState } from "@/game/types";
+import type { DecisionOptionId, GameState } from "@/game/types";
 
 type Metric = {
   key: string;
@@ -19,13 +19,19 @@ function fmt(n: number, kind: Metric["kind"]) {
   return n.toFixed(2);
 }
 
-export function ActionPreview({ state, actionId }: { state: GameState; actionId: ActionId }) {
+export function ActionPreview({
+  state,
+  actionId,
+}: {
+  state: GameState;
+  actionId: DecisionOptionId;
+}) {
   const metrics = useMemo<Metric[]>(() => {
     try {
       const next = produce(state, (d) => {
-        ACTIONS[actionId].apply(d);
+        DECISIONS[actionId].apply(d);
       });
-      const before = state.last;
+      const before = computeQuarter(state);
       const after = computeQuarter(next);
       return [
         { key: "c", label: "Tư liệu", before: before.c, after: after.c, kind: "money" },

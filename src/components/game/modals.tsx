@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, BookOpen, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
 import { Gear } from "./particles";
 import { CONCEPT_INFO } from "@/game/concepts";
-import type { ConceptDiscovery, ConceptKey } from "@/game/types";
+import type { ConceptDiscovery, ConceptKey, StoryPresentation } from "@/game/types";
 
 export function ModalShell({
   open,
@@ -55,6 +55,8 @@ export interface EventModalChoice {
   label: string;
   tone: "accept" | "refuse";
   previewLabel: string;
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 export function EventModal({
@@ -95,7 +97,8 @@ export function EventModal({
             <button
               key={i}
               onClick={() => onChoose(i)}
-              className={`rounded-md border px-4 py-3 text-left text-sm font-semibold transition ${
+              disabled={c.disabled}
+              className={`rounded-md border px-4 py-3 text-left text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${
                 c.tone === "accept"
                   ? "border-[color:var(--success)]/60 bg-[color:var(--success)]/10 text-[color:var(--success)] hover:bg-[color:var(--success)]/20"
                   : "border-destructive/60 bg-destructive/10 text-destructive hover:bg-destructive/20"
@@ -103,12 +106,35 @@ export function EventModal({
             >
               <div>{c.label}</div>
               <div className="mt-1 font-mono text-[11px] font-normal opacity-80">
-                {c.previewLabel}
+                {c.disabled ? c.disabledReason : c.previewLabel}
               </div>
             </button>
           ))}
         </div>
       </div>
+    </ModalShell>
+  );
+}
+
+export function StoryModal({
+  open,
+  onClose,
+  story,
+}: {
+  open: boolean;
+  onClose: () => void;
+  story?: StoryPresentation;
+}) {
+  if (!story) return null;
+  return (
+    <ModalShell open={open} onClose={onClose} maxWidth="max-w-xl">
+      <div className="border-b border-border/60 px-6 py-5">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
+          {story.eyebrow}
+        </div>
+        <h3 className="mt-2 font-display text-2xl font-semibold text-foreground">{story.title}</h3>
+      </div>
+      <p className="px-6 py-5 text-sm leading-7 text-muted-foreground">{story.body}</p>
     </ModalShell>
   );
 }

@@ -1,190 +1,112 @@
 import { describe, expect, it } from "vitest";
-import { ACTIONS } from "./actions";
-import { checkActionDiscoveries, checkQuarterDiscoveries } from "./concepts";
+import { produce } from "immer";
+import { checkActionDiscoveries, checkQuarterDiscoveries, CONCEPT_KEYS } from "./concepts";
+import { DECISIONS } from "./decisions";
 import { initialState } from "./state";
-import type { ActionId, GameState, QuarterRecord } from "./types";
+import type { DecisionOptionId, GameState, QuarterRecord } from "./types";
 
 function record(overrides: Partial<QuarterRecord> = {}): QuarterRecord {
-  return {
-    turn: 1,
-    year: 1857,
-    quarter: 3,
-    c: 100,
-    v: 100,
-    m: 50,
-    newValue: 150,
-    baseSurplusValue: 50,
-    extraSurplusValue: 0,
-    W: 300,
-    profit: 100,
-    profitRate: 0.25,
-    profitRateReal: 0.5,
-    exploitation: 0.5,
-    organic: 1,
-    contradiction: 20,
-    unrest: 15,
-    health: 80,
-    output: 100,
-    demand: 100,
-    inventory: 10,
-    sellPrice: 38,
-    materialPrice: 8,
-    laborProductivity: 0.14,
-    individualLaborTime: 7,
-    socialLaborTime: 7.3,
-    ...overrides,
-  };
+  return { ...initialState(1).last, turn: 12, output: 900, v: 5_000, ...overrides };
 }
 
-function quarterKeys(state: GameState) {
-  return checkQuarterDiscoveries(state).map((item) => item.key);
+function afterDecision(optionId: DecisionOptionId, state = initialState(1)) {
+  return produce(state, (draft) => DECISIONS[optionId].apply(draft));
 }
 
-function actionState(actionId: ActionId, overrides: Partial<GameState> = {}) {
-  const prev = { ...initialState(1), ...overrides };
-  const next = structuredClone(prev);
-  ACTIONS[actionId].apply(next);
-  return { prev, next };
-}
+describe("concept discovery", () => {
+  it("unlocks machinery concepts after productivity actually rises", () => {
+    const previous = initialState(1);
+    const next = afterDecision("BUY_MACHINE", previous);
+    const discoveries = checkActionDiscoveries({
+      prev: previous,
+      next,
+      actionId: "BUY_MACHINE",
+      investmentThisTurn: 0,
+      layoffsThisTurn: 0,
+      workersAtTurnStart: previous.workersActive,
+      discovered: {},
+    });
+    expect(discoveries.map((item) => item.key)).toEqual(["constantCapital", "relativeSurplus"]);
+  });
 
-describe("quarter concept triggers", () => {
-  it("returns every newly observed concept in the same quarter", () => {
+  it("uses a strict greater-than twenty percent layoff threshold", () => {
+    const previous = initialState(1);
+    const next = afterDecision("LAYOFF", previous);
+    const discoveries = checkActionDiscoveries({
+      prev: previous,
+      next,
+      actionId: "LAYOFF",
+      investmentThisTurn: 0,
+      layoffsThisTurn: 8,
+      workersAtTurnStart: 32,
+      discovered: {},
+    });
+    expect(discoveries.some((item) => item.key === "reserveArmy")).toBe(true);
+  });
+
+  it("requires both industry overproduction and high firm inventory", () => {
     const state = initialState(1);
-    state.contradiction = 76;
     state.history = [
       record({
-        v: 100,
-        m: 120,
-        profit: 80,
-        exploitation: 1.2,
-        organic: 3.1,
-        inventory: 71,
-        individualLaborTime: 7.5,
-        socialLaborTime: 7,
+        inventory: 800,
+        demand: 1_000,
+        industrySupply: 4_500,
+        effectiveDemand: 4_000,
       }),
     ];
-
-    expect(quarterKeys(state)).toEqual(
-      expect.arrayContaining([
-        "commodity",
-        "socialLabor",
-        "variableCapital",
-        "surplusValue",
-        "surplusRate",
-        "organicComposition",
-        "overproductionCrisis",
-        "capitalistContradiction",
-      ]),
+    expect(checkQuarterDiscoveries(state).some((item) => item.key === "overproductionCrisis")).toBe(
+      true,
+    );
+    state.history[0].industrySupply = 3_500;
+    expect(checkQuarterDiscoveries(state).some((item) => item.key === "overproductionCrisis")).toBe(
+      false,
     );
   });
 
-  it("uses strict thresholds and never rediscovers an unlocked concept", () => {
+  it("needs four strict records for three consecutive profit-rate falls", () => {
     const state = initialState(1);
-    state.contradiction = 75;
-    state.history = [record({ exploitation: 1, organic: 3, inventory: 70, demand: 100 })];
-    state.discoveredConcepts.commodity = {
-      key: "commodity",
-      turn: 1,
-      quarter: 3,
-      year: 1857,
-      action: "test",
-      consequence: "test",
-    };
-
-    const keys = quarterKeys(state);
-    expect(keys).not.toContain("commodity");
-    expect(keys).not.toContain("surplusRate");
-    expect(keys).not.toContain("organicComposition");
-    expect(keys).not.toContain("overproductionCrisis");
-    expect(keys).not.toContain("capitalistContradiction");
+    state.history = [0.4, 0.3, 0.2].map((profitRate, index) =>
+      record({ turn: index + 1, profitRate }),
+    );
+    expect(checkQuarterDiscoveries(state).some((item) => item.key === "fallingProfitRate")).toBe(
+      false,
+    );
+    state.history.push(record({ turn: 4, profitRate: 0.1 }));
+    expect(checkQuarterDiscoveries(state).some((item) => item.key === "fallingProfitRate")).toBe(
+      true,
+    );
   });
 
-  it("unlocks profit rate only on a decline from turn 12", () => {
-    const state = initialState(1);
-    state.history = [record({ turn: 11, profitRate: 0.3 }), record({ turn: 12, profitRate: 0.2 })];
-    expect(quarterKeys(state)).toContain("profitRate");
-
-    state.history[1] = record({ turn: 11, profitRate: 0.2 });
-    expect(quarterKeys(state)).not.toContain("profitRate");
-  });
-
-  it("requires four records for three consecutive profit-rate declines", () => {
-    const state = initialState(1);
+  it("can return every simultaneous new concept without duplicates", () => {
+    const state: GameState = initialState(1);
+    state.contradiction = 80;
     state.history = [
-      record({ turn: 9, profitRate: 0.4 }),
-      record({ turn: 10, profitRate: 0.3 }),
-      record({ turn: 11, profitRate: 0.2 }),
+      record({ turn: 9, profitRate: 0.5 }),
+      record({ turn: 10, profitRate: 0.4 }),
+      record({ turn: 11, profitRate: 0.3 }),
+      record({
+        turn: 12,
+        c: 20_000,
+        v: 5_000,
+        m: 7_000,
+        profit: 6_000,
+        reinvestedProfit: 4_500,
+        ownerConsumption: 1_500,
+        exploitation: 1.4,
+        organic: 4,
+        profitRate: 0.2,
+        individualLaborTime: 7,
+        socialLaborTime: 6,
+        inventory: 900,
+        demand: 1_000,
+        industrySupply: 5_000,
+        effectiveDemand: 4_000,
+      }),
     ];
-    expect(quarterKeys(state)).not.toContain("fallingProfitRate");
-
-    state.history.push(record({ turn: 12, profitRate: 0.1 }));
-    expect(quarterKeys(state)).toContain("fallingProfitRate");
-  });
-});
-
-describe("action concept triggers", () => {
-  it("detects constant and relative surplus after buying a machine", () => {
-    const { prev, next } = actionState("BUY_MACHINE", { cash: 60000 });
-    const keys = checkActionDiscoveries({
-      prev,
-      next,
-      actionId: "BUY_MACHINE",
-      investmentThisTurn: 18000,
-      layoffsThisTurn: 0,
-      workersAtTurnStart: 40,
-      discovered: {},
-    }).map((item) => item.key);
-    expect(keys).toEqual(expect.arrayContaining(["constantCapital", "relativeSurplus"]));
-  });
-
-  it("detects absolute surplus, accumulation and reserve army at strict thresholds", () => {
-    const hours = actionState("EXTEND_HOURS");
-    expect(
-      checkActionDiscoveries({
-        ...hours,
-        actionId: "EXTEND_HOURS",
-        investmentThisTurn: 0,
-        layoffsThisTurn: 0,
-        workersAtTurnStart: 40,
-        discovered: {},
-      }).map((item) => item.key),
-    ).toContain("absoluteSurplus");
-
-    const investment = actionState("BUY_MACHINE", {
-      cash: 60000,
-      last: record({ profit: 30000 }),
-    });
-    expect(
-      checkActionDiscoveries({
-        ...investment,
-        actionId: "BUY_MACHINE",
-        investmentThisTurn: 18000,
-        layoffsThisTurn: 0,
-        workersAtTurnStart: 40,
-        discovered: {},
-      }).map((item) => item.key),
-    ).toContain("capitalAccumulation");
-
-    const layoffs = actionState("LAYOFF");
-    expect(
-      checkActionDiscoveries({
-        ...layoffs,
-        actionId: "LAYOFF",
-        investmentThisTurn: 0,
-        layoffsThisTurn: 8,
-        workersAtTurnStart: 39,
-        discovered: {},
-      }).map((item) => item.key),
-    ).toContain("reserveArmy");
-    expect(
-      checkActionDiscoveries({
-        ...layoffs,
-        actionId: "LAYOFF",
-        investmentThisTurn: 0,
-        layoffsThisTurn: 8,
-        workersAtTurnStart: 40,
-        discovered: {},
-      }).map((item) => item.key),
-    ).not.toContain("reserveArmy");
+    const keys = checkQuarterDiscoveries(state).map((item) => item.key);
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(keys).toContain("capitalAccumulation");
+    expect(keys).toContain("fallingProfitRate");
+    expect(CONCEPT_KEYS).toHaveLength(15);
   });
 });

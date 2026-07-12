@@ -1,42 +1,192 @@
-import type { GameState, EventOccurrence } from "../types";
+import { BAL } from "../balance";
+import type { EventOccurrence, GamePhase, GameState, TimedEffect } from "../types";
+import { addOrRefreshEffect } from "./effects";
 import type { Rng } from "./rng";
 
-interface EventDef {
+export interface EventDef {
   id: string;
-  weight: (s: GameState) => number;
-  build: (s: GameState) => EventOccurrence;
+  phase: GamePhase;
+  once?: boolean;
+  cooldown?: number;
+  weight: number | ((state: GameState) => number);
+  prerequisite?: (state: GameState) => boolean;
+  build: (state: GameState) => EventOccurrence;
 }
 
-const clamp = (x: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, x));
+const clamp = (value: number) => Math.max(0, Math.min(100, value));
+const noChange = () => {};
+const always = () => true;
 
-const EVENTS: EventDef[] = [
+function effect(
+  state: GameState,
+  id: string,
+  source: string,
+  kind: TimedEffect["kind"],
+  value: number,
+  remainingTurns: number,
+) {
+  state.activeEffects = addOrRefreshEffect(state.activeEffects, {
+    id,
+    source,
+    kind,
+    value,
+    remainingTurns,
+  });
+}
+
+export function getGamePhase(turn: number): GamePhase {
+  if (turn <= 6) return 1;
+  if (turn <= 12) return 2;
+  if (turn <= 18) return 3;
+  return 4;
+}
+
+export const EVENTS: EventDef[] = [
   {
-    id: "strike",
-    weight: (s) => Math.max(0, (s.unrest - 30) / 100) + (s.workHours > 12 ? 0.15 : 0),
+    id: "defective-cloth",
+    phase: 1,
+    once: true,
+    weight: 1,
     build: () => ({
-      id: "strike",
-      title: "Công nhân đình công",
-      description:
-        "Sau nhiều quý làm việc quá sức, công nhân xưởng dệt bãi công đòi giảm giờ làm và tăng lương.",
+      id: "defective-cloth",
+      title: "Một lô vải kém chất lượng",
+      description: "Thương nhân phát hiện đường dệt lỗi và yêu cầu xưởng chịu trách nhiệm.",
       choices: [
         {
-          label: "Nhượng bộ — tăng lương 10%",
+          label: "Thu hồi và dệt lại",
           tone: "accept",
-          previewLabel: "v ↑10% · Unrest −20 · Mâu thuẫn −2",
-          apply: (s) => {
-            s.wagePerWorker = Math.round(s.wagePerWorker * 1.1);
-            s.unrest = clamp(s.unrest - 20);
-            s.contradiction = clamp(s.contradiction - 2);
+          previewLabel: "Chi $2.000 · giữ uy tín",
+          canChoose: (state) => state.cash >= 2_000,
+          disabledReason: "Không đủ tiền mặt.",
+          apply: (state) => {
+            state.cash -= 2_000;
+            state.unrest = clamp(state.unrest - 2);
           },
         },
         {
-          label: "Đàn áp — gọi cảnh sát",
+          label: "Bán hạ giá",
           tone: "refuse",
-          previewLabel: "Sản xuất −25% quý này · Unrest +10 · Mâu thuẫn +8",
-          apply: (s) => {
-            s.inventory = Math.floor(s.inventory * 0.75);
-            s.unrest = clamp(s.unrest + 10);
-            s.contradiction = clamp(s.contradiction + 8);
+          previewLabel: "Thu $1.000 · cầu quý sau −8%",
+          apply: (state) => {
+            state.cash += 1_000;
+            effect(state, "quality-demand", "Vải kém chất lượng", "demandMultiplier", 0.92, 1);
+          },
+        },
+      ],
+    }),
+  },
+  {
+    id: "wage-petition",
+    phase: 1,
+    once: true,
+    weight: (state) => 0.8 + state.unrest / 100,
+    build: () => ({
+      id: "wage-petition",
+      title: "Thỉnh nguyện tiền lương",
+      description: "Đại diện công nhân đề nghị điều chỉnh lương theo giá lương thực.",
+      choices: [
+        {
+          label: "Tăng lương 5%",
+          tone: "accept",
+          previewLabel: "Lương +5% · bất ổn −7",
+          apply: (state) => {
+            state.wagePerWorker *= 1.05;
+            state.unrest = clamp(state.unrest - 7);
+          },
+        },
+        {
+          label: "Bác thỉnh nguyện",
+          tone: "refuse",
+          previewLabel: "Bất ổn +7",
+          apply: (state) => {
+            state.unrest = clamp(state.unrest + 7);
+          },
+        },
+      ],
+    }),
+  },
+  {
+    id: "military-order",
+    phase: 1,
+    once: true,
+    weight: 0.8,
+    build: () => ({
+      id: "military-order",
+      title: "Đơn hàng quân đội",
+      description: "Nhà nước đặt mua vải đồng phục cho quý kế tiếp.",
+      choices: [
+        {
+          label: "Nhận đơn hàng",
+          tone: "accept",
+          previewLabel: "Cầu quý sau +25% · sức khỏe −3",
+          apply: (state) => {
+            effect(state, "military-demand", "Đơn hàng quân đội", "demandMultiplier", 1.25, 1);
+            state.health = clamp(state.health - 3);
+          },
+        },
+        {
+          label: "Giữ đơn hàng dân sự",
+          tone: "refuse",
+          previewLabel: "Không đổi",
+          apply: noChange,
+        },
+      ],
+    }),
+  },
+  {
+    id: "steam-sewing-machine",
+    phase: 2,
+    once: true,
+    weight: 1,
+    build: () => ({
+      id: "steam-sewing-machine",
+      title: "Máy may dẫn động hơi nước",
+      description: "Một kỹ sư chào bán máy cải tiến tương thích với dây chuyền hiện có.",
+      choices: [
+        {
+          label: "Mua máy với giá $12.000",
+          tone: "accept",
+          previewLabel: "Máy +1 · tiền mặt −$12.000",
+          canChoose: (state) => state.cash >= 12_000,
+          disabledReason: "Không đủ tiền mặt.",
+          apply: (state) => {
+            state.cash -= 12_000;
+            state.machines += 1;
+          },
+        },
+        { label: "Từ chối", tone: "refuse", previewLabel: "Không đổi", apply: noChange },
+      ],
+    }),
+  },
+  {
+    id: "investigative-press",
+    phase: 2,
+    once: true,
+    weight: (state) => 0.6 + state.unrest / 80,
+    build: () => ({
+      id: "investigative-press",
+      title: "Báo chí điều tra xưởng máy",
+      description: "Một phóng viên hỏi về tai nạn, giờ làm và khu nhà công nhân.",
+      choices: [
+        {
+          label: "Cho phép thanh tra",
+          tone: "accept",
+          previewLabel: "Chi $2.500 · sức khỏe +5 · mâu thuẫn −3",
+          canChoose: (state) => state.cash >= 2_500,
+          disabledReason: "Không đủ tiền mặt.",
+          apply: (state) => {
+            state.cash -= 2_500;
+            state.health = clamp(state.health + 5);
+            state.contradiction = clamp(state.contradiction - 3);
+          },
+        },
+        {
+          label: "Đóng cổng xưởng",
+          tone: "refuse",
+          previewLabel: "Bất ổn +8 · mâu thuẫn +4",
+          apply: (state) => {
+            state.unrest = clamp(state.unrest + 8);
+            state.contradiction = clamp(state.contradiction + 4);
           },
         },
       ],
@@ -44,169 +194,308 @@ const EVENTS: EventDef[] = [
   },
   {
     id: "cotton-shock",
-    weight: () => 0.08,
+    phase: 2,
+    once: true,
+    weight: 1,
     build: () => ({
       id: "cotton-shock",
-      title: "Khủng hoảng bông thô thuộc địa",
-      description: "Chiến sự ở thuộc địa khiến giá bông tăng vọt trong hai quý tới.",
+      title: "Khủng hoảng bông",
+      description: "Nguồn cung bông gián đoạn, đẩy giá nguyên liệu lên trong hai quý.",
       choices: [
         {
-          label: "Tích trữ ngay — chi $6.000",
+          label: "Mua hợp đồng bảo hiểm",
           tone: "accept",
-          previewLabel: "−$6.000 · giữ giá nguyên liệu",
-          apply: (s) => {
-            s.cash -= 6000;
+          previewLabel: "Chi $5.000 · nguyên liệu +10% trong 2 quý",
+          canChoose: (state) => state.cash >= 5_000,
+          disabledReason: "Không đủ tiền mặt.",
+          apply: (state) => {
+            state.cash -= 5_000;
+            effect(state, "cotton-insured", "Khủng hoảng bông", "materialPriceMultiplier", 1.1, 2);
           },
         },
         {
-          label: "Chấp nhận rủi ro",
+          label: "Mua theo giá thị trường",
           tone: "refuse",
-          previewLabel: "Giá nguyên liệu +40%",
-          apply: (s) => {
-            s.materialPrice *= 1.4;
+          previewLabel: "Nguyên liệu +40% trong 2 quý",
+          apply: (state) =>
+            effect(state, "cotton-shock", "Khủng hoảng bông", "materialPriceMultiplier", 1.4, 2),
+        },
+      ],
+    }),
+  },
+  {
+    id: "union-founded",
+    phase: 2,
+    once: true,
+    weight: (state) => 0.5 + state.unrest / 60,
+    build: () => ({
+      id: "union-founded",
+      title: "Công đoàn được thành lập",
+      description: "Công nhân lập quỹ tương trợ và cử đại diện thương lượng.",
+      choices: [
+        {
+          label: "Công nhận đại diện",
+          tone: "accept",
+          previewLabel: "Lương +3% · bất ổn −8",
+          apply: (state) => {
+            state.wagePerWorker *= 1.03;
+            state.unrest = clamp(state.unrest - 8);
+          },
+        },
+        {
+          label: "Sa thải ban tổ chức",
+          tone: "refuse",
+          previewLabel: "4 người mất việc · mâu thuẫn +9",
+          apply: (state) => {
+            const fired = Math.min(4, Math.max(0, state.workersActive - BAL.minimumWorkers));
+            state.workersActive -= fired;
+            state.workersIdle += fired;
+            state.socialUnemployment += fired * 0.25;
+            state.contradiction = clamp(state.contradiction + 9);
           },
         },
       ],
     }),
   },
   {
-    id: "invention",
-    weight: (s) => 0.05 + Math.min(0.1, s.machines * 0.01),
+    id: "factory-strike",
+    phase: 3,
+    once: true,
+    weight: (state) => 0.3 + state.unrest / 35,
+    prerequisite: (state) => state.unrest >= 45,
     build: () => ({
-      id: "invention",
-      title: "Phát minh máy dệt mới",
-      description: "Một kỹ sư chào bán máy dệt hơi nước cải tiến, đắt nhưng năng suất gấp đôi.",
+      id: "factory-strike",
+      title: "Đình công toàn xưởng",
+      description: "Sản xuất quý kế tiếp bị đe dọa; số hàng trong kho không tự biến mất.",
       choices: [
         {
-          label: "Mua bản quyền — $12.000",
+          label: "Thương lượng",
           tone: "accept",
-          previewLabel: "+1 máy siêu năng suất · −$12.000",
-          apply: (s) => {
-            s.cash -= 12000;
-            s.machines += 2;
+          previewLabel: "Lương +7% · sản lượng quý sau −20%",
+          apply: (state) => {
+            state.wagePerWorker *= 1.07;
+            state.unrest = clamp(state.unrest - 14);
+            effect(state, "negotiated-strike", "Đình công", "outputMultiplier", 0.8, 1);
           },
         },
         {
-          label: "Từ chối",
+          label: "Đối đầu",
           tone: "refuse",
-          previewLabel: "Không đổi",
-          apply: () => {},
+          previewLabel: "Sản lượng quý sau −55% · mâu thuẫn +10",
+          apply: (state) => {
+            state.contradiction = clamp(state.contradiction + 10);
+            effect(state, "factory-strike", "Đình công", "outputMultiplier", 0.45, 1);
+          },
         },
       ],
     }),
   },
   {
     id: "factory-act",
-    weight: (s) => (s.contradiction > 40 ? 0.25 : 0.02),
+    phase: 3,
+    once: true,
+    weight: 1,
     build: () => ({
       id: "factory-act",
-      title: "Nghị viện đề xuất Luật Xưởng máy",
-      description:
-        "Áp lực xã hội buộc nghị viện xem xét luật giới hạn giờ làm việc xuống 10 giờ.",
+      title: "Luật Xưởng máy",
+      description: "Nghị viện áp trần ngày lao động 12 giờ; tranh luận chỉ còn về cách thi hành.",
       choices: [
         {
-          label: "Ủng hộ cải cách",
+          label: "Thi hành và cải thiện an toàn",
           tone: "accept",
-          previewLabel: "Giờ làm cap 10 · Mâu thuẫn −10 · Sức khoẻ +8",
-          apply: (s) => {
-            s.workHours = Math.min(s.workHours, 10);
-            s.contradiction = clamp(s.contradiction - 10);
-            s.health = clamp(s.health + 8);
+          previewLabel: "Trần 12 giờ · chi $3.000 · sức khỏe +6",
+          canChoose: (state) => state.cash >= 3_000,
+          disabledReason: "Không đủ tiền cho cải thiện an toàn.",
+          apply: (state) => {
+            state.cash -= 3_000;
+            state.legalMaxWorkHours = 12;
+            state.workHours = Math.min(state.workHours, 12);
+            state.health = clamp(state.health + 6);
           },
         },
         {
-          label: "Vận động chống lại",
+          label: "Chỉ tuân thủ tối thiểu",
           tone: "refuse",
-          previewLabel: "−$4.000 hối lộ · Mâu thuẫn +6",
-          apply: (s) => {
-            s.cash -= 4000;
-            s.contradiction = clamp(s.contradiction + 6);
+          previewLabel: "Trần 12 giờ · bất ổn +3",
+          apply: (state) => {
+            state.legalMaxWorkHours = 12;
+            state.workHours = Math.min(state.workHours, 12);
+            state.unrest = clamp(state.unrest + 3);
           },
         },
       ],
     }),
   },
   {
-    id: "cholera",
-    weight: (s) => 0.04 + (s.health < 50 ? 0.1 : 0),
+    id: "krupp-price-war",
+    phase: 3,
+    once: true,
+    weight: 1,
     build: () => ({
-      id: "cholera",
-      title: "Dịch tả bùng phát ở khu công nhân",
-      description: "Điều kiện sống tồi tệ khiến dịch bệnh lan rộng.",
+      id: "krupp-price-war",
+      title: "Krupp phát động chiến tranh giá",
+      description: "Quy mô lớn cho phép Krupp hạ giá để giành đơn hàng trong hai quý.",
       choices: [
         {
-          label: "Chi $3.000 chăm sóc y tế",
+          label: "Hạ giá cạnh tranh",
           tone: "accept",
-          previewLabel: "−$3.000 · Sức khoẻ +12",
-          apply: (s) => {
-            s.cash -= 3000;
-            s.health = clamp(s.health + 12);
+          previewLabel: "Cầu của xưởng −10% trong 2 quý",
+          apply: (state) =>
+            effect(state, "price-war-match", "Chiến tranh giá", "demandMultiplier", 0.9, 2),
+        },
+        {
+          label: "Giữ biên lợi nhuận",
+          tone: "refuse",
+          previewLabel: "Cầu của xưởng −25% trong 2 quý",
+          apply: (state) =>
+            effect(state, "price-war", "Chiến tranh giá", "demandMultiplier", 0.75, 2),
+        },
+      ],
+    }),
+  },
+  {
+    id: "credit-crisis-1857",
+    phase: 4,
+    once: true,
+    weight: 1.5,
+    prerequisite: (state) => state.year >= 1857 && state.debt > 0,
+    build: (state) => {
+      const demanded = Math.min(8_000, state.debt);
+      return {
+        id: "credit-crisis-1857",
+        title: "Khủng hoảng tín dụng 1857",
+        description: `Ngân hàng đòi thu hồi $${demanded.toLocaleString("en-US")} gốc vay giữa cơn hoảng loạn.`,
+        choices: [
+          {
+            label: "Bán máy và trả nợ",
+            tone: "accept",
+            previewLabel: `Máy −1 · nợ −$${demanded.toLocaleString("en-US")}`,
+            canChoose: (current) =>
+              current.machines > 1 && current.cash + BAL.machineLiquidationValue >= demanded,
+            disabledReason: "Không đủ máy hoặc tiền sau thanh lý.",
+            apply: (current) => {
+              current.machines -= 1;
+              current.cash += BAL.machineLiquidationValue - demanded;
+              current.debt -= demanded;
+            },
+          },
+          {
+            label: "Tái cơ cấu khoản vay",
+            tone: "refuse",
+            previewLabel: "Nợ +$2.000 · lãi suất gấp đôi trong 2 quý",
+            apply: (current) => {
+              current.debt += 2_000;
+              effect(
+                current,
+                "penalty-interest",
+                "Tái cơ cấu 1857",
+                "interestRateMultiplier",
+                2,
+                2,
+              );
+            },
+          },
+        ],
+      };
+    },
+  },
+  {
+    id: "krupp-merger",
+    phase: 4,
+    once: true,
+    weight: 0.8,
+    prerequisite: (state) => state.marketShare < 0.28,
+    build: () => ({
+      id: "krupp-merger",
+      title: "Krupp đề nghị sáp nhập",
+      description: "Đối thủ muốn mua quyền kiểm soát xưởng và hợp nhất đơn hàng.",
+      choices: [
+        {
+          label: "Chấp nhận sáp nhập",
+          tone: "accept",
+          previewLabel: "Kết thúc: tập trung tư bản",
+          apply: (state) => {
+            state.ending = "monopoly";
           },
         },
         {
-          label: "Mặc kệ",
+          label: "Giữ độc lập",
           tone: "refuse",
-          previewLabel: "Mất 8 công nhân · Unrest +15",
-          apply: (s) => {
-            s.workersActive = Math.max(0, s.workersActive - 8);
-            s.unrest = clamp(s.unrest + 15);
+          previewLabel: "Cầu −15% trong 2 quý",
+          apply: (state) =>
+            effect(state, "merger-refusal", "Từ chối Krupp", "demandMultiplier", 0.85, 2),
+        },
+      ],
+    }),
+  },
+  {
+    id: "overproduction-panic",
+    phase: 4,
+    once: true,
+    weight: 1.5,
+    prerequisite: (state) =>
+      state.industrySupply > state.effectiveDemand &&
+      state.inventory > state.demand * BAL.inventoryCrisisRatio,
+    build: () => ({
+      id: "overproduction-panic",
+      title: "Hoảng loạn sản xuất thừa",
+      description: "Kho hàng cao, cung ngành vượt cầu và tín dụng co lại cùng lúc.",
+      choices: [
+        {
+          label: "Cắt sản xuất có kế hoạch",
+          tone: "accept",
+          previewLabel: "Sản lượng −30% trong 2 quý · cầu ổn định hơn",
+          apply: (state) =>
+            effect(
+              state,
+              "planned-cutback",
+              "Hoảng loạn sản xuất thừa",
+              "outputMultiplier",
+              0.7,
+              2,
+            ),
+        },
+        {
+          label: "Tiếp tục tranh thị phần",
+          tone: "refuse",
+          previewLabel: "Cầu −25% trong 2 quý · mâu thuẫn +6",
+          apply: (state) => {
+            effect(state, "panic-demand", "Hoảng loạn sản xuất thừa", "demandMultiplier", 0.75, 2);
+            state.contradiction = clamp(state.contradiction + 6);
           },
         },
       ],
     }),
   },
   {
-    id: "credit-crunch",
-    weight: (s) => (s.debt > 20000 ? 0.15 : 0.02),
+    id: "workers-district-riot",
+    phase: 4,
+    once: true,
+    weight: (state) => 0.5 + state.unrest / 40,
+    prerequisite: (state) => state.unrest >= 65,
     build: () => ({
-      id: "credit-crunch",
-      title: "Khủng hoảng tín dụng",
-      description: "Ngân hàng siết nợ, đòi trả trước hạn một phần.",
+      id: "workers-district-riot",
+      title: "Bạo loạn khu công nhân",
+      description: "Giá lương thực, thất nghiệp và xung đột với cảnh sát làm khu lao động bùng nổ.",
       choices: [
         {
-          label: "Trả $8.000",
+          label: "Mở quỹ cứu trợ",
           tone: "accept",
-          previewLabel: "−$8.000 tiền mặt · Nợ −$8.000",
-          apply: (s) => {
-            s.cash -= 8000;
-            s.debt = Math.max(0, s.debt - 8000);
+          previewLabel: "Chi $6.000 · bất ổn −15",
+          canChoose: (state) => state.cash >= 6_000,
+          disabledReason: "Không đủ tiền mặt.",
+          apply: (state) => {
+            state.cash -= 6_000;
+            state.unrest = clamp(state.unrest - 15);
           },
         },
         {
-          label: "Đàm phán gia hạn",
+          label: "Yêu cầu trấn áp",
           tone: "refuse",
-          previewLabel: "Nợ +$2.000 lãi phạt",
-          apply: (s) => {
-            s.debt += 2000;
-          },
-        },
-      ],
-    }),
-  },
-  {
-    id: "union",
-    weight: (s) => (s.unrest > 50 ? 0.2 : 0.03),
-    build: () => ({
-      id: "union",
-      title: "Công đoàn thành lập trong nhà máy",
-      description: "Công nhân tự tổ chức. Bạn không thể ngăn, chỉ có thể chọn thái độ.",
-      choices: [
-        {
-          label: "Thương lượng",
-          tone: "accept",
-          previewLabel: "Mâu thuẫn −6 · v tăng nhẹ",
-          apply: (s) => {
-            s.wagePerWorker = Math.round(s.wagePerWorker * 1.05);
-            s.contradiction = clamp(s.contradiction - 6);
-          },
-        },
-        {
-          label: "Sa thải người cầm đầu",
-          tone: "refuse",
-          previewLabel: "Unrest +25 · Mâu thuẫn +10",
-          apply: (s) => {
-            s.unrest = clamp(s.unrest + 25);
-            s.contradiction = clamp(s.contradiction + 10);
+          previewLabel: "Bất ổn +10 · mâu thuẫn +12",
+          apply: (state) => {
+            state.unrest = clamp(state.unrest + 10);
+            state.contradiction = clamp(state.contradiction + 12);
           },
         },
       ],
@@ -214,17 +503,45 @@ const EVENTS: EventDef[] = [
   },
 ];
 
-export function rollEvent(s: GameState, rng: Rng): EventOccurrence | null {
-  const weights = EVENTS.map((e) => ({ e, w: Math.max(0, e.weight(s)) }));
-  const total = weights.reduce((a, b) => a + b.w, 0);
-  // Xác suất có sự kiện = min(0.85, total)
-  const eventChance = Math.min(0.85, total);
-  if (rng() > eventChance) return null;
-  const pick = rng() * total;
-  let acc = 0;
-  for (const { e, w } of weights) {
-    acc += w;
-    if (pick <= acc) return e.build(s);
+export function eligibleEvents(state: GameState): EventDef[] {
+  const phase = getGamePhase(state.turn);
+  return EVENTS.filter((event) => {
+    if (event.phase !== phase || (event.prerequisite && !event.prerequisite(state))) {
+      return false;
+    }
+    const history = state.eventHistory[event.id];
+    if (!history) return true;
+    if (event.once) return false;
+    return state.turn - history.lastTurn > (event.cooldown ?? 0);
+  });
+}
+
+export function rollEvent(state: GameState, rng: Rng): EventOccurrence | null {
+  if (rng() > BAL.eventChance) return null;
+  const eligible = eligibleEvents(state);
+  if (eligible.length === 0) return null;
+
+  const weighted = eligible.map((event) => ({
+    event,
+    weight: typeof event.weight === "function" ? Math.max(0, event.weight(state)) : event.weight,
+  }));
+  const total = weighted.reduce((sum, item) => sum + item.weight, 0);
+  if (total <= 0) return null;
+
+  let pick = rng() * total;
+  const selected =
+    weighted.find((item) => {
+      pick -= item.weight;
+      return pick <= 0;
+    })?.event ?? weighted[weighted.length - 1].event;
+  const previous = state.eventHistory[selected.id];
+  state.eventHistory[selected.id] = {
+    count: (previous?.count ?? 0) + 1,
+    lastTurn: state.turn,
+  };
+  const occurrence = selected.build(state);
+  if (!occurrence.choices.some((choice) => (choice.canChoose ?? always)(state))) {
+    throw new Error(`Event ${selected.id} has no valid choice`);
   }
-  return null;
+  return occurrence;
 }
