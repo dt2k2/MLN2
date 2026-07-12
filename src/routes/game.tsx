@@ -375,28 +375,27 @@ function GameScreen() {
 
             {/* Bottom log */}
             <div className="panel-industrial flex min-h-[190px] flex-col rounded-lg p-4">
-              <div className="flex items-center justify-between gap-2">
-                <SectionTitle icon={<Clock className="h-3.5 w-3.5" />} label="Nhật ký · Codex" />
-                <div className="flex flex-wrap gap-1">
-                  {CONCEPT_KEYS.map((key) => {
-                    const unlocked = !!state.discoveredConcepts[key];
-                    return (
-                      <button
-                        key={key}
-                        disabled={!unlocked}
-                        onClick={() => {
-                          setCodex(key);
-                          setCodexOpen(true);
-                        }}
-                        className="rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground transition enabled:hover:border-primary/60 enabled:hover:text-gold disabled:opacity-35"
-                      >
-                        {unlocked ? CONCEPT_INFO[key].short : "?"}
-                      </button>
-                    );
-                  })}
-                </div>
+              <SectionTitle icon={<Clock className="h-3.5 w-3.5" />} label="Nhật ký · Codex" />
+              <div className="mt-2 -mx-1 flex gap-1 overflow-x-auto px-1 pb-1">
+                {CONCEPT_KEYS.map((key) => {
+                  const unlocked = !!state.discoveredConcepts[key];
+                  return (
+                    <button
+                      key={key}
+                      disabled={!unlocked}
+                      onClick={() => {
+                        setCodex(key);
+                        setCodexOpen(true);
+                      }}
+                      title={unlocked ? CONCEPT_INFO[key].title : "Chưa khám phá"}
+                      className="shrink-0 rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground transition enabled:hover:border-primary/60 enabled:hover:text-gold disabled:cursor-help disabled:opacity-35"
+                    >
+                      {unlocked ? CONCEPT_INFO[key].short : "?"}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="mt-3 flex-1 overflow-y-auto pr-1">
+              <div className="mt-2 flex-1 overflow-y-auto border-t border-border/40 pt-2 pr-1">
                 <ul className="space-y-1.5">
                   {state.log.slice(0, 12).map((l, i) => (
                     <li
