@@ -61,7 +61,12 @@ export interface StoryPresentation {
 }
 
 export type PresentationItem =
-  | { id: string; kind: "eureka"; conceptKey: ConceptKey }
+  | {
+      id: string;
+      kind: "eureka";
+      conceptKey: ConceptKey;
+      series?: { id: string; step: number; total: number };
+    }
   | {
       id: string;
       kind: "achievement";
@@ -76,7 +81,6 @@ export type PresentationItem =
       endTurn: number;
       conceptKeys: ConceptKey[];
     }
-  | { id: string; kind: "event"; eventId: string }
   | { id: string; kind: "event"; eventId: string }
   | { id: string; kind: "story"; story: StoryPresentation };
 
@@ -102,6 +106,7 @@ export interface CompetitorSnapshot {
   name: string;
   archetype: string;
   techLevel: number;
+  unitLaborTime: number;
   scale: number;
   output: number;
   priceIndex: number;
@@ -117,15 +122,25 @@ export interface QuarterRecord {
   turn: number;
   year: number;
   quarter: number;
-  c: number;
+  cTransferred: number;
   v: number;
   m: number;
   newValue: number;
-  baseSurplusValue: number;
-  extraSurplusValue: number;
-  W: number;
-  profit: number;
-  reinvestedProfit: number;
+  effectiveLaborHours: number;
+  validatedLaborHours: number;
+  necessaryLaborTime: number;
+  surplusLaborTime: number;
+  extraProfit: number;
+  commodityValue: number;
+  revenue: number;
+  materialCost: number;
+  depreciation: number;
+  machineBookValue: number;
+  constantCapitalAdvanced: number;
+  totalCapitalAdvanced: number;
+  operatingCashFlow: number;
+  accountingProfit: number;
+  retainedProfit: number;
   ownerConsumption: number;
   interestPaid: number;
   debtRatio: number;
@@ -146,6 +161,11 @@ export interface QuarterRecord {
   laborProductivity: number;
   individualLaborTime: number;
   socialLaborTime: number;
+  machines: number;
+  machinesAtTurnStart: number;
+  workHoursAtTurnStart: number;
+  laborProductivityAtTurnStart: number;
+  capitalizedAccumulation: number;
 }
 
 export interface EventChoice {
@@ -182,13 +202,19 @@ export interface GameState {
   debt: number;
   ownerConsumption: number;
   reinvestmentRate: number;
+  accumulationFund: number;
+  capitalizedAccumulationThisTurn: number;
   machines: number;
+  machineBookValue: number;
+  machinesAtTurnStart: number;
   inventory: number;
 
   workersActive: number;
   workersIdle: number;
   wagePerWorker: number;
   workHours: number;
+  workHoursAtTurnStart: number;
+  laborProductivityAtTurnStart: number;
   legalMaxWorkHours: number;
 
   health: number;

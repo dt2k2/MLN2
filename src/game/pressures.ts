@@ -1,12 +1,7 @@
 import type { GameState } from "./types";
 import { BAL } from "./balance";
 
-export type ScalePhase =
-  | "stable"
-  | "accumulation"
-  | "exploitation"
-  | "crisis"
-  | "rupture";
+export type ScalePhase = "stable" | "accumulation" | "exploitation" | "crisis" | "rupture";
 
 export interface ScaleReading {
   capital: number;
@@ -38,15 +33,15 @@ export function readScale(s: GameState): ScaleReading {
   const debtRatioClamped = clamp(s.last.debtRatio, 0, 3);
   const inventoryRatio = clamp(s.inventory / Math.max(1, s.demand), 0, 2);
   const wageIndex = s.wagePerWorker / BAL.baseWagePerWorker;
-  const supplyRatio =
-    s.effectiveDemand > 0 ? s.industrySupply / s.effectiveDemand : 1;
+  const supplyRatio = s.effectiveDemand > 0 ? s.industrySupply / s.effectiveDemand : 1;
 
   const capital =
     debtRatioClamped * 22 +
     Math.min(1, inventoryRatio) * 18 +
     Math.max(0, -s.last.profitRateReal) * 40 +
-    s.reinvestmentRate * 12 +
-    Math.max(0, s.last.organic - 1) * 8;
+    s.reinvestmentRate * 8 +
+    Math.min(1.5, s.accumulationFund / BAL.machinePrice) * 8 +
+    Math.max(0, s.last.organic - 8) * 6;
 
   const labor =
     s.contradiction * 0.45 +

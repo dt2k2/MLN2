@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { produce } from "immer";
 import { BAL } from "./balance";
-import { checkActionDiscoveries, checkQuarterDiscoveries } from "./concepts";
+import { checkImmediateDiscoveries, checkQuarterDiscoveries } from "./concepts";
 import { DECISIONS } from "./decisions";
 import { createInitialCompetitors } from "./engine/competitors";
 import { checkEnding } from "./engine/endings";
@@ -32,15 +32,25 @@ function emptyRecord(): QuarterRecord {
     turn: 0,
     year: BAL.startYear,
     quarter: BAL.startQuarter,
-    c: 0,
+    cTransferred: 0,
     v: 0,
     m: 0,
     newValue: 0,
-    baseSurplusValue: 0,
-    extraSurplusValue: 0,
-    W: 0,
-    profit: 0,
-    reinvestedProfit: 0,
+    effectiveLaborHours: 0,
+    validatedLaborHours: 0,
+    necessaryLaborTime: 0,
+    surplusLaborTime: 0,
+    extraProfit: 0,
+    commodityValue: 0,
+    revenue: 0,
+    materialCost: 0,
+    depreciation: 0,
+    machineBookValue: BAL.machinePrice * 3,
+    constantCapitalAdvanced: 0,
+    totalCapitalAdvanced: 0,
+    operatingCashFlow: 0,
+    accountingProfit: 0,
+    retainedProfit: 0,
     ownerConsumption: 0,
     interestPaid: 0,
     debtRatio: 0,
@@ -61,6 +71,11 @@ function emptyRecord(): QuarterRecord {
     laborProductivity: 0.16,
     individualLaborTime: 6.25,
     socialLaborTime: BAL.baseSocialLaborTime,
+    machines: 3,
+    machinesAtTurnStart: 3,
+    workHoursAtTurnStart: BAL.baseWorkHours,
+    laborProductivityAtTurnStart: 0.16,
+    capitalizedAccumulation: 0,
   };
 }
 
@@ -75,13 +90,19 @@ export function initialState(seed = Date.now() & 0xffff): GameState {
     cash: 60_000,
     debt: 0,
     ownerConsumption: 0,
-    reinvestmentRate: 0.75,
+    reinvestmentRate: 0.25,
+    accumulationFund: 0,
+    capitalizedAccumulationThisTurn: 0,
     machines: 3,
+    machineBookValue: BAL.machinePrice * 3,
+    machinesAtTurnStart: 3,
     inventory: 200,
     workersActive: 32,
     workersIdle: 8,
     wagePerWorker: BAL.baseWagePerWorker,
     workHours: BAL.baseWorkHours,
+    workHoursAtTurnStart: BAL.baseWorkHours,
+    laborProductivityAtTurnStart: 0.16,
     legalMaxWorkHours: BAL.maxWorkHours,
     health: 80,
     unrest: 15,
@@ -145,11 +166,22 @@ function registerDiscoveries(
   return {
     state: next,
     presentations: [
-      ...fresh.map((item): PresentationItem => ({
-        id: `eureka-${item.key}-${item.turn}`,
-        kind: "eureka",
-        conceptKey: item.key,
-      })),
+      ...fresh.map((item, index): PresentationItem => {
+        const firstProduction =
+          item.turn === 1 &&
+          fresh.length === 3 &&
+          fresh.every((entry) =>
+            ["commodity", "variableCapital", "surplusValue"].includes(entry.key),
+          );
+        return {
+          id: `eureka-${item.key}-${item.turn}`,
+          kind: "eureka",
+          conceptKey: item.key,
+          series: firstProduction
+            ? { id: "first-production", step: index + 1, total: fresh.length }
+            : undefined,
+        };
+      }),
       ...achievements.map((item): PresentationItem => ({
         id: `achievement-${item.id}`,
         kind: "achievement",
@@ -231,12 +263,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
     const layoffs =
       store.layoffsThisTurn + Math.max(0, previous.workersActive - next.workersActive);
-    const discoveries = checkActionDiscoveries({
+    const discoveries = checkImmediateDiscoveries({
       prev: previous,
       next,
-      actionId: optionId,
-      investmentThisTurn: 0,
-      layoffsThisTurn: layoffs,
+      cause: "decision",
       workersAtTurnStart: store.workersAtTurnStart,
       discovered: previous.discoveredConcepts,
     });
@@ -314,7 +344,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const choice = store.state.pendingEvent.choices[choiceIndex];
     if (!choice || (choice.canChoose && !choice.canChoose(store.state))) return;
 
-    let resolved = produce(store.state, (draft) => {
+    const previous = store.state;
+    let resolved = produce(previous, (draft) => {
       if (!draft.pendingEvent) return;
       const eventTitle = draft.pendingEvent.title;
       choice.apply(draft);
@@ -326,7 +357,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       draft.pendingEvent = null;
       if (!draft.ending) draft.ending = checkEnding(draft);
     });
-    const registered = registerDiscoveries(resolved, checkQuarterDiscoveries(resolved));
+    const registered = registerDiscoveries(
+      resolved,
+      checkImmediateDiscoveries({
+        prev: previous,
+        next: resolved,
+        cause: "event",
+        workersAtTurnStart: store.workersAtTurnStart,
+        discovered: previous.discoveredConcepts,
+      }),
+    );
     resolved = registered.state;
     const eventStories = collectStories(resolved);
     resolved = markStories(resolved, eventStories);

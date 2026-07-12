@@ -8,7 +8,10 @@ export function FactoryScene() {
 
       {/* Distant chimneys silhouette */}
       <svg viewBox="0 0 400 200" className="absolute inset-x-0 top-4 h-32 w-full opacity-40">
-        <path d="M0 200 L0 130 L40 130 L40 80 L60 80 L60 130 L120 130 L120 100 L150 100 L150 130 L220 130 L220 90 L245 90 L245 130 L320 130 L320 110 L360 110 L360 130 L400 130 L400 200 Z" fill="oklch(0.1 0.005 40)" />
+        <path
+          d="M0 200 L0 130 L40 130 L40 80 L60 80 L60 130 L120 130 L120 100 L150 100 L150 130 L220 130 L220 90 L245 90 L245 130 L320 130 L320 110 L360 110 L360 130 L400 130 L400 200 Z"
+          fill="oklch(0.1 0.005 40)"
+        />
       </svg>
 
       {/* Rising smoke from chimneys */}

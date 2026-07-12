@@ -247,19 +247,11 @@ export function HistoricalScale({
                 fill="oklch(0.25 0.01 60)"
               />
               <polygon
-                points={
-                  isHero
-                    ? "88,120 152,120 136,80 104,80"
-                    : "80,100 120,100 110,80 90,80"
-                }
+                points={isHero ? "88,120 152,120 136,80 104,80" : "80,100 120,100 110,80 90,80"}
                 fill="oklch(0.28 0.01 60)"
               />
               <polygon
-                points={
-                  isHero
-                    ? "88,120 152,120 152,124 88,124"
-                    : "80,100 120,100 120,102 80,102"
-                }
+                points={isHero ? "88,120 152,120 152,124 88,124" : "80,100 120,100 120,102 80,102"}
                 fill="oklch(0.15 0.01 60)"
               />
 
@@ -317,9 +309,7 @@ export function HistoricalScale({
                         strokeWidth="1"
                         strokeDasharray={state.debt > 0 ? "2 2" : undefined}
                       />
-                      <g
-                        transform={`translate(${leftX - capW / 2}, ${panY + capY})`}
-                      >
+                      <g transform={`translate(${leftX - capW / 2}, ${panY + capY})`}>
                         <path
                           d={`M0 10 Q ${capW / 2} 20 ${capW} 10 L ${capW - 2} 6 L 2 6 Z`}
                           fill="oklch(0.35 0.08 80)"
@@ -327,20 +317,8 @@ export function HistoricalScale({
                           strokeWidth="0.7"
                         />
                         <circle cx={capW / 2} cy={3} r={2.2} fill="var(--gold)" />
-                        <circle
-                          cx={capW / 2 - 3}
-                          cy={1}
-                          r={1.6}
-                          fill="var(--gold)"
-                          opacity="0.8"
-                        />
-                        <circle
-                          cx={capW / 2 + 3}
-                          cy={0}
-                          r={1.4}
-                          fill="var(--gold)"
-                          opacity="0.6"
-                        />
+                        <circle cx={capW / 2 - 3} cy={1} r={1.6} fill="var(--gold)" opacity="0.8" />
+                        <circle cx={capW / 2 + 3} cy={0} r={1.4} fill="var(--gold)" opacity="0.6" />
                         {state.debt > 0 ? (
                           <>
                             <rect
@@ -380,9 +358,7 @@ export function HistoricalScale({
                         stroke="oklch(0.45 0.05 70)"
                         strokeWidth="1"
                       />
-                      <g
-                        transform={`translate(${rightX - labW / 2}, ${panY + labY})`}
-                      >
+                      <g transform={`translate(${rightX - labW / 2}, ${panY + labY})`}>
                         <path
                           d={`M0 10 Q ${labW / 2} 20 ${labW} 10 L ${labW - 2} 6 L 2 6 Z`}
                           fill="oklch(0.32 0.06 25)"
@@ -397,21 +373,13 @@ export function HistoricalScale({
                           }}
                         >
                           {Array.from({
-                            length: Math.min(
-                              5,
-                              Math.max(2, Math.floor(state.workersActive / 15)),
-                            ),
+                            length: Math.min(5, Math.max(2, Math.floor(state.workersActive / 15))),
                           }).map((_, i, arr) => {
                             const step = labW / (arr.length + 1);
                             const x = step * (i + 1);
                             return (
                               <g key={i} transform={`translate(${x - 1}, 0)`}>
-                                <circle
-                                  cx={0}
-                                  cy={0}
-                                  r={1.4}
-                                  fill="oklch(0.65 0.15 25)"
-                                />
+                                <circle cx={0} cy={0} r={1.4} fill="oklch(0.65 0.15 25)" />
                                 <rect
                                   x={-1.2}
                                   y={1.4}
@@ -472,11 +440,7 @@ export function HistoricalScale({
           }`}
         >
           <PressureBar label="Tư bản" value={r.capital} color="var(--gold)" />
-          <PressureBar
-            label="Lao động"
-            value={r.labor}
-            color="oklch(0.65 0.18 25)"
-          />
+          <PressureBar label="Lao động" value={r.labor} color="oklch(0.65 0.18 25)" />
           <PressureBar label="Thị trường" value={r.market} color="var(--info)" />
         </div>
       </div>
@@ -484,15 +448,7 @@ export function HistoricalScale({
   );
 }
 
-function PressureBar({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: number;
-  color: string;
-}) {
+function PressureBar({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className="flex flex-col gap-0.5">
       <div className="flex items-center justify-between text-muted-foreground">

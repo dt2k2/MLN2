@@ -1,4 +1,5 @@
 import { BAL } from "./balance";
+import { adjustWage, buyMachine, hireWorkers, layoffWorkers, sellMachine } from "./economy";
 import { effectiveWorkHoursCap } from "./engine/effects";
 import type { DecisionGroupId, DecisionOptionId, GameState } from "./types";
 
@@ -65,10 +66,10 @@ function reinvestmentOption(
   return {
     id,
     groupId: "ACCUMULATION",
-    label: `Tái đầu tư ${rate * 100}%`,
-    description: "Áp dụng khi phân phối lợi nhuận từ cuối quý này.",
-    canApply: allowed,
-    disabledReason: noReason,
+    label: `Giữ lại ${rate * 100}%`,
+    description: "Giữ phần lợi nhuận này trong quỹ tích lũy từ cuối quý.",
+    canApply: (state) => Math.abs(state.reinvestmentRate - rate) > 0.0001,
+    disabledReason: () => "Đây là tỷ lệ giữ lại đang áp dụng.",
     apply: (state) => {
       state.reinvestmentRate = rate;
     },
@@ -112,7 +113,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
     canApply: allowed,
     disabledReason: noReason,
     apply: (state) => {
-      state.wagePerWorker *= 1.1;
+      adjustWage(state, 1.1);
       state.health = Math.min(100, state.health + 3);
       state.unrest = Math.max(0, state.unrest - 5);
     },
@@ -125,7 +126,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
     canApply: (state) => state.wagePerWorker * 0.9 >= 120,
     disabledReason: () => "Tiền lương đã chạm mức sinh tồn tối thiểu.",
     apply: (state) => {
-      state.wagePerWorker *= 0.9;
+      adjustWage(state, 0.9);
       state.health = Math.max(0, state.health - 3);
       state.unrest = Math.min(100, state.unrest + 6);
     },
@@ -138,13 +139,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
     canApply: allowed,
     disabledReason: noReason,
     apply: (state) => {
-      const recalled = Math.min(BAL.staffingUnit, state.workersIdle);
-      state.workersIdle -= recalled;
-      state.workersActive += BAL.staffingUnit;
-      state.socialUnemployment = Math.max(
-        0,
-        state.socialUnemployment - (recalled + (BAL.staffingUnit - recalled) * 0.25),
-      );
+      hireWorkers(state, BAL.staffingUnit);
     },
   },
   LAYOFF: {
@@ -155,9 +150,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
     canApply: (state) => state.workersActive - BAL.staffingUnit >= BAL.minimumWorkers,
     disabledReason: () => `Xưởng cần ít nhất ${BAL.minimumWorkers} lao động.`,
     apply: (state) => {
-      state.workersActive -= BAL.staffingUnit;
-      state.workersIdle += BAL.staffingUnit;
-      state.socialUnemployment = Math.min(100, state.socialUnemployment + 2);
+      layoffWorkers(state, BAL.staffingUnit);
       state.unrest = Math.min(100, state.unrest + 8);
     },
   },
@@ -169,8 +162,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
     canApply: (state) => state.cash >= BAL.machinePrice,
     disabledReason: () => "Tiền mặt không đủ; hãy dùng quyết định Tín dụng trước.",
     apply: (state) => {
-      state.cash -= BAL.machinePrice;
-      state.machines += 1;
+      buyMachine(state);
     },
   },
   SELL_MACHINE: {
@@ -181,8 +173,7 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
     canApply: (state) => state.machines > 1,
     disabledReason: () => "Phải giữ ít nhất một máy để sản xuất.",
     apply: (state) => {
-      state.machines -= 1;
-      state.cash += BAL.machineLiquidationValue;
+      sellMachine(state);
     },
   },
   REINVEST_25: reinvestmentOption("REINVEST_25", 0.25),

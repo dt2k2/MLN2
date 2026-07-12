@@ -111,11 +111,11 @@ export function collectStories(state: GameState): StoryPresentation[] {
 
 export function quarterNews(state: GameState): string {
   const record = state.last;
-  if (record.profit < 0) {
-    return `Neue Fabrik Gazette: Müller báo lỗ ${money(Math.abs(record.profit))}; tín dụng và tồn kho đang bị theo dõi.`;
+  if (record.accountingProfit < 0) {
+    return `Neue Fabrik Gazette: Müller báo lỗ ${money(Math.abs(record.accountingProfit))}; tín dụng và tồn kho đang bị theo dõi.`;
   }
   if (record.industrySupply > record.effectiveDemand) {
     return `Neue Fabrik Gazette: cung toàn ngành vượt cầu hiệu dụng ${Math.round(record.industrySupply - record.effectiveDemand)} đơn vị.`;
   }
-  return `Neue Fabrik Gazette: Müller giữ ${Math.round(state.marketShare * 100)}% thị phần, lợi nhuận thực hiện đạt ${money(record.profit)}.`;
+  return `Neue Fabrik Gazette: Müller giữ ${Math.round(state.marketShare * 100)}% thị phần, lợi nhuận kế toán đạt ${money(record.accountingProfit)}.`;
 }

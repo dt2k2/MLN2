@@ -10,7 +10,8 @@ export function MobileWarning() {
       <Monitor className="mb-4 h-10 w-10 text-primary" />
       <h1 className="font-display text-2xl text-gold">DAS KAPITALIST</h1>
       <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-        Trò chơi được tối ưu cho màn hình lớn. Vui lòng mở trên máy tính (tối thiểu 1280px chiều rộng) để trải nghiệm đầy đủ.
+        Trò chơi được tối ưu cho màn hình lớn. Vui lòng mở trên máy tính (tối thiểu 1280px chiều
+        rộng) để trải nghiệm đầy đủ.
       </p>
       <div className="mt-6 rounded-md border border-border bg-panel px-4 py-2 font-mono text-xs text-muted-foreground">
         Desktop Recommended

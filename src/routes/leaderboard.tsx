@@ -6,21 +6,67 @@ export const Route = createFileRoute("/leaderboard")({
   head: () => ({
     meta: [
       { title: "Bảng xếp hạng — Das Kapitalist" },
-      { name: "description", content: "Những nhà tư bản sống sót lâu nhất và những kẻ đã bị lịch sử lật đổ." },
+      {
+        name: "description",
+        content: "Những nhà tư bản sống sót lâu nhất và những kẻ đã bị lịch sử lật đổ.",
+      },
     ],
   }),
   component: Leaderboard,
 });
 
 const rows = [
-  { rank: 1, name: "F. Engels", company: "Ermen & Engels", profit: 342_000, turns: 24, end: "Sống sót" },
-  { rank: 2, name: "R. Owen", company: "New Lanark Mills", profit: 268_400, turns: 24, end: "Sống sót" },
-  { rank: 3, name: "T. Arkwright", company: "Cromford Cotton", profit: 214_800, turns: 22, end: "Phá sản" },
-  { rank: 4, name: "J. Peel", company: "Peel Textile Co.", profit: 198_500, turns: 20, end: "Cách mạng" },
+  {
+    rank: 1,
+    name: "F. Engels",
+    company: "Ermen & Engels",
+    profit: 342_000,
+    turns: 24,
+    end: "Sống sót",
+  },
+  {
+    rank: 2,
+    name: "R. Owen",
+    company: "New Lanark Mills",
+    profit: 268_400,
+    turns: 24,
+    end: "Sống sót",
+  },
+  {
+    rank: 3,
+    name: "T. Arkwright",
+    company: "Cromford Cotton",
+    profit: 214_800,
+    turns: 22,
+    end: "Phá sản",
+  },
+  {
+    rank: 4,
+    name: "J. Peel",
+    company: "Peel Textile Co.",
+    profit: 198_500,
+    turns: 20,
+    end: "Cách mạng",
+  },
   { rank: 5, name: "H. Cort", company: "Iron Works", profit: 176_200, turns: 19, end: "Phá sản" },
-  { rank: 6, name: "M. Boulton", company: "Soho Manufactory", profit: 148_900, turns: 17, end: "Cách mạng" },
+  {
+    rank: 6,
+    name: "M. Boulton",
+    company: "Soho Manufactory",
+    profit: 148_900,
+    turns: 17,
+    end: "Cách mạng",
+  },
   { rank: 7, name: "J. Watt", company: "Steam & Co.", profit: 121_400, turns: 15, end: "Phá sản" },
-  { rank: 8, name: "Bạn", company: "Xưởng Dệt Manchester", profit: 98_600, turns: 12, end: "Đang chơi", highlight: true },
+  {
+    rank: 8,
+    name: "Bạn",
+    company: "Xưởng Dệt Manchester",
+    profit: 98_600,
+    turns: 12,
+    end: "Đang chơi",
+    highlight: true,
+  },
 ];
 
 function Leaderboard() {

@@ -25,57 +25,70 @@ export function computeQuarter(s: GameState): QuarterRecord {
   const laborHours = workers * hours * 12;
   const laborProductivity = laborHours > 0 ? output / laborHours : 0;
   const individualLaborTime = output > 0 ? laborHours / output : 0;
-  const socialLaborTime = BAL.baseSocialLaborTime / s.industryProductivity;
+  const socialLaborTime = BAL.baseSocialLaborTime / Math.max(0.01, s.industryProductivity);
 
-  const depreciation = s.machines * BAL.machinePrice * BAL.machineDepreciation;
   const materialCost = output * BAL.unitMaterial * s.materialPrice * materialEffect;
-  const c = depreciation + materialCost;
+  const depreciation = Math.min(s.machineBookValue, s.machineBookValue * BAL.machineDepreciation);
+  const cTransferred = materialCost + depreciation;
+  const v = workers * s.wagePerWorker;
 
-  const overtimeFactor = hours > 8 ? 1 + (hours - 8) * 0.06 : 1;
-  const v = workers * s.wagePerWorker * overtimeFactor;
-
-  // Only living labour creates new value. Machinery changes productivity and
-  // transfers its own value through depreciation; it does not create value.
+  // Living labour alone creates new value. Labour slower than the social norm
+  // is not fully validated as abstract social labour.
   const laborIntensity = 0.9 + s.health / 800;
-  const newValue = laborHours * BAL.valuePerLaborHour * laborIntensity;
-  const baseSurplusValue = Math.max(0, newValue - v);
-  const extraSurplusValue =
-    output * Math.max(0, socialLaborTime - individualLaborTime) * BAL.valuePerLaborHour;
-  const m = baseSurplusValue + extraSurplusValue;
+  const effectiveLaborHours = laborHours * laborIntensity;
+  const validatedLaborHours = Math.min(effectiveLaborHours, output * socialLaborTime);
+  const newValue = validatedLaborHours * BAL.valuePerLaborHour;
+  const m = Math.max(0, newValue - v);
+  const necessaryLaborTime = Math.min(validatedLaborHours, v / BAL.valuePerLaborHour);
+  const surplusLaborTime = Math.max(0, validatedLaborHours - necessaryLaborTime);
+  const commodityValue = cTransferred + v + m;
 
   const quarterDemand = s.demand * demandEffect;
   const effectiveDemand = s.effectiveDemand * demandEffect;
   const salable = output + s.inventory;
   const sold = Math.min(salable, quarterDemand);
-  const W = sold * s.sellPrice;
+  const revenue = sold * s.sellPrice;
   const inventoryNext = Math.max(0, salable - sold);
+  const extraProfit =
+    sold * Math.max(0, socialLaborTime - individualLaborTime) * BAL.valuePerLaborHour;
   const interestPaid = s.debt * BAL.quarterlyLoanRate * interestEffect;
-  const profit = W - c - v - interestPaid;
-  const reinvestedProfit = profit > 0 ? profit * s.reinvestmentRate : profit;
-  const ownerConsumption = profit > 0 ? profit - reinvestedProfit : 0;
+  const operatingCashFlow = revenue - materialCost - v - interestPaid;
+  const accountingProfit = operatingCashFlow - depreciation;
+  const retainedProfit = accountingProfit > 0 ? accountingProfit * s.reinvestmentRate : 0;
+  const ownerConsumption = accountingProfit > 0 ? accountingProfit - retainedProfit : 0;
 
-  const organic = v > 0 ? c / v : 0;
+  const constantCapitalAdvanced = s.machineBookValue + materialCost;
+  const totalCapitalAdvanced = constantCapitalAdvanced + v;
+  const organic = v > 0 ? constantCapitalAdvanced / v : 0;
   const exploitation = v > 0 ? m / v : 0;
-  const profitRate = c + v > 0 ? m / (c + v) : 0;
-  const profitRateReal = c + v > 0 ? profit / (c + v) : 0;
+  const profitRate = totalCapitalAdvanced > 0 ? m / totalCapitalAdvanced : 0;
+  const profitRateReal = totalCapitalAdvanced > 0 ? accountingProfit / totalCapitalAdvanced : 0;
   const productiveAssets =
-    Math.max(0, s.cash) +
-    s.machines * BAL.machinePrice +
-    s.inventory * Math.max(1, s.sellPrice * 0.6);
+    Math.max(0, s.cash) + s.machineBookValue + s.inventory * BAL.unitMaterial * s.materialPrice;
 
   return {
     turn: s.turn,
     year: s.year,
     quarter: s.quarter,
-    c,
+    cTransferred,
     v,
     m,
     newValue,
-    baseSurplusValue,
-    extraSurplusValue,
-    W,
-    profit,
-    reinvestedProfit,
+    effectiveLaborHours,
+    validatedLaborHours,
+    necessaryLaborTime,
+    surplusLaborTime,
+    extraProfit,
+    commodityValue,
+    revenue,
+    materialCost,
+    depreciation,
+    machineBookValue: s.machineBookValue,
+    constantCapitalAdvanced,
+    totalCapitalAdvanced,
+    operatingCashFlow,
+    accountingProfit,
+    retainedProfit,
     ownerConsumption,
     interestPaid,
     debtRatio: s.debt / Math.max(1, productiveAssets),
@@ -96,6 +109,11 @@ export function computeQuarter(s: GameState): QuarterRecord {
     laborProductivity,
     individualLaborTime,
     socialLaborTime,
+    machines: s.machines,
+    machinesAtTurnStart: s.machinesAtTurnStart,
+    workHoursAtTurnStart: s.workHoursAtTurnStart,
+    laborProductivityAtTurnStart: s.laborProductivityAtTurnStart,
+    capitalizedAccumulation: s.capitalizedAccumulationThisTurn,
   };
 }
 

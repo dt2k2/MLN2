@@ -1,4 +1,5 @@
 import { BAL } from "../balance";
+import { adjustWage, buyMachine, layoffWorkers, sellMachine } from "../economy";
 import type { EventOccurrence, GamePhase, GameState, TimedEffect } from "../types";
 import { addOrRefreshEffect } from "./effects";
 import type { Rng } from "./rng";
@@ -90,7 +91,7 @@ export const EVENTS: EventDef[] = [
           tone: "accept",
           previewLabel: "Lương +5% · bất ổn −7",
           apply: (state) => {
-            state.wagePerWorker *= 1.05;
+            adjustWage(state, 1.05);
             state.unrest = clamp(state.unrest - 7);
           },
         },
@@ -150,8 +151,7 @@ export const EVENTS: EventDef[] = [
           canChoose: (state) => state.cash >= 12_000,
           disabledReason: "Không đủ tiền mặt.",
           apply: (state) => {
-            state.cash -= 12_000;
-            state.machines += 1;
+            buyMachine(state, 12_000);
           },
         },
         { label: "Từ chối", tone: "refuse", previewLabel: "Không đổi", apply: noChange },
@@ -238,7 +238,7 @@ export const EVENTS: EventDef[] = [
           tone: "accept",
           previewLabel: "Lương +3% · bất ổn −8",
           apply: (state) => {
-            state.wagePerWorker *= 1.03;
+            adjustWage(state, 1.03);
             state.unrest = clamp(state.unrest - 8);
           },
         },
@@ -247,10 +247,7 @@ export const EVENTS: EventDef[] = [
           tone: "refuse",
           previewLabel: "4 người mất việc · mâu thuẫn +9",
           apply: (state) => {
-            const fired = Math.min(4, Math.max(0, state.workersActive - BAL.minimumWorkers));
-            state.workersActive -= fired;
-            state.workersIdle += fired;
-            state.socialUnemployment += fired * 0.25;
+            layoffWorkers(state, 4);
             state.contradiction = clamp(state.contradiction + 9);
           },
         },
@@ -273,7 +270,7 @@ export const EVENTS: EventDef[] = [
           tone: "accept",
           previewLabel: "Lương +7% · sản lượng quý sau −20%",
           apply: (state) => {
-            state.wagePerWorker *= 1.07;
+            adjustWage(state, 1.07);
             state.unrest = clamp(state.unrest - 14);
             effect(state, "negotiated-strike", "Đình công", "outputMultiplier", 0.8, 1);
           },
@@ -374,8 +371,8 @@ export const EVENTS: EventDef[] = [
               current.machines > 1 && current.cash + BAL.machineLiquidationValue >= demanded,
             disabledReason: "Không đủ máy hoặc tiền sau thanh lý.",
             apply: (current) => {
-              current.machines -= 1;
-              current.cash += BAL.machineLiquidationValue - demanded;
+              sellMachine(current);
+              current.cash -= demanded;
               current.debt -= demanded;
             },
           },

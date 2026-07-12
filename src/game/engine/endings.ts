@@ -11,7 +11,7 @@ export function checkEnding(s: GameState): EndingId | null {
     if (
       s.contradiction < BAL.reformContradictionMax &&
       s.health >= BAL.reformHealthMin &&
-      s.last.profit > 0
+      s.last.accountingProfit > 0
     )
       return "reform";
     return "timeout";

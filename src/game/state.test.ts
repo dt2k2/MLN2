@@ -33,6 +33,14 @@ describe("decision store", () => {
     expect(useGameStore.getState().state.workHours).toBe(before + 2);
   });
 
+  it("does not spend a decision on the retention rate already in force", () => {
+    useGameStore.getState().applyDecision("REINVEST_25");
+    expect(useGameStore.getState().usedDecisionGroups.size).toBe(0);
+    useGameStore.getState().applyDecision("REINVEST_50");
+    expect(useGameStore.getState().usedDecisionGroups.has("ACCUMULATION")).toBe(true);
+    expect(useGameStore.getState().state.reinvestmentRate).toBe(0.5);
+  });
+
   it("blocks active investment without cash and requires credit in another group", () => {
     useGameStore.setState({ state: { ...initialState(2), cash: 0 } });
     useGameStore.getState().applyDecision("BUY_MACHINE");
@@ -59,7 +67,22 @@ describe("decision store", () => {
     expect(store.usedDecisionGroups.size).toBe(0);
     expect(store.state.eventHistory).toEqual({});
     expect(store.state.activeEffects).toEqual([]);
+    expect(store.state.accumulationFund).toBe(0);
+    expect(store.state.machineBookValue).toBe(BAL.machinePrice * 3);
     expect(store.state.turn).toBe(1);
+  });
+
+  it("presents only the three-step first production series without auto-accumulation", () => {
+    useGameStore.getState().endQuarter();
+    const store = useGameStore.getState();
+    const eureka = store.presentationQueue.filter((item) => item.kind === "eureka");
+    expect(eureka.map((item) => item.conceptKey)).toEqual([
+      "commodity",
+      "variableCapital",
+      "surplusValue",
+    ]);
+    expect(eureka.map((item) => item.series?.step)).toEqual([1, 2, 3]);
+    expect(store.state.discoveredConcepts.capitalAccumulation).toBeUndefined();
   });
 
   it("checks event consequences immediately and presents deferred story before ending", () => {

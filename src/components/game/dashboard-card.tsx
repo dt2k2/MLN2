@@ -67,9 +67,7 @@ export function DashboardCard({
       <div className={`mt-3 text-3xl font-semibold ${shake ? "text-destructive" : toneColor}`}>
         <AnimatedNumber value={value} prefix={prefix} suffix={suffix} decimals={decimals} />
       </div>
-      {hint ? (
-        <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div>
-      ) : null}
+      {hint ? <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div> : null}
       <div className="pointer-events-none absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
     </div>
   );

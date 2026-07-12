@@ -126,9 +126,13 @@ function GameScreen() {
     [state.history],
   );
 
-  const cvmTotal = Math.max(1, last.c + last.v + last.m);
+  const cvmTotal = Math.max(1, last.cTransferred + last.v + last.m);
   const capitalRatio = [
-    { name: "c", v: Math.round((last.c / cvmTotal) * 100), color: "var(--color-info)" },
+    {
+      name: "c",
+      v: Math.round((last.cTransferred / cvmTotal) * 100),
+      color: "var(--color-info)",
+    },
     { name: "v", v: Math.round((last.v / cvmTotal) * 100), color: "var(--gold)" },
     { name: "m", v: Math.round((last.m / cvmTotal) * 100), color: "var(--success)" },
   ];
@@ -146,6 +150,7 @@ function GameScreen() {
           quarter={quarterLabel}
           company={state.companyName}
           money={Math.round(state.cash)}
+          accumulationFund={state.accumulationFund}
           debt={state.debt}
           nextInterest={
             state.debt * BAL.quarterlyLoanRate * effectMultiplier(state, "interestRateMultiplier")
@@ -155,7 +160,7 @@ function GameScreen() {
             Math.max(
               1,
               Math.max(0, state.cash) +
-                state.machines * BAL.machinePrice +
+                state.machineBookValue +
                 state.inventory * Math.max(1, state.sellPrice * 0.6),
             )
           }
@@ -227,11 +232,11 @@ function GameScreen() {
                     state.discoveredConcepts.constantCapital ? "Tư bản bất biến" : "Chi phí tư liệu"
                   }
                   symbol={state.discoveredConcepts.constantCapital ? "c" : undefined}
-                  value={Math.round(last.c)}
+                  value={Math.round(last.cTransferred)}
                   prefix="$"
                   icon={Cog}
                   tone="info"
-                  hint="Máy + nguyên liệu"
+                  hint="Nguyên liệu + khấu hao"
                 />
               </StatTooltip>
               <StatTooltip conceptKey="variableCapital">
@@ -265,7 +270,9 @@ function GameScreen() {
               <StatTooltip conceptKey="profitRate">
                 <DashboardCard
                   label={
-                    state.discoveredConcepts.profitRate ? "Tỷ suất lợi nhuận" : "Hiệu suất vốn"
+                    state.discoveredConcepts.profitRate
+                      ? "Tỷ suất lợi nhuận quý"
+                      : "Hiệu suất vốn quý"
                   }
                   symbol={state.discoveredConcepts.profitRate ? "p′" : undefined}
                   value={+(last.profitRate * 100).toFixed(1)}
@@ -482,9 +489,7 @@ function GameScreen() {
                       {group.options.map((optionId) => {
                         const option = DECISIONS[optionId];
                         const disabled = groupLocked || !option.canApply(state);
-                        const reason = !option.canApply(state)
-                          ? option.disabledReason(state)
-                          : "";
+                        const reason = !option.canApply(state) ? option.disabledReason(state) : "";
                         return (
                           <div
                             key={optionId}
@@ -571,6 +576,7 @@ function GameScreen() {
           open={activePresentation?.kind === "eureka"}
           onClose={dismissPresentation}
           discovery={eurekaDiscovery}
+          series={activePresentation?.kind === "eureka" ? activePresentation.series : undefined}
         />
         <CodexPanel
           open={codexOpen}
@@ -585,12 +591,12 @@ function GameScreen() {
           rows={[
             {
               label: "Doanh thu thực hiện",
-              value: `+ $${Math.round(displayRecord.W).toLocaleString("vi-VN")}`,
+              value: `+ $${Math.round(displayRecord.revenue).toLocaleString("vi-VN")}`,
               tone: "up",
             },
             {
-              label: state.discoveredConcepts.constantCapital ? "Bất biến c" : "Chi phí tư liệu",
-              value: `− $${Math.round(displayRecord.c).toLocaleString("vi-VN")}`,
+              label: "Nguyên liệu đã dùng",
+              value: `− $${Math.round(displayRecord.materialCost).toLocaleString("vi-VN")}`,
               tone: "down",
             },
             {
@@ -599,9 +605,9 @@ function GameScreen() {
               tone: "down",
             },
             {
-              label: "Lợi nhuận",
-              value: `${displayRecord.profit >= 0 ? "+" : "−"} $${Math.abs(Math.round(displayRecord.profit)).toLocaleString("vi-VN")}`,
-              tone: displayRecord.profit >= 0 ? "up" : "down",
+              label: "Khấu hao chuyển dịch",
+              value: `− $${Math.round(displayRecord.depreciation).toLocaleString("vi-VN")}`,
+              tone: "warn",
             },
             {
               label: "Lãi tín dụng đã trả",
@@ -609,14 +615,34 @@ function GameScreen() {
               tone: "down",
             },
             {
-              label: "Lợi nhuận tái đầu tư",
-              value: `+ $${Math.round(displayRecord.reinvestedProfit).toLocaleString("vi-VN")}`,
-              tone: "up",
+              label: "Lợi nhuận kế toán",
+              value: `${displayRecord.accountingProfit >= 0 ? "+" : "−"} $${Math.abs(Math.round(displayRecord.accountingProfit)).toLocaleString("vi-VN")}`,
+              tone: displayRecord.accountingProfit >= 0 ? "up" : "down",
             },
             {
-              label: state.discoveredConcepts.profitRate ? "p′ lý thuyết" : "Hiệu suất vốn",
+              label: "Dòng tiền vận hành",
+              value: `${displayRecord.operatingCashFlow >= 0 ? "+" : "−"} $${Math.abs(Math.round(displayRecord.operatingCashFlow)).toLocaleString("vi-VN")}`,
+              tone: displayRecord.operatingCashFlow >= 0 ? "up" : "down",
+            },
+            {
+              label: "Lợi nhuận giữ lại",
+              value: `$${Math.round(displayRecord.retainedProfit).toLocaleString("vi-VN")}`,
+              tone: "warn",
+            },
+            {
+              label: "Chủ sở hữu tiêu dùng",
+              value: `$${Math.round(displayRecord.ownerConsumption).toLocaleString("vi-VN")}`,
+              tone: "warn",
+            },
+            {
+              label: state.discoveredConcepts.profitRate ? "p′ lý thuyết quý" : "Hiệu suất vốn quý",
               value: `${(displayRecord.profitRate * 100).toFixed(1)}%`,
               tone: "warn",
+            },
+            {
+              label: "p′ thực tế quý",
+              value: `${(displayRecord.profitRateReal * 100).toFixed(1)}%`,
+              tone: displayRecord.profitRateReal >= 0 ? "up" : "down",
             },
             {
               label: state.discoveredConcepts.organicComposition ? "c/v" : "Tỷ trọng tư liệu/lương",

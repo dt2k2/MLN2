@@ -27,7 +27,7 @@ describe("narrative", () => {
 
   it("writes one data-driven Gazette line for the completed quarter", () => {
     const state = initialState(1);
-    state.last.profit = -1_234;
+    state.last.accountingProfit = -1_234;
     expect(quarterNews(state)).toContain("1,234");
   });
 });

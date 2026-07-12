@@ -27,7 +27,7 @@ export const BAL = {
   baseMaterialPrice: 8,
   competitorProductivityGrowth: 0.015, // 1.5% mỗi quý → giá trị xã hội giảm
   demandCyclePeriod: 8,
-  baseSocialLaborTime: 4.4,
+  baseSocialLaborTime: 6,
 
   // Xã hội
   strainPerHourAbove8: 0.6,
@@ -44,6 +44,7 @@ export const BAL = {
   maxDebt: 90000,
   eventChance: 0.45,
   inventoryCrisisRatio: 0.7,
+  organicDiscoveryThreshold: 10,
   bankruptcyCashFloor: -15000,
   bankruptcyStressTurns: 3,
 

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { produce } from "immer";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Minus, TrendingDown, TrendingUp } from "lucide-react";
+import { BAL } from "@/game/balance";
 import { DECISIONS } from "@/game/decisions";
 import { computeQuarter } from "@/game/engine/laws";
 import type { DecisionOptionId, GameState } from "@/game/types";
@@ -11,12 +12,166 @@ type Metric = {
   before: number;
   after: number;
   kind: "money" | "pct" | "num";
+  direction: "higher-good" | "lower-good" | "neutral";
 };
 
-function fmt(n: number, kind: Metric["kind"]) {
-  if (kind === "pct") return `${(n * 100).toFixed(1)}%`;
-  if (kind === "money") return `$${Math.round(n).toLocaleString("vi-VN")}`;
-  return n.toFixed(2);
+function fmt(value: number, kind: Metric["kind"]) {
+  if (kind === "pct") return `${(value * 100).toFixed(1)}%`;
+  if (kind === "money") return `$${Math.round(value).toLocaleString("vi-VN")}`;
+  return value.toFixed(1);
+}
+
+function accumulationMetrics(state: GameState, next: GameState): Metric[] {
+  const before = computeQuarter(state);
+  const after = computeQuarter(next);
+  const cashBefore = state.cash + before.operatingCashFlow - before.ownerConsumption;
+  const cashAfter = next.cash + after.operatingCashFlow - after.ownerConsumption;
+  const fundBefore = state.accumulationFund + before.retainedProfit;
+  const fundAfter = next.accumulationFund + after.retainedProfit;
+  return [
+    {
+      key: "retained",
+      label: "Giữ lại",
+      before: before.retainedProfit,
+      after: after.retainedProfit,
+      kind: "money",
+      direction: "neutral",
+    },
+    {
+      key: "owner",
+      label: "Chủ tiêu dùng",
+      before: before.ownerConsumption,
+      after: after.ownerConsumption,
+      kind: "money",
+      direction: "neutral",
+    },
+    {
+      key: "cash",
+      label: "Cash cuối quý",
+      before: cashBefore,
+      after: cashAfter,
+      kind: "money",
+      direction: "higher-good",
+    },
+    {
+      key: "fund",
+      label: "Quỹ tích lũy",
+      before: fundBefore,
+      after: fundAfter,
+      kind: "money",
+      direction: "higher-good",
+    },
+    {
+      key: "gap",
+      label: "Thiếu mua máy",
+      before: Math.max(0, BAL.machinePrice - fundBefore),
+      after: Math.max(0, BAL.machinePrice - fundAfter),
+      kind: "money",
+      direction: "lower-good",
+    },
+  ];
+}
+
+function creditMetrics(state: GameState, next: GameState): Metric[] {
+  const before = computeQuarter(state);
+  const after = computeQuarter(next);
+  return [
+    {
+      key: "cash",
+      label: "Tiền mặt",
+      before: state.cash,
+      after: next.cash,
+      kind: "money",
+      direction: "higher-good",
+    },
+    {
+      key: "debt",
+      label: "Dư nợ",
+      before: state.debt,
+      after: next.debt,
+      kind: "money",
+      direction: "lower-good",
+    },
+    {
+      key: "interest",
+      label: "Lãi quý tới",
+      before: before.interestPaid,
+      after: after.interestPaid,
+      kind: "money",
+      direction: "lower-good",
+    },
+    {
+      key: "debt-ratio",
+      label: "Nợ/tài sản",
+      before: before.debtRatio,
+      after: after.debtRatio,
+      kind: "pct",
+      direction: "lower-good",
+    },
+  ];
+}
+
+function productionMetrics(state: GameState, next: GameState): Metric[] {
+  const before = computeQuarter(state);
+  const after = computeQuarter(next);
+  return [
+    {
+      key: "output",
+      label: "Sản lượng",
+      before: before.output,
+      after: after.output,
+      kind: "num",
+      direction: "higher-good",
+    },
+    {
+      key: "v",
+      label: "Quỹ lương",
+      before: before.v,
+      after: after.v,
+      kind: "money",
+      direction: "neutral",
+    },
+    {
+      key: "m",
+      label: "Dôi ra",
+      before: before.m,
+      after: after.m,
+      kind: "money",
+      direction: "neutral",
+    },
+    {
+      key: "m-rate",
+      label: "m′",
+      before: before.exploitation,
+      after: after.exploitation,
+      kind: "pct",
+      direction: "neutral",
+    },
+    {
+      key: "p-real",
+      label: "p′ thực",
+      before: before.profitRateReal,
+      after: after.profitRateReal,
+      kind: "pct",
+      direction: "higher-good",
+    },
+    {
+      key: "health",
+      label: "Sức khỏe",
+      before: state.health,
+      after: next.health,
+      kind: "num",
+      direction: "higher-good",
+    },
+    {
+      key: "unrest",
+      label: "Bất ổn",
+      before: state.unrest,
+      after: next.unrest,
+      kind: "num",
+      direction: "lower-good",
+    },
+  ];
 }
 
 export function ActionPreview({
@@ -26,77 +181,48 @@ export function ActionPreview({
   state: GameState;
   actionId: DecisionOptionId;
 }) {
-  const metrics = useMemo<Metric[]>(() => {
-    try {
-      const next = produce(state, (d) => {
-        DECISIONS[actionId].apply(d);
-      });
-      const before = computeQuarter(state);
-      const after = computeQuarter(next);
-      return [
-        { key: "c", label: "Tư liệu", before: before.c, after: after.c, kind: "money" },
-        { key: "v", label: "Lương", before: before.v, after: after.v, kind: "money" },
-        { key: "m", label: "Dôi ra", before: before.m, after: after.m, kind: "money" },
-        {
-          key: "p",
-          label: "Hiệu suất",
-          before: before.profitRate,
-          after: after.profitRate,
-          kind: "pct",
-        },
-        {
-          key: "k",
-          label: "Xã hội",
-          before: state.contradiction,
-          after: next.contradiction,
-          kind: "num",
-        },
-      ];
-    } catch {
-      return [];
-    }
+  const metrics = useMemo(() => {
+    const next = produce(state, (draft) => DECISIONS[actionId].apply(draft));
+    const group = DECISIONS[actionId].groupId;
+    if (group === "ACCUMULATION") return accumulationMetrics(state, next);
+    if (group === "CREDIT") return creditMetrics(state, next);
+    return productionMetrics(state, next);
   }, [state, actionId]);
 
   return (
     <div className="rounded-md border border-primary/30 bg-[oklch(0.15_0.008_60)] p-2 text-[10px]">
       <div className="mb-1.5 font-semibold uppercase tracking-widest text-muted-foreground">
-        Nếu bạn chọn hành động này:
+        Nếu áp dụng quyết định này
       </div>
-      <div className="grid grid-cols-5 gap-1">
-        {metrics.map((m) => {
-          const delta = m.after - m.before;
-          const eps = m.kind === "pct" ? 0.0005 : m.kind === "money" ? 50 : 0.5;
-          const tone =
-            Math.abs(delta) < eps
-              ? "flat"
-              : m.key === "k"
-                ? delta > 0
-                  ? "down"
-                  : "up"
-                : m.key === "p" || m.key === "m"
-                  ? delta > 0
-                    ? "up"
-                    : "down"
-                  : delta > 0
-                    ? "down"
-                    : "up";
-          const cls =
-            tone === "up"
-              ? "text-[color:var(--success)] border-[color:var(--success)]/40"
-              : tone === "down"
-                ? "text-destructive border-destructive/40"
-                : "text-muted-foreground border-border";
-          const Icon = tone === "up" ? TrendingUp : tone === "down" ? TrendingDown : Minus;
+      <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 xl:grid-cols-4">
+        {metrics.map((metric) => {
+          const delta = metric.after - metric.before;
+          const epsilon = metric.kind === "pct" ? 0.0005 : metric.kind === "money" ? 1 : 0.05;
+          const flat = Math.abs(delta) < epsilon;
+          const beneficial =
+            !flat &&
+            metric.direction !== "neutral" &&
+            ((metric.direction === "higher-good" && delta > 0) ||
+              (metric.direction === "lower-good" && delta < 0));
+          const harmful = !flat && metric.direction !== "neutral" && !beneficial;
+          const className = beneficial
+            ? "border-[color:var(--success)]/40 text-[color:var(--success)]"
+            : harmful
+              ? "border-destructive/40 text-destructive"
+              : "border-border text-muted-foreground";
+          const Icon = flat ? Minus : delta > 0 ? TrendingUp : TrendingDown;
           return (
             <div
-              key={m.key}
-              className={`flex flex-col items-center rounded border ${cls} bg-panel-elevated/40 px-1 py-1`}
+              key={metric.key}
+              className={`flex min-w-0 flex-col items-center rounded border bg-panel-elevated/40 px-1 py-1 ${className}`}
             >
-              <span className="font-mono text-[9px] text-muted-foreground">{m.label}</span>
-              <span className="mt-0.5 font-mono text-[10px]">{fmt(m.after, m.kind)}</span>
+              <span className="max-w-full truncate font-mono text-[9px] text-muted-foreground">
+                {metric.label}
+              </span>
+              <span className="mt-0.5 font-mono text-[10px]">{fmt(metric.after, metric.kind)}</span>
               <span className="mt-0.5 flex items-center gap-0.5 font-mono text-[9px]">
                 <Icon className="h-2.5 w-2.5" />
-                {tone === "flat" ? "≈" : (delta > 0 ? "+" : "") + fmt(Math.abs(delta), m.kind)}
+                {flat ? "≈" : `${delta > 0 ? "+" : "−"}${fmt(Math.abs(delta), metric.kind)}`}
               </span>
             </div>
           );

@@ -9,6 +9,7 @@ export function GameHeader({
   quarter,
   company,
   money,
+  accumulationFund,
   debt,
   nextInterest,
   debtRatio,
@@ -18,6 +19,7 @@ export function GameHeader({
   quarter: string;
   company: string;
   money: number;
+  accumulationFund: number;
   debt: number;
   nextInterest: number;
   debtRatio: number;
@@ -63,6 +65,11 @@ export function GameHeader({
           label="Tiền mặt"
           value={<AnimatedNumber value={money} prefix="$" className="text-gold" />}
         />
+        <HeaderStat
+          icon={<Coins className="h-3.5 w-3.5 text-primary" />}
+          label="Quỹ tích lũy"
+          value={<AnimatedNumber value={accumulationFund} prefix="$" className="text-primary" />}
+        />
         {hasDebt ? (
           <>
             <HeaderStat
@@ -87,9 +94,7 @@ export function GameHeader({
               icon={<Landmark className="h-3.5 w-3.5" />}
               label="Nợ / Tài sản"
               value={
-                <span className="whitespace-nowrap font-mono">
-                  {(debtRatio * 100).toFixed(0)}%
-                </span>
+                <span className="whitespace-nowrap font-mono">{(debtRatio * 100).toFixed(0)}%</span>
               }
             />
           </>

@@ -123,7 +123,6 @@ function MenuScreen() {
             </button>
           </motion.div>
 
-
           <div className="absolute bottom-6 left-8 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             <span className="text-primary">
               <Gear size={14} />

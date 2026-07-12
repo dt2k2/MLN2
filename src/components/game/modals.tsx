@@ -143,10 +143,12 @@ export function ConceptModal({
   open,
   onClose,
   discovery,
+  series,
 }: {
   open: boolean;
   onClose: () => void;
   discovery?: ConceptDiscovery;
+  series?: { id: string; step: number; total: number };
 }) {
   if (!discovery) return null;
   const info = CONCEPT_INFO[discovery.key];
@@ -159,12 +161,14 @@ export function ConceptModal({
         </div>
         <div>
           <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
-            Khoảnh khắc Eureka
+            {series
+              ? `Chu trình sản xuất đầu tiên · ${series.step}/${series.total}`
+              : "Khoảnh khắc Eureka"}
           </div>
           <h3 className="font-display text-xl font-semibold text-gold">{info.title}</h3>
         </div>
       </div>
-      <div className="grid grid-cols-[120px_1fr] gap-5 p-6">
+      <div className="grid grid-cols-1 gap-5 p-6 sm:grid-cols-[120px_1fr]">
         <div className="hidden items-center justify-center rounded border border-border bg-panel-elevated p-3 text-primary sm:flex">
           <Gear size={80} />
         </div>

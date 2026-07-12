@@ -13,12 +13,14 @@ export function tickMarket(s: GameState, rng: Rng) {
   const ownExpectedOutput = Math.max(1, s.last.output);
   s.industrySupply = competitorOutput + ownExpectedOutput;
 
-  const weightedTech =
-    s.competitors.reduce(
-      (total, competitor) => total + competitor.techLevel * competitor.output,
-      0,
-    ) / Math.max(1, competitorOutput);
-  s.industryProductivity = weightedTech;
+  const weightedLaborTime =
+    (s.last.individualLaborTime * ownExpectedOutput +
+      s.competitors.reduce(
+        (total, competitor) => total + competitor.unitLaborTime * competitor.output,
+        0,
+      )) /
+    Math.max(1, s.industrySupply);
+  s.industryProductivity = BAL.baseSocialLaborTime / Math.max(0.01, weightedLaborTime);
 
   const cycle = Math.sin(((s.turn - 1) / BAL.demandCyclePeriod) * Math.PI * 2);
   const demandNoise = 0.96 + rng() * 0.08;
@@ -27,7 +29,7 @@ export function tickMarket(s: GameState, rng: Rng) {
   );
 
   const ownProductivity = Math.max(0.01, s.last.laborProductivity);
-  const socialProductivity = 1 / Math.max(0.01, s.last.socialLaborTime);
+  const socialProductivity = 1 / Math.max(0.01, weightedLaborTime);
   const competitiveness = Math.max(
     0.65,
     Math.min(1.45, ownProductivity / Math.max(0.01, socialProductivity)),

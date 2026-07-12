@@ -1,3 +1,4 @@
+import { BAL } from "../balance";
 import type { CompetitorSnapshot, GameState } from "../types";
 
 const COMPETITORS = [
@@ -17,6 +18,7 @@ export function createInitialCompetitors(): CompetitorSnapshot[] {
           ? "Trung bình ngành"
           : "Công nghệ và quy mô",
     techLevel: 1,
+    unitLaborTime: BAL.baseSocialLaborTime,
     scale: 1,
     output: competitor.baseOutput,
     priceIndex: 1,
@@ -35,6 +37,7 @@ export function advanceCompetitors(state: GameState): CompetitorSnapshot[] {
     return {
       ...snapshot,
       techLevel,
+      unitLaborTime: BAL.baseSocialLaborTime / techLevel,
       scale: scaleBonus,
       output: definition.baseOutput * techLevel * scaleBonus,
       priceIndex: 1 / techLevel,

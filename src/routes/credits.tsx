@@ -23,7 +23,13 @@ const sections = [
   },
   {
     title: "Cảm hứng thị giác",
-    items: ["Frostpunk (11 bit)", "Victoria 3 (Paradox)", "Anno 1800", "Papers Please", "Disco Elysium"],
+    items: [
+      "Frostpunk (11 bit)",
+      "Victoria 3 (Paradox)",
+      "Anno 1800",
+      "Papers Please",
+      "Disco Elysium",
+    ],
   },
   {
     title: "Tài liệu tham khảo",

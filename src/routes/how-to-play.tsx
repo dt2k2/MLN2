@@ -6,7 +6,10 @@ export const Route = createFileRoute("/how-to-play")({
   head: () => ({
     meta: [
       { title: "Hướng dẫn — Das Kapitalist" },
-      { name: "description", content: "Cách chơi, các chỉ số kinh tế và ý nghĩa Marxist của mỗi quyết định." },
+      {
+        name: "description",
+        content: "Cách chơi, các chỉ số kinh tế và ý nghĩa Marxist của mỗi quyết định.",
+      },
     ],
   }),
   component: HowToPlay,
@@ -74,7 +77,10 @@ function HowToPlay() {
             Hướng dẫn chơi
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Bạn đóng vai một nhà tư bản trong buổi bình minh của công nghiệp cơ khí. Nhiệm vụ của bạn không đơn thuần là tối đa hoá lợi nhuận — mà là <span className="text-gold">tồn tại</span> qua 24 quý mà không bị các quy luật khách quan của phương thức sản xuất tư bản chủ nghĩa nghiền nát.
+            Bạn đóng vai một nhà tư bản trong buổi bình minh của công nghiệp cơ khí. Nhiệm vụ của
+            bạn không đơn thuần là tối đa hoá lợi nhuận — mà là{" "}
+            <span className="text-gold">tồn tại</span> qua 24 quý mà không bị các quy luật khách
+            quan của phương thức sản xuất tư bản chủ nghĩa nghiền nát.
           </p>
         </div>
 
@@ -110,7 +116,9 @@ function HowToPlay() {
                 key={i}
                 className="flex items-start gap-4 rounded-lg border border-border/60 bg-panel/60 px-4 py-3 text-sm"
               >
-                <span className="font-display text-2xl text-gold">{String(i + 1).padStart(2, "0")}</span>
+                <span className="font-display text-2xl text-gold">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 <span className="pt-1 text-foreground">{s}</span>
               </li>
             ))}
