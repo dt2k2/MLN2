@@ -76,8 +76,9 @@ export const CONCEPT_INFO: Record<ConceptKey, ConceptInfo> = {
     short: "m",
     definition:
       "Phần giá trị mới do công nhân tạo ra vượt quá giá trị sức lao động và bị nhà tư bản chiếm hữu.",
-    formula: "m = giá trị mới − v",
-    context: (s) => `Giá trị thặng dư quý gần nhất là ${money(s.last.m)}.`,
+    formula: "m = (giá trị mới − v) + giá trị thặng dư siêu ngạch",
+    context: (s) =>
+      `m = ${money(s.last.m)}, gồm ${money(s.last.baseSurplusValue)} cơ bản và ${money(s.last.extraSurplusValue)} siêu ngạch.`,
   },
   absoluteSurplus: {
     key: "absoluteSurplus",
@@ -95,7 +96,8 @@ export const CONCEPT_INFO: Record<ConceptKey, ConceptInfo> = {
     definition:
       "Giá trị thặng dư tăng nhờ nâng năng suất, qua đó rút ngắn thời gian lao động cần thiết trong cùng một ngày lao động.",
     formula: "Năng suất tăng ⇒ thời gian cần thiết giảm",
-    context: (s) => `Năng suất hiện tại là ${s.last.laborProductivity.toFixed(3)} đơn vị/giờ.`,
+    context: (s) =>
+      `Năng suất hiện tại là ${s.last.laborProductivity.toFixed(3)} đơn vị/giờ; phần siêu ngạch là ${money(s.last.extraSurplusValue)}.`,
   },
   surplusRate: {
     key: "surplusRate",
@@ -295,7 +297,7 @@ export function checkQuarterDiscoveries(state: GameState): ConceptDiscovery[] {
     add(
       "surplusValue",
       "Bạn vừa kết thúc quý với giá trị mới vượt quá tiền lương đã trả.",
-      `Công nhân tạo ra ${money(record.m)} giá trị thặng dư; lợi nhuận thực tế là ${money(record.profit)}.`,
+      `Lao động sống tạo ${money(record.newValue)} giá trị mới; m đạt ${money(record.m)}, còn lợi nhuận thực hiện là ${money(record.profit)}.`,
     );
   }
   if (record.exploitation > 1) {

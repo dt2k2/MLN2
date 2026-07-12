@@ -510,7 +510,7 @@ function GameScreen() {
           title={`Kết thúc quý — Lượt ${summaryRecord?.turn ?? state.turn} / 24`}
           rows={[
             {
-              label: "Doanh thu W",
+              label: "Doanh thu thực hiện",
               value: `+ $${Math.round(displayRecord.W).toLocaleString("vi-VN")}`,
               tone: "up",
             },

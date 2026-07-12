@@ -3,12 +3,14 @@ import { motion } from "framer-motion";
 import { Play, Trophy, BookOpen, Users } from "lucide-react";
 import { Gear, Smoke, Embers } from "@/components/game/particles";
 import { MobileWarning } from "@/components/game/mobile-warning";
+import { useGameStore } from "@/game/state";
 
 export const Route = createFileRoute("/")({
   component: MenuScreen,
 });
 
 function MenuScreen() {
+  const reset = useGameStore((store) => store.reset);
   return (
     <>
       <MobileWarning />
@@ -68,7 +70,9 @@ function MenuScreen() {
             </h1>
             <div className="mx-auto mt-4 h-px w-96 bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              Bạn là một nhà tư bản của thế kỷ 19. Vận hành xí nghiệp, quyết định số phận công nhân, và đối diện những mâu thuẫn không thể tránh khỏi của phương thức sản xuất tư bản chủ nghĩa qua <span className="text-gold">24 quý</span>.
+              Bạn là một nhà tư bản của thế kỷ 19. Vận hành xí nghiệp, quyết định số phận công nhân,
+              và đối diện những mâu thuẫn không thể tránh khỏi của phương thức sản xuất tư bản chủ
+              nghĩa qua <span className="text-gold">24 quý</span>.
             </p>
           </motion.div>
 
@@ -81,7 +85,13 @@ function MenuScreen() {
             }}
             className="mt-14 grid w-full max-w-md gap-3"
           >
-            <MenuButton to="/game" icon={<Play className="h-5 w-5" />} label="Ván mới" primary />
+            <MenuButton
+              to="/game"
+              icon={<Play className="h-5 w-5" />}
+              label="Ván mới"
+              primary
+              onClick={reset}
+            />
             <MenuButton
               to="/leaderboard"
               icon={<Trophy className="h-5 w-5" />}
@@ -115,18 +125,19 @@ function MenuButton({
   icon,
   label,
   primary,
+  onClick,
 }: {
   to: string;
   icon: React.ReactNode;
   label: string;
   primary?: boolean;
+  onClick?: () => void;
 }) {
   return (
-    <motion.div
-      variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }}
-    >
+    <motion.div variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }}>
       <Link
         to={to}
+        onClick={onClick}
         className={`group flex items-center justify-between rounded-md border px-5 py-3 font-display text-base uppercase tracking-[0.25em] transition-all ${
           primary
             ? "border-primary/70 bg-primary/15 text-gold shadow-[0_0_30px_oklch(0.5_0.1_60/0.25)] hover:bg-primary/25 hover:shadow-[0_0_45px_oklch(0.55_0.13_60/0.4)]"
@@ -137,9 +148,7 @@ function MenuButton({
           {icon}
           {label}
         </span>
-        <span className="font-mono text-xs opacity-60 transition group-hover:opacity-100">
-          →
-        </span>
+        <span className="font-mono text-xs opacity-60 transition group-hover:opacity-100">→</span>
       </Link>
     </motion.div>
   );

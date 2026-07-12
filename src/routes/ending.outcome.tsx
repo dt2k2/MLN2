@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Clock3, RotateCcw, Scale, Trophy } from "lucide-react";
 import { z } from "zod";
+import { useGameStore } from "@/game/state";
 
 const resultSchema = z.object({
   result: z.enum(["monopoly", "reform", "timeout"]),
@@ -46,6 +47,7 @@ function OutcomeEnding() {
   const { result } = Route.useSearch();
   const outcome = OUTCOMES[result];
   const Icon = outcome.Icon;
+  const reset = useGameStore((store) => store.reset);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[oklch(0.11_0.01_60)] px-5">
@@ -69,6 +71,7 @@ function OutcomeEnding() {
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             to="/game"
+            onClick={reset}
             className="inline-flex items-center gap-2 rounded-md bg-gold px-5 py-3 font-display text-sm font-semibold text-[oklch(0.15_0.01_60)]"
           >
             <RotateCcw className="h-4 w-4" /> Chơi lại

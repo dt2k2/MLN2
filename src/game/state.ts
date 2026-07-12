@@ -13,6 +13,7 @@ import type {
 import { ACTIONS } from "./actions";
 import { checkActionDiscoveries, checkQuarterDiscoveries } from "./concepts";
 import { advanceQuarter } from "./engine/tick";
+import { checkEnding } from "./engine/endings";
 
 export const MAX_ACTIONS_PER_TURN = 3;
 
@@ -30,6 +31,9 @@ function emptyRecord(): QuarterRecord {
     c: 0,
     v: 0,
     m: 0,
+    newValue: 0,
+    baseSurplusValue: 0,
+    extraSurplusValue: 0,
     W: 0,
     profit: 0,
     profitRate: 0,
@@ -251,6 +255,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         text: `${draft.pendingEvent.title}: ${choice.label}`,
       });
       draft.pendingEvent = null;
+      const ending = checkEnding(draft);
+      if (ending) draft.ending = ending;
     });
     const registered = registerDiscoveries(resolved, checkQuarterDiscoveries(resolved));
     set({

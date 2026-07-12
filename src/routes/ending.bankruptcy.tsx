@@ -2,18 +2,24 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { RotateCcw, Trophy, TrendingDown } from "lucide-react";
 import { Gear } from "@/components/game/particles";
+import { useGameStore } from "@/game/state";
 
 export const Route = createFileRoute("/ending/bankruptcy")({
   head: () => ({
     meta: [
       { title: "Phá sản — Das Kapitalist" },
-      { name: "description", content: "Kết cục: tư bản của bạn đã sụp đổ dưới quy luật xu hướng giảm sút của tỷ suất lợi nhuận." },
+      {
+        name: "description",
+        content:
+          "Kết cục: tư bản của bạn đã sụp đổ dưới quy luật xu hướng giảm sút của tỷ suất lợi nhuận.",
+      },
     ],
   }),
   component: BankruptcyEnding,
 });
 
 function BankruptcyEnding() {
+  const reset = useGameStore((store) => store.reset);
   return (
     <main className="relative min-h-screen overflow-hidden">
       <motion.div
@@ -86,7 +92,10 @@ function BankruptcyEnding() {
             Phân tích kinh tế
           </div>
           <p className="mt-3 text-sm leading-relaxed text-[oklch(0.9_0.02_230)]">
-            Đầu tư ồ ạt vào tư bản bất biến (c) mà không tăng tương ứng phần khả biến (v) đã kéo <span className="text-[oklch(0.85_0.12_235)]">cấu tạo hữu cơ của tư bản</span> lên cao. Theo quy luật xu hướng giảm sút của tỷ suất lợi nhuận, p′ = m/(c+v) tụt xuống đến mức không đủ trả lãi vay. Xưởng đóng cửa, máy móc rỉ sét, công nhân đói khát tản mát.
+            Đầu tư ồ ạt vào tư bản bất biến (c) mà không tăng tương ứng phần khả biến (v) đã kéo{" "}
+            <span className="text-[oklch(0.85_0.12_235)]">cấu tạo hữu cơ của tư bản</span> lên cao.
+            Theo quy luật xu hướng giảm sút của tỷ suất lợi nhuận, p′ = m/(c+v) tụt xuống đến mức
+            không đủ trả lãi vay. Xưởng đóng cửa, máy móc rỉ sét, công nhân đói khát tản mát.
           </p>
           <p className="mt-3 text-sm italic leading-relaxed text-[oklch(0.75_0.05_235)]">
             "Rào cản thực sự của nền sản xuất tư bản chủ nghĩa chính là bản thân tư bản."
@@ -102,6 +111,7 @@ function BankruptcyEnding() {
         >
           <Link
             to="/game"
+            onClick={reset}
             className="inline-flex items-center gap-2 rounded-md border border-[oklch(0.5_0.12_235)]/70 bg-[oklch(0.3_0.08_235)]/40 px-6 py-3 font-display text-sm uppercase tracking-widest text-[oklch(0.9_0.08_230)] hover:bg-[oklch(0.4_0.1_235)]/40"
           >
             <RotateCcw className="h-4 w-4" /> Chơi lại

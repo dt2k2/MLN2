@@ -71,4 +71,29 @@ describe("game store rules", () => {
     expect(store.state.discoveredConcepts).toEqual({});
     expect(store.state.achievements).toEqual({});
   });
+
+  it("checks terminal conditions immediately after an event choice", () => {
+    const state = initialState(1);
+    state.pendingEvent = {
+      id: "forced-loss",
+      title: "Khoản lỗ bất thường",
+      description: "Test event",
+      choices: [
+        {
+          label: "Chấp nhận khoản lỗ",
+          tone: "accept",
+          previewLabel: "Tiền mặt âm",
+          apply: (draft) => {
+            draft.cash = BAL.bankruptcyCashFloor - 1;
+          },
+        },
+      ],
+    };
+    useGameStore.setState({ state, presentationQueue: [] });
+
+    useGameStore.getState().resolveEvent(0);
+
+    expect(useGameStore.getState().state.pendingEvent).toBeNull();
+    expect(useGameStore.getState().state.ending).toBe("bankruptcy");
+  });
 });

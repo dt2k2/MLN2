@@ -58,6 +58,9 @@ export interface QuarterRecord {
   c: number;
   v: number;
   m: number;
+  newValue: number;
+  baseSurplusValue: number;
+  extraSurplusValue: number;
   W: number;
   profit: number;
   profitRate: number; // p′ = m/(c+v)

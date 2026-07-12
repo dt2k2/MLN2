@@ -9,7 +9,7 @@ export const BAL = {
   baseWorkHours: 10, // giờ/ngày
   minWorkHours: 6,
   maxWorkHours: 16,
-  valuePerLaborHour: 3.2, // giá trị mới do 1 giờ lao động tạo ra (đơn vị $)
+  valuePerLaborHour: 3.4, // biểu hiện tiền tệ của 1 giờ lao động xã hội
 
   // Máy móc
   machinePrice: 18000,
@@ -23,13 +23,13 @@ export const BAL = {
   baseMaterialPrice: 8,
   competitorProductivityGrowth: 0.015, // 1.5% mỗi quý → giá trị xã hội giảm
   demandCyclePeriod: 8,
-  baseSocialLaborTime: 7.3,
+  baseSocialLaborTime: 6.2,
 
   // Xã hội
-  strainPerHourAbove8: 1.4,
+  strainPerHourAbove8: 0.6,
   recoveryFromWage: 0.02, // /100$ trên mức tối thiểu
-  unrestFromLongHours: 1.2,
-  unrestFromLayoff: 1.5, // per worker
+  unrestFromLongHours: 0.7,
+  unrestFromLayoff: 1.0, // per worker
   unrestReliefFromRaise: 0.5, // per % raise
   contradictionPerUnrest: 0.15,
 
@@ -37,6 +37,8 @@ export const BAL = {
   loanRate: 0.06, // 6% / quý
   loanUnit: 25000,
   maxDebt: 100000,
+  bankruptcyCashFloor: -15000,
+  bankruptcyStressTurns: 3,
 
   // Ending thresholds
   contradictionRevolution: 100,

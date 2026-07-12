@@ -22,7 +22,7 @@ export const ACTIONS: Record<ActionId, ActionMeta> = {
     canApply: (s) => s.workHours < BAL.maxWorkHours,
     apply: (s) => {
       s.workHours = Math.min(BAL.maxWorkHours, s.workHours + 2);
-      s.unrest = clamp(s.unrest + 6);
+      s.unrest = clamp(s.unrest + 4);
     },
     preview: (s) => [
       { label: "Giờ", value: `→${Math.min(BAL.maxWorkHours, s.workHours + 2)}h`, tone: "up" },
@@ -86,7 +86,7 @@ export const ACTIONS: Record<ActionId, ActionMeta> = {
       const n = Math.min(8, s.workersActive - 5);
       s.workersActive -= n;
       s.workersIdle += n;
-      s.unrest = clamp(s.unrest + n * 1.5);
+      s.unrest = clamp(s.unrest + n * BAL.unrestFromLayoff);
       s.contradiction = clamp(s.contradiction + 2);
     },
     preview: () => [

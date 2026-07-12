@@ -2,18 +2,23 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Flag, RotateCcw, Trophy } from "lucide-react";
 import { Embers, Smoke } from "@/components/game/particles";
+import { useGameStore } from "@/game/state";
 
 export const Route = createFileRoute("/ending/revolution")({
   head: () => ({
     meta: [
       { title: "Cách mạng vô sản — Das Kapitalist" },
-      { name: "description", content: "Kết cục: mâu thuẫn giai cấp vượt ngưỡng, công nhân đã nổi dậy." },
+      {
+        name: "description",
+        content: "Kết cục: mâu thuẫn giai cấp vượt ngưỡng, công nhân đã nổi dậy.",
+      },
     ],
   }),
   component: RevolutionEnding,
 });
 
 function RevolutionEnding() {
+  const reset = useGameStore((store) => store.reset);
   return (
     <main className="relative min-h-screen overflow-hidden">
       <motion.div
@@ -103,10 +108,14 @@ function RevolutionEnding() {
             Kết cục lịch sử
           </div>
           <p className="mt-3 text-sm leading-relaxed text-[oklch(0.9_0.02_30)]">
-            Việc kéo dài ngày lao động, cắt giảm nhân công và không ngừng nâng cao tỷ suất bóc lột đã đẩy chỉ số <span className="text-[oklch(0.75_0.2_25)]">Mâu thuẫn giai cấp</span> vượt ngưỡng 100. Công nhân của xưởng bạn liên kết với vô sản toàn thành phố. Máy móc bị đập phá, nhà máy bốc cháy, và bạn — nhà tư bản — bị lịch sử gạt sang một bên.
+            Việc kéo dài ngày lao động, cắt giảm nhân công và không ngừng nâng cao tỷ suất bóc lột
+            đã đẩy chỉ số <span className="text-[oklch(0.75_0.2_25)]">Mâu thuẫn giai cấp</span> vượt
+            ngưỡng 100. Công nhân của xưởng bạn liên kết với vô sản toàn thành phố. Máy móc bị đập
+            phá, nhà máy bốc cháy, và bạn — nhà tư bản — bị lịch sử gạt sang một bên.
           </p>
           <p className="mt-3 text-sm italic leading-relaxed text-[oklch(0.75_0.05_30)]">
-            "Giai cấp tư sản, do đó, đã tạo ra những vũ khí sẽ giết chết chính mình; nó cũng đã tạo ra những người sẽ sử dụng những vũ khí ấy — giai cấp vô sản hiện đại."
+            "Giai cấp tư sản, do đó, đã tạo ra những vũ khí sẽ giết chết chính mình; nó cũng đã tạo
+            ra những người sẽ sử dụng những vũ khí ấy — giai cấp vô sản hiện đại."
             <span className="ml-2 text-[oklch(0.7_0.15_28)]">— Tuyên ngôn Đảng Cộng sản</span>
           </p>
         </motion.div>
@@ -119,6 +128,7 @@ function RevolutionEnding() {
         >
           <Link
             to="/game"
+            onClick={reset}
             className="inline-flex items-center gap-2 rounded-md border border-[oklch(0.6_0.2_25)]/70 bg-[oklch(0.4_0.15_25)]/40 px-6 py-3 font-display text-sm uppercase tracking-widest text-[oklch(0.9_0.1_28)] hover:bg-[oklch(0.5_0.18_25)]/40"
           >
             <RotateCcw className="h-4 w-4" /> Chơi lại

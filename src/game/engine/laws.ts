@@ -33,12 +33,17 @@ export function computeQuarter(s: GameState): QuarterRecord {
   const overtimeFactor = hours > 8 ? 1 + (hours - 8) * 0.06 : 1;
   const v = workers * s.wagePerWorker * overtimeFactor;
 
-  // 4. Giá trị mới V' (chỉ lao động sống tạo ra)
-  const healthEff = 0.6 + s.health / 250;
-  const Vnew = laborHours * BAL.valuePerLaborHour * healthEff * (perWorker / 1.8);
+  // 4. Giá trị mới chỉ do lao động sống tạo ra. Sức khỏe biểu hiện cường độ
+  // lao động thực tế, nhưng chỉ tác động một lần và trong biên độ hẹp.
+  const laborIntensity = 0.9 + s.health / 800;
+  const newValue = laborHours * BAL.valuePerLaborHour * laborIntensity;
 
-  // 5. m
-  const m = Math.max(0, Vnew - v);
+  // 5. Giá trị thặng dư cơ bản và siêu ngạch. Máy móc không tạo giá trị mới;
+  // nó giúp giá trị cá biệt thấp hơn giá trị xã hội trong một thời gian.
+  const baseSurplusValue = Math.max(0, newValue - v);
+  const extraSurplusValue =
+    output * Math.max(0, socialLaborTime - individualLaborTime) * BAL.valuePerLaborHour;
+  const m = baseSurplusValue + extraSurplusValue;
 
   // 6–7. Doanh thu: bán theo giá trị xã hội (sellPrice do market quy định)
   const salable = output + s.inventory;
@@ -62,6 +67,9 @@ export function computeQuarter(s: GameState): QuarterRecord {
     c,
     v,
     m,
+    newValue,
+    baseSurplusValue,
+    extraSurplusValue,
     W,
     profit,
     profitRate,

@@ -9,11 +9,13 @@ export function ModalShell({
   onClose,
   children,
   maxWidth = "max-w-lg",
+  closable = true,
 }: {
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
   maxWidth?: string;
+  closable?: boolean;
 }) {
   return (
     <AnimatePresence>
@@ -23,7 +25,7 @@ export function ModalShell({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
+          onClick={closable ? onClose : undefined}
         >
           <motion.div
             className={`panel-industrial relative w-full ${maxWidth} rounded-xl p-0`}
@@ -33,12 +35,14 @@ export function ModalShell({
             transition={{ type: "spring", stiffness: 260, damping: 24 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              onClick={onClose}
-              className="absolute right-3 top-3 z-10 rounded p-1 text-muted-foreground hover:bg-panel-elevated hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            {closable ? (
+              <button
+                onClick={onClose}
+                className="absolute right-3 top-3 z-10 rounded p-1 text-muted-foreground hover:bg-panel-elevated hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
             {children}
           </motion.div>
         </motion.div>
@@ -71,7 +75,7 @@ export function EventModal({
   onChoose: (idx: number) => void;
 }) {
   return (
-    <ModalShell open={open} onClose={onClose}>
+    <ModalShell open={open} onClose={onClose} closable={false}>
       <div className="relative h-32 overflow-hidden rounded-t-xl border-b border-border/60 bg-gradient-to-br from-[oklch(0.28_0.05_35)] to-[oklch(0.15_0.02_30)]">
         <div className="absolute -right-6 -top-6 text-destructive/40">
           <Gear size={140} slow />
