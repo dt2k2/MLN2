@@ -414,78 +414,103 @@ function GameScreen() {
 
           {/* RIGHT PANEL — Decisions */}
           <section className="order-3 flex min-w-0 flex-col gap-3 lg:col-span-3 lg:min-h-0">
-            <div className="panel-industrial rounded-lg p-4">
+            <div className="panel-industrial flex min-h-0 flex-1 flex-col rounded-lg p-3">
               <SectionTitle
                 icon={<Info className="h-3.5 w-3.5" />}
                 label={`Quyết định — ${quarterLabel}`}
                 right={
                   <span className="font-mono text-[10px] text-muted-foreground">
-                    {usedDecisionGroups.size} / 3 đã dùng
+                    {usedDecisionGroups.size} / {MAX_DECISION_GROUPS_PER_TURN} nhóm
                   </span>
                 }
               />
-            </div>
-            <div className="flex flex-col gap-2 lg:overflow-y-auto lg:pr-1 lg:min-h-0 lg:flex-1">
-              {DECISION_GROUPS.map((group) => {
-                const Icon = GROUP_ICONS[group.id];
-                const groupUsed = usedDecisionGroups.has(group.id);
-                const groupLocked =
-                  groupUsed ||
-                  usedDecisionGroups.size >= MAX_DECISION_GROUPS_PER_TURN ||
-                  presentationQueue.length > 0 ||
-                  !!state.pendingEvent ||
-                  !!state.ending;
-                return (
-                  <div key={group.id} className="panel-industrial rounded-lg p-3">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Icon className="h-4 w-4 text-primary" />
-                      <span className="font-display text-sm font-semibold text-foreground">
-                        {group.title}
-                      </span>
-                      {groupUsed ? (
-                        <span className="ml-auto font-mono text-[10px] text-muted-foreground">
-                          Đã dùng
+              <Tabs
+                value={activeGroup}
+                onValueChange={(v) => setActiveGroup(v as DecisionGroupId)}
+                className="mt-3 flex min-h-0 flex-1 flex-col"
+              >
+                <TabsList className="grid h-auto w-full grid-cols-6 gap-1 bg-panel-elevated/40 p-1">
+                  {DECISION_GROUPS.map((group) => {
+                    const Icon = GROUP_ICONS[group.id];
+                    const used = usedDecisionGroups.has(group.id);
+                    return (
+                      <TabsTrigger
+                        key={group.id}
+                        value={group.id}
+                        title={group.title}
+                        className="relative h-10 px-0 data-[state=active]:bg-primary/15 data-[state=active]:text-gold"
+                      >
+                        <Icon className="h-4 w-4" />
+                        {used ? (
+                          <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-gold" />
+                        ) : null}
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+
+                {DECISION_GROUPS.map((group) => {
+                  const groupUsed = usedDecisionGroups.has(group.id);
+                  const capReached =
+                    usedDecisionGroups.size >= MAX_DECISION_GROUPS_PER_TURN && !groupUsed;
+                  const groupLocked =
+                    groupUsed ||
+                    capReached ||
+                    presentationQueue.length > 0 ||
+                    !!state.pendingEvent ||
+                    !!state.ending;
+                  return (
+                    <TabsContent
+                      key={group.id}
+                      value={group.id}
+                      className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-display text-sm font-semibold text-foreground">
+                          {group.title}
                         </span>
-                      ) : null}
-                    </div>
-                    <div className="grid grid-cols-2 gap-1.5">
+                        {groupUsed ? (
+                          <span className="font-mono text-[10px] text-gold">Đã dùng quý này</span>
+                        ) : capReached ? (
+                          <span className="font-mono text-[10px] text-muted-foreground">
+                            Đã đạt trần
+                          </span>
+                        ) : null}
+                      </div>
                       {group.options.map((optionId) => {
                         const option = DECISIONS[optionId];
                         const disabled = groupLocked || !option.canApply(state);
+                        const reason = !option.canApply(state)
+                          ? option.disabledReason(state)
+                          : "";
                         return (
-                          <HoverCard key={optionId} openDelay={250} closeDelay={80}>
-                            <HoverCardTrigger asChild>
-                              <button
-                                type="button"
-                                disabled={disabled}
-                                title={
-                                  !option.canApply(state)
-                                    ? option.disabledReason(state)
-                                    : option.description
-                                }
-                                onClick={() => applyDecision(optionId)}
-                                className="min-h-11 rounded border border-border bg-panel-elevated px-2 py-1.5 text-left text-xs text-foreground transition hover:border-primary/60 disabled:cursor-not-allowed disabled:opacity-35"
-                              >
-                                {option.label}
-                              </button>
-                            </HoverCardTrigger>
-                            <HoverCardContent
-                              side="left"
-                              align="start"
-                              className="w-80 border-primary/40 bg-[oklch(0.16_0.008_60)] p-2"
+                          <div
+                            key={optionId}
+                            className="rounded border border-border bg-panel-elevated/60 p-2"
+                          >
+                            <button
+                              type="button"
+                              disabled={disabled}
+                              onClick={() => applyDecision(optionId)}
+                              className="w-full rounded bg-panel px-3 py-2 text-left text-sm font-semibold text-foreground transition hover:border-primary/60 disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                              <p className="mb-2 text-xs text-muted-foreground">
-                                {option.description}
-                              </p>
-                              <ActionPreview state={state} actionId={optionId} />
-                            </HoverCardContent>
-                          </HoverCard>
+                              {option.label}
+                            </button>
+                            <p className="mt-1.5 px-1 text-[11px] leading-snug text-muted-foreground">
+                              {reason || option.description}
+                            </p>
+                            {!disabled ? (
+                              <div className="mt-2">
+                                <ActionPreview state={state} actionId={optionId} />
+                              </div>
+                            ) : null}
+                          </div>
                         );
                       })}
-                    </div>
-                  </div>
-                );
-              })}
+                    </TabsContent>
+                  );
+                })}
+              </Tabs>
             </div>
             <EndTurnButton onEnd={endQuarter} />
           </section>
