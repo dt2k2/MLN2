@@ -525,27 +525,30 @@ function GameScreen() {
             const first = CONCEPT_KEYS.find((key) => state.discoveredConcepts[key]);
             setCodex(first ?? null);
           }}
-          className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 rounded-full border border-primary bg-[oklch(0.2_0.02_60)] px-4 py-2 font-mono text-xs text-gold shadow-lg lg:hidden"
+          className="fixed bottom-4 left-4 z-40 flex items-center gap-1.5 rounded-full border border-primary bg-[oklch(0.2_0.02_60)] px-4 py-2 font-mono text-xs text-gold shadow-lg lg:hidden"
         >
           <BookOpen className="h-3.5 w-3.5" /> {discoveredCount}/15
         </button>
 
-        <div className="fixed bottom-3 right-3 z-40 hidden gap-2 rounded-md border border-border bg-panel/80 p-1.5 font-mono text-[10px] backdrop-blur lg:flex">
-          <span className="px-1.5 py-0.5 text-muted-foreground">DEV</span>
-          <Link
-            to="/ending/revolution"
-            className="rounded bg-destructive/20 px-2 py-0.5 text-destructive hover:bg-destructive/30"
-          >
-            <Flag className="mr-1 inline h-3 w-3" />
-            Ending: Cách mạng
-          </Link>
-          <Link
-            to="/ending/bankruptcy"
-            className="rounded bg-[color:var(--info)]/15 px-2 py-0.5 text-[color:var(--info)] hover:bg-[color:var(--info)]/25"
-          >
-            Ending: Phá sản
-          </Link>
-        </div>
+        <details className="fixed bottom-3 right-3 z-40 hidden rounded-md border border-border bg-panel/80 font-mono text-[10px] backdrop-blur lg:block">
+          <summary className="cursor-pointer list-none px-2 py-1 text-muted-foreground hover:text-primary">
+            <Flag className="inline h-3 w-3" /> DEV
+          </summary>
+          <div className="flex flex-col gap-1 p-1.5">
+            <Link
+              to="/ending/revolution"
+              className="rounded bg-destructive/20 px-2 py-0.5 text-destructive hover:bg-destructive/30"
+            >
+              Cách mạng
+            </Link>
+            <Link
+              to="/ending/bankruptcy"
+              className="rounded bg-[color:var(--info)]/15 px-2 py-0.5 text-[color:var(--info)] hover:bg-[color:var(--info)]/25"
+            >
+              Phá sản
+            </Link>
+          </div>
+        </details>
 
         <EventModal
           open={activePresentation?.kind === "event" && !!state.pendingEvent}
