@@ -38,7 +38,7 @@ import { CodexPanel } from "@/components/game/codex-panel";
 import { EndTurnButton } from "@/components/game/end-turn-button";
 import { ActionPreview } from "@/components/game/action-preview";
 import { showAchievement } from "@/components/game/achievement-toast";
-import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MAX_DECISION_GROUPS_PER_TURN, useGameStore } from "@/game/state";
 import { DECISION_GROUPS, DECISIONS } from "@/game/decisions";
 import { BAL } from "@/game/balance";
@@ -80,6 +80,7 @@ function GameScreen() {
   const showCurrentSummary = useGameStore((s) => s.showCurrentSummary);
   const [codexOpen, setCodexOpen] = useState(false);
   const [codex, setCodex] = useState<ConceptKey | null>(null);
+  const [activeGroup, setActiveGroup] = useState<DecisionGroupId>("WORKDAY");
   const navigate = useNavigate();
   const activePresentation = presentationQueue[0];
 
@@ -218,28 +219,24 @@ function GameScreen() {
 
           {/* CENTER PANEL */}
           <section className="order-2 flex min-w-0 flex-col gap-3 lg:col-span-6 lg:min-h-0">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
               <StatTooltip conceptKey="constantCapital">
                 <DashboardCard
                   label={
                     state.discoveredConcepts.constantCapital ? "Tư bản bất biến" : "Chi phí tư liệu"
                   }
-                  symbol={state.discoveredConcepts.constantCapital ? "c" : "Máy + vật liệu"}
+                  symbol={state.discoveredConcepts.constantCapital ? "c" : undefined}
                   value={Math.round(last.c)}
                   prefix="$"
                   icon={Cog}
                   tone="info"
-                  hint={
-                    state.discoveredConcepts.constantCapital
-                      ? "Máy móc + nguyên liệu"
-                      : "Chi phí sản xuất"
-                  }
+                  hint="Máy + nguyên liệu"
                 />
               </StatTooltip>
               <StatTooltip conceptKey="variableCapital">
                 <DashboardCard
                   label={state.discoveredConcepts.variableCapital ? "Tư bản khả biến" : "Quỹ lương"}
-                  symbol={state.discoveredConcepts.variableCapital ? "v" : "Tiền công"}
+                  symbol={state.discoveredConcepts.variableCapital ? "v" : undefined}
                   value={Math.round(last.v)}
                   prefix="$"
                   icon={Users}
@@ -252,9 +249,7 @@ function GameScreen() {
                   label={
                     state.discoveredConcepts.surplusValue ? "Giá trị thặng dư" : "Giá trị dôi ra"
                   }
-                  symbol={
-                    state.discoveredConcepts.surplusValue ? "m = giá trị mới − v" : "Sau tiền lương"
-                  }
+                  symbol={state.discoveredConcepts.surplusValue ? "m" : undefined}
                   value={Math.round(last.m)}
                   prefix="$"
                   icon={TrendingUp}
@@ -269,9 +264,9 @@ function GameScreen() {
               <StatTooltip conceptKey="profitRate">
                 <DashboardCard
                   label={
-                    state.discoveredConcepts.profitRate ? "Tỷ suất lợi nhuận" : "Hiệu suất tổng vốn"
+                    state.discoveredConcepts.profitRate ? "Tỷ suất lợi nhuận" : "Hiệu suất vốn"
                   }
-                  symbol={state.discoveredConcepts.profitRate ? "p′ = m/(c+v)" : "Theo quý"}
+                  symbol={state.discoveredConcepts.profitRate ? "p′" : undefined}
                   value={+(last.profitRate * 100).toFixed(1)}
                   suffix="%"
                   decimals={1}
@@ -287,7 +282,7 @@ function GameScreen() {
               </StatTooltip>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.5fr_1fr_1fr]">
               <ProfitChart
                 data={profitTrend}
                 currentTurn={state.turn}
@@ -302,7 +297,7 @@ function GameScreen() {
                   state.discoveredConcepts.surplusValue ? "c : v : m" : "tư liệu : lương : dôi ra"
                 }
               >
-                <ResponsiveContainer width="100%" height={110}>
+                <ResponsiveContainer width="100%" height={90}>
                   <BarChart
                     data={capitalRatio}
                     layout="vertical"
@@ -324,19 +319,15 @@ function GameScreen() {
                     <XAxis type="number" hide />
                   </BarChart>
                 </ResponsiveContainer>
-                <div className="mt-1 flex justify-around text-[10px] font-mono text-muted-foreground">
-                  <span>
-                    <span className="text-[color:var(--info)]">■</span>{" "}
-                    {state.discoveredConcepts.constantCapital ? "c" : "Tư liệu"} {capitalRatio[0].v}
-                    %
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-mono text-muted-foreground">
+                  <span className="whitespace-nowrap">
+                    <span className="text-[color:var(--info)]">■</span> c {capitalRatio[0].v}%
                   </span>
-                  <span>
-                    <span className="text-gold">■</span>{" "}
-                    {state.discoveredConcepts.variableCapital ? "v" : "Lương"} {capitalRatio[1].v}%
+                  <span className="whitespace-nowrap">
+                    <span className="text-gold">■</span> v {capitalRatio[1].v}%
                   </span>
-                  <span>
-                    <span className="text-[color:var(--success)]">■</span>{" "}
-                    {state.discoveredConcepts.surplusValue ? "m" : "Dôi ra"} {capitalRatio[2].v}%
+                  <span className="whitespace-nowrap">
+                    <span className="text-[color:var(--success)]">■</span> m {capitalRatio[2].v}%
                   </span>
                 </div>
               </ChartCard>
@@ -344,7 +335,7 @@ function GameScreen() {
               <ContradictionCard value={contradictionInt} unrest={state.unrest} />
             </div>
 
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
               <MarketCard
                 label="Phần cầu của xưởng"
                 value={state.demand.toLocaleString("vi-VN")}
@@ -385,28 +376,27 @@ function GameScreen() {
 
             {/* Bottom log */}
             <div className="panel-industrial flex min-h-[190px] flex-col rounded-lg p-4">
-              <div className="flex items-center justify-between gap-2">
-                <SectionTitle icon={<Clock className="h-3.5 w-3.5" />} label="Nhật ký · Codex" />
-                <div className="flex flex-wrap gap-1">
-                  {CONCEPT_KEYS.map((key) => {
-                    const unlocked = !!state.discoveredConcepts[key];
-                    return (
-                      <button
-                        key={key}
-                        disabled={!unlocked}
-                        onClick={() => {
-                          setCodex(key);
-                          setCodexOpen(true);
-                        }}
-                        className="rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground transition enabled:hover:border-primary/60 enabled:hover:text-gold disabled:opacity-35"
-                      >
-                        {unlocked ? CONCEPT_INFO[key].short : "?"}
-                      </button>
-                    );
-                  })}
-                </div>
+              <SectionTitle icon={<Clock className="h-3.5 w-3.5" />} label="Nhật ký · Codex" />
+              <div className="mt-2 -mx-1 flex gap-1 overflow-x-auto px-1 pb-1">
+                {CONCEPT_KEYS.map((key) => {
+                  const unlocked = !!state.discoveredConcepts[key];
+                  return (
+                    <button
+                      key={key}
+                      disabled={!unlocked}
+                      onClick={() => {
+                        setCodex(key);
+                        setCodexOpen(true);
+                      }}
+                      title={unlocked ? CONCEPT_INFO[key].title : "Chưa khám phá"}
+                      className="shrink-0 rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground transition enabled:hover:border-primary/60 enabled:hover:text-gold disabled:cursor-help disabled:opacity-35"
+                    >
+                      {unlocked ? CONCEPT_INFO[key].short : "?"}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="mt-3 flex-1 overflow-y-auto pr-1">
+              <div className="mt-2 flex-1 overflow-y-auto border-t border-border/40 pt-2 pr-1">
                 <ul className="space-y-1.5">
                   {state.log.slice(0, 12).map((l, i) => (
                     <li
@@ -425,78 +415,103 @@ function GameScreen() {
 
           {/* RIGHT PANEL — Decisions */}
           <section className="order-3 flex min-w-0 flex-col gap-3 lg:col-span-3 lg:min-h-0">
-            <div className="panel-industrial rounded-lg p-4">
+            <div className="panel-industrial flex min-h-0 flex-1 flex-col rounded-lg p-3">
               <SectionTitle
                 icon={<Info className="h-3.5 w-3.5" />}
                 label={`Quyết định — ${quarterLabel}`}
                 right={
                   <span className="font-mono text-[10px] text-muted-foreground">
-                    {usedDecisionGroups.size} / 3 đã dùng
+                    {usedDecisionGroups.size} / {MAX_DECISION_GROUPS_PER_TURN} nhóm
                   </span>
                 }
               />
-            </div>
-            <div className="flex flex-col gap-2 lg:overflow-y-auto lg:pr-1 lg:min-h-0 lg:flex-1">
-              {DECISION_GROUPS.map((group) => {
-                const Icon = GROUP_ICONS[group.id];
-                const groupUsed = usedDecisionGroups.has(group.id);
-                const groupLocked =
-                  groupUsed ||
-                  usedDecisionGroups.size >= MAX_DECISION_GROUPS_PER_TURN ||
-                  presentationQueue.length > 0 ||
-                  !!state.pendingEvent ||
-                  !!state.ending;
-                return (
-                  <div key={group.id} className="panel-industrial rounded-lg p-3">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Icon className="h-4 w-4 text-primary" />
-                      <span className="font-display text-sm font-semibold text-foreground">
-                        {group.title}
-                      </span>
-                      {groupUsed ? (
-                        <span className="ml-auto font-mono text-[10px] text-muted-foreground">
-                          Đã dùng
+              <Tabs
+                value={activeGroup}
+                onValueChange={(v) => setActiveGroup(v as DecisionGroupId)}
+                className="mt-3 flex min-h-0 flex-1 flex-col"
+              >
+                <TabsList className="grid h-auto w-full grid-cols-6 gap-1 bg-panel-elevated/40 p-1">
+                  {DECISION_GROUPS.map((group) => {
+                    const Icon = GROUP_ICONS[group.id];
+                    const used = usedDecisionGroups.has(group.id);
+                    return (
+                      <TabsTrigger
+                        key={group.id}
+                        value={group.id}
+                        title={group.title}
+                        className="relative h-10 px-0 data-[state=active]:bg-primary/15 data-[state=active]:text-gold"
+                      >
+                        <Icon className="h-4 w-4" />
+                        {used ? (
+                          <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-gold" />
+                        ) : null}
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+
+                {DECISION_GROUPS.map((group) => {
+                  const groupUsed = usedDecisionGroups.has(group.id);
+                  const capReached =
+                    usedDecisionGroups.size >= MAX_DECISION_GROUPS_PER_TURN && !groupUsed;
+                  const groupLocked =
+                    groupUsed ||
+                    capReached ||
+                    presentationQueue.length > 0 ||
+                    !!state.pendingEvent ||
+                    !!state.ending;
+                  return (
+                    <TabsContent
+                      key={group.id}
+                      value={group.id}
+                      className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-display text-sm font-semibold text-foreground">
+                          {group.title}
                         </span>
-                      ) : null}
-                    </div>
-                    <div className="grid grid-cols-2 gap-1.5">
+                        {groupUsed ? (
+                          <span className="font-mono text-[10px] text-gold">Đã dùng quý này</span>
+                        ) : capReached ? (
+                          <span className="font-mono text-[10px] text-muted-foreground">
+                            Đã đạt trần
+                          </span>
+                        ) : null}
+                      </div>
                       {group.options.map((optionId) => {
                         const option = DECISIONS[optionId];
                         const disabled = groupLocked || !option.canApply(state);
+                        const reason = !option.canApply(state)
+                          ? option.disabledReason(state)
+                          : "";
                         return (
-                          <HoverCard key={optionId} openDelay={250} closeDelay={80}>
-                            <HoverCardTrigger asChild>
-                              <button
-                                type="button"
-                                disabled={disabled}
-                                title={
-                                  !option.canApply(state)
-                                    ? option.disabledReason(state)
-                                    : option.description
-                                }
-                                onClick={() => applyDecision(optionId)}
-                                className="min-h-11 rounded border border-border bg-panel-elevated px-2 py-1.5 text-left text-xs text-foreground transition hover:border-primary/60 disabled:cursor-not-allowed disabled:opacity-35"
-                              >
-                                {option.label}
-                              </button>
-                            </HoverCardTrigger>
-                            <HoverCardContent
-                              side="left"
-                              align="start"
-                              className="w-80 border-primary/40 bg-[oklch(0.16_0.008_60)] p-2"
+                          <div
+                            key={optionId}
+                            className="rounded border border-border bg-panel-elevated/60 p-2"
+                          >
+                            <button
+                              type="button"
+                              disabled={disabled}
+                              onClick={() => applyDecision(optionId)}
+                              className="w-full rounded bg-panel px-3 py-2 text-left text-sm font-semibold text-foreground transition hover:border-primary/60 disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                              <p className="mb-2 text-xs text-muted-foreground">
-                                {option.description}
-                              </p>
-                              <ActionPreview state={state} actionId={optionId} />
-                            </HoverCardContent>
-                          </HoverCard>
+                              {option.label}
+                            </button>
+                            <p className="mt-1.5 px-1 text-[11px] leading-snug text-muted-foreground">
+                              {reason || option.description}
+                            </p>
+                            {!disabled ? (
+                              <div className="mt-2">
+                                <ActionPreview state={state} actionId={optionId} />
+                              </div>
+                            ) : null}
+                          </div>
                         );
                       })}
-                    </div>
-                  </div>
-                );
-              })}
+                    </TabsContent>
+                  );
+                })}
+              </Tabs>
             </div>
             <EndTurnButton onEnd={endQuarter} />
           </section>
@@ -509,27 +524,30 @@ function GameScreen() {
             const first = CONCEPT_KEYS.find((key) => state.discoveredConcepts[key]);
             setCodex(first ?? null);
           }}
-          className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 rounded-full border border-primary bg-[oklch(0.2_0.02_60)] px-4 py-2 font-mono text-xs text-gold shadow-lg lg:hidden"
+          className="fixed bottom-4 left-4 z-40 flex items-center gap-1.5 rounded-full border border-primary bg-[oklch(0.2_0.02_60)] px-4 py-2 font-mono text-xs text-gold shadow-lg lg:hidden"
         >
           <BookOpen className="h-3.5 w-3.5" /> {discoveredCount}/15
         </button>
 
-        <div className="fixed bottom-3 right-3 z-40 hidden gap-2 rounded-md border border-border bg-panel/80 p-1.5 font-mono text-[10px] backdrop-blur lg:flex">
-          <span className="px-1.5 py-0.5 text-muted-foreground">DEV</span>
-          <Link
-            to="/ending/revolution"
-            className="rounded bg-destructive/20 px-2 py-0.5 text-destructive hover:bg-destructive/30"
-          >
-            <Flag className="mr-1 inline h-3 w-3" />
-            Ending: Cách mạng
-          </Link>
-          <Link
-            to="/ending/bankruptcy"
-            className="rounded bg-[color:var(--info)]/15 px-2 py-0.5 text-[color:var(--info)] hover:bg-[color:var(--info)]/25"
-          >
-            Ending: Phá sản
-          </Link>
-        </div>
+        <details className="fixed bottom-3 right-3 z-40 hidden rounded-md border border-border bg-panel/80 font-mono text-[10px] backdrop-blur lg:block">
+          <summary className="cursor-pointer list-none px-2 py-1 text-muted-foreground hover:text-primary">
+            <Flag className="inline h-3 w-3" /> DEV
+          </summary>
+          <div className="flex flex-col gap-1 p-1.5">
+            <Link
+              to="/ending/revolution"
+              className="rounded bg-destructive/20 px-2 py-0.5 text-destructive hover:bg-destructive/30"
+            >
+              Cách mạng
+            </Link>
+            <Link
+              to="/ending/bankruptcy"
+              className="rounded bg-[color:var(--info)]/15 px-2 py-0.5 text-[color:var(--info)] hover:bg-[color:var(--info)]/25"
+            >
+              Phá sản
+            </Link>
+          </div>
+        </details>
 
         <EventModal
           open={activePresentation?.kind === "event" && !!state.pendingEvent}

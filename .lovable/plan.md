@@ -1,70 +1,65 @@
-# Plan — Cải thiện tương tác & polish UI cho `/game`
 
-Chỉ chạm lớp UI/presentation. Không đổi engine (`src/game/*`).
+# Tối ưu UI/UX màn `/game`
 
-## 1. Kiến trúc thêm mới
+Chỉ chạm lớp presentation (`src/routes/game.tsx`, các component trong `src/components/game/`, `src/styles.css`). Không đổi engine, decisions logic, hay công thức.
 
-Tạo các component mới trong `src/components/game/`:
+## Vấn đề hiện tại
 
-- `stat-tooltip.tsx` — Radix Tooltip wrapper hiển thị định nghĩa Marx + công thức + diễn giải bối cảnh cho từng chỉ số (c, v, m, p′, mâu thuẫn). Nội dung tra từ 1 bảng const `CONCEPT_INFO` mới trong `src/game/concepts.ts`.
-- `action-preview.tsx` — panel nhỏ hiện dưới ActionButton khi hover: tính thử `nextState` bằng cách clone state qua immer và gọi `ACTIONS[id].apply(draft)`, sau đó chạy `computeQuarter` từ `engine/laws.ts` để so sánh Δ của `c, v, m, p′, contradiction`. Chỉ dùng cho preview — không mutate store.
-- `achievement-toast.tsx` — dùng `sonner` (đã có `<Toaster />`) với custom render: nền amber tối, icon `Award`, tiêu đề + phụ đề "Mở khóa: … trong Codex". Export `showAchievement({title, subtitle})`.
-- `codex-panel.tsx` — panel `fixed bottom-0` height 200px, slide-up bằng `AnimatePresence`, hiển thị: định nghĩa đầy đủ, công thức, quote Marx, timestamp "Lần khám phá: Quý N, YYYY".
-- `end-turn-button.tsx` — tách nút "Kết thúc quý" ra, quản lý state loading 1.5s, dispatch `endQuarter` sau delay, phát event `window.dispatchEvent(new CustomEvent('quarter-ended', {detail: {prevProfitRate}}))` để các card khác phản ứng.
-- `contradiction-card.tsx` — tách riêng để dễ pulse border khi > 60%, toast khi crossing 75%, overlay đỏ full-screen khi ≥ 100%.
-- `profit-chart.tsx` — tách chart p′ ra: thêm animated dot (`<Dot>` custom + framer-motion), phase labels trên XAxis (`Khởi nghiệp` Q1–Q6, `Tối ưu hóa` Q7–Q12, `Khủng hoảng` Q13–Q18, `Đỉnh cao` Q19–Q24), tooltip custom hiển thị giá trị + phase, gradient amber đã có sẵn (giữ + tăng opacity nhẹ).
+1. **Header chồng chữ**: `HeaderStat` label `"Dư nợ · lãi tới · nợ/tài sản"` và giá trị `$X · $Y · Z%` bị wrap lộn xộn ở màn hình vừa; label + value đứng cùng cột hẹp gây tràn.
+2. **6 nhóm quyết định** hiển thị đầy đủ ở cột phải hẹp (col-span-3) — mỗi nhóm là card riêng, tổng 6 card + nút "Kết thúc quý" vượt viewport, phải scroll dài; label "Đã dùng" và icon tranh chỗ với title.
+3. **Dashboard 4 stat card** dùng `symbol` dài ("m = giá trị mới − v", "p′ = m/(c+v)") tràn ra khỏi card khi width < 300px.
+4. **MarketCard 6 ô** trên 1 hàng lg:grid-cols-6 → label 2 dòng bị cắt chữ, giá trị mono lớn đè lên unit.
+5. **Nhật ký · Codex**: hàng chip 15 concept + title trên cùng 1 flex, mobile bị wrap đè nút.
+6. **DEV panel** cố định bottom-right đè lên Codex FAB và nội dung log.
+7. **ContradictionCard** + ProfitChart + Capital ratio nhồi 3 cột md nhưng ở lg vẫn 3 cột → chart p′ quá dẹt.
 
-Bảng khái niệm `src/game/concepts.ts`:
-```ts
-export const CONCEPT_INFO = {
-  c: { title, definition, formula, context: (s) => string },
-  v: {...}, m: {...}, pRate: {...}, contradiction: {...}
-}
-```
-`context(state)` sinh câu như "c/v hiện = 2.4 → cấu tạo hữu cơ cao, p′ đang bị nén."
+## Thay đổi
 
-## 2. Sửa file hiện có
+### 1. `game-header.tsx` — tách nợ thành 3 stat riêng
+- Thay 1 `HeaderStat` "Dư nợ · lãi tới · nợ/tài sản" bằng 3 stat riêng: **Dư nợ**, **Lãi quý tới**, **Nợ / Tài sản** (ẩn 2 cái sau khi `debt === 0` để giảm chật).
+- Grid header: `sm:grid-cols-3 lg:flex` với `flex-wrap`; mỗi stat có `min-w-0` + `truncate` cho value, `whitespace-nowrap` cho label ngắn.
+- Rút gọn label: "Xí nghiệp" → "Hãng", "Tư bản tiền tệ" → "Tiền mặt", "Dư nợ · lãi tới · nợ/tài sản" → 3 label ngắn.
+- Ẩn logo "DAS KAPITALIST" ở màn < md, chỉ giữ gear icon để nhường chỗ.
 
-### `src/routes/game.tsx`
-- Wrap 4 `DashboardCard` bằng `StatTooltip` (nhận `conceptKey`).
-- Thay khối "Mâu thuẫn giai cấp" ChartCard bằng `<ContradictionCard value={contradictionInt} unrest={state.unrest} />`.
-- Thay ChartCard "Xu hướng p′" bằng `<ProfitChart data={profitTrend} turn={state.turn} />`.
-- Trong mỗi ActionButton wrapper: bọc bằng `<HoverCard>` (shadcn) hoặc div group + `<ActionPreview state={state} actionId={id} />`.
-- Thay motion.button "Kết thúc quý" bằng `<EndTurnButton onEnd={() => { endQuarter(); setSummary(true); }} prevProfitRate={last.profitRate} />`.
-- Chip "Từ điển khái niệm": khi click concept chip → mở `CodexPanel` thay vì `ConceptModal` (giữ ConceptModal cho Eureka popup).
-- Thêm hook `useContradictionAlerts(state.contradiction)` — theo dõi crossing 75%, gọi `toast.warning`.
-- Sau `endQuarter`: kiểm tra điều kiện Eureka (unlock concept mới) → gọi `showAchievement(...)` + mở `ConceptModal`. Điều kiện mẫu: `last.exploitation >= 2` → "Nhà tư bản máu lạnh".
+### 2. `routes/game.tsx` — cột phải: gộp Decision groups
+- Đổi từ **6 card dọc** → **1 accordion / segmented**: dùng shadcn `Tabs` (đã có) với 6 tab icon-only ở đầu, panel bên dưới hiện options của nhóm được chọn (2 nút lớn). Chiều cao cố định → không cần scroll.
+- Header nhỏ trên tabs: `SectionTitle` "Quyết định — {quarter}" + counter `{used}/3 nhóm` bên phải.
+- Nhóm đã dùng: tab hiển thị badge chấm gold + disabled; nhóm bị khoá do đạt trần 3 → tab dimmed nhưng vẫn xem được preview.
+- Panel option: 2 button chiếm full width, mỗi button gồm label bold + 1 dòng description muted; `ActionPreview` render ngay dưới (không cần hover) — luôn thấy Δ trước khi bấm.
+- `EndTurnButton` giữ dưới đáy cột, sticky `lg:sticky lg:bottom-0`.
 
-### `src/components/game/dashboard-card.tsx`
-- Thêm prop `flashDown?: boolean` — khi true, border đỏ + `animate-shake` 500ms. Dùng cho p′ card khi giảm.
-- Thêm prop `tooltip?: React.ReactNode` — nếu có, wrap trong Tooltip.
+### 3. Dashboard 4 stat (c/v/m/p′)
+- `DashboardCard` prop `symbol`: giới hạn `truncate` + `text-xs`; công thức dài chuyển vào tooltip, chỉ hiện ký hiệu ngắn ("m", "p′") trên card.
+- Grid: `grid-cols-2 xl:grid-cols-4` (bỏ sm:grid-cols-4) để tránh chật ở màn 1024–1280.
 
-### `src/components/game/mobile-warning.tsx` → xóa hoặc chỉnh
-- Bỏ block chặn desktop-only. Layout mobile:
-  - `flex flex-col` mặc định, chuyển `lg:` cho grid 12 cột hiện tại.
-  - Stack: Header → 4 stat card grid-cols-2 → chart p′ → contradiction card → actions full-width → factory scene.
-  - Codex: FAB tròn `fixed bottom-4 right-4` "📚 5/15", tap mở `CodexPanel`.
-  - Ẩn panel DEV trên mobile.
+### 4. Khu chart giữa
+- Đổi grid `md:grid-cols-3` → `lg:grid-cols-[1.4fr_1fr_1fr]`: ProfitChart rộng hơn (chính), Capital ratio + Contradiction hẹp hơn.
+- Capital ratio: bỏ legend 3 dòng dày, gộp thành 1 dòng inline nhỏ với dot color.
 
-### `src/styles.css`
-- Thêm keyframe `shake` (translateX ±3px) + utility `.animate-shake`.
-- Thêm keyframe `pulse-danger` (border-color đỏ, 2s infinite) + utility.
-- Thêm keyframe `tick` cho turn counter (scale 1 → 1.3 → 1, 300ms).
+### 5. Market strip
+- Đổi `lg:grid-cols-6` → `lg:grid-cols-3 xl:grid-cols-6` để label không bị cắt.
+- `MarketCard`: label uppercase `text-[10px]` giới hạn 1 dòng + `truncate` + `title={label}`, value `text-xl` (giảm từ 2xl) — value + unit trên cùng dòng baseline không đè.
 
-### `src/components/game/game-header.tsx`
-- Turn counter: bọc số turn trong `<motion.span key={turn} initial={{scale:1.3}} animate={{scale:1}}>` để tick khi tăng.
+### 6. Log · Codex
+- Tách thành 2 khối trong cùng panel: hàng đầu là title `Nhật ký`, hàng thứ 2 (border-top) là dải chip 15 concept scroll ngang `overflow-x-auto` với `flex-nowrap`. Không còn flex-wrap chip đè title.
+- Chip disabled: giữ opacity 35 nhưng thêm `cursor-help` + tooltip "Chưa khám phá".
 
-## 3. Cài đặt lib
+### 7. DEV panel + FAB
+- DEV panel: chuyển thành popover mở từ nút nhỏ `⚙` ở góc, mặc định thu gọn — không đè Codex FAB.
+- Codex FAB: đổi `bottom-4 right-4` → `bottom-4 left-4` để tách khỏi DEV.
 
-Nếu chưa có: `bun add @radix-ui/react-tooltip @radix-ui/react-hover-card` (kiểm tra `components.json` / `src/components/ui/` trước; shadcn thường đã có tooltip). Sonner đã có sẵn.
+### 8. `styles.css`
+- Thêm utility `.panel-tight { @apply rounded-lg p-3; }` để dùng thống nhất, giảm padding trong các card mật độ cao.
+- Utility `.stat-value-clip` cho value mono truncate không bị nhảy layout.
 
-## 4. Verify
+## Không đổi
+
+- Không đổi bất kỳ file nào trong `src/game/*`.
+- Không đổi luồng presentation queue, modal, ending.
+- Không đổi cơ chế 3 nhóm/quý, chỉ đổi cách trình bày lựa chọn.
+
+## Verify
 
 - `tsgo` typecheck.
-- Playwright: mở `/game`, click "Kết thúc quý", screenshot 3 lần (trước, đang loading, sau) để xác nhận số nhảy + tick.
-- Hover 1 action button → screenshot preview panel.
-- Resize viewport 375px → screenshot mobile stack.
-
-## Ngoài phạm vi
-
-- Không đổi công thức Marxian, không thêm action mới, không đổi ending logic, không thêm i18n / audio / save-load. Tất cả logic mới chỉ nằm trong lớp UI.
+- Playwright: mở `/game`, screenshot ở viewports 1280×800 và 1440×900, kiểm tra không có text tràn/overlap ở header, decisions column, market strip.
+- Click 1 tab decision → screenshot xác nhận `ActionPreview` render inline.
