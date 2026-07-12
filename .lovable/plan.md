@@ -1,108 +1,87 @@
-# Cán cân lịch sử (Historical Scale) — thay ContradictionCard
 
-## Ý tưởng
-Thay khối "Áp lực xã hội / Mâu thuẫn cơ bản" hiện tại (một thanh máu số) bằng một **cán cân SVG động** — biểu tượng trạng thái lịch sử của xưởng. Cán cân nghiêng theo `tilt`, rung theo `instability`, rạn theo `crackLevel`, và có 5 trạng thái đặt tên: Ổn định · Tích lũy căng · Bóc lột nóng · Khủng hoảng · Rạn vỡ.
+# Thu nhỏ Cán cân lịch sử + thêm Hero animation chủ xưởng Heinrich
 
-Vị trí: đúng ô hiện tại của `ContradictionCard` trong `src/routes/game.tsx` (dòng 335). Không đụng logic game (`src/game/*`), chỉ derive từ state hiện có.
+Ý tưởng: Ô hero bên trái (đang là `HistoricalScale variant="hero"`) sẽ được chia thành 2 phần:
+- **Trên (~60%)**: Heinrich — chủ xưởng, animation SVG với biểu cảm thay đổi theo tình hình.
+- **Dưới (~40%)**: Cán cân lịch sử ở dạng thu gọn (variant `card` hiện có, nhưng thêm chút polish).
 
-## Phạm vi (frontend-only)
-- **Tạo mới**: `src/components/game/historical-scale.tsx` — SVG cán cân + animation.
-- **Tạo mới**: `src/game/pressures.ts` — pure functions derive `capitalPressure`, `laborPressure`, `marketPressure`, `tilt`, `instability`, `crackLevel`, `phase` từ `GameState`. Không mutate state.
-- **Sửa**: `src/routes/game.tsx` — thay `<ContradictionCard .../>` bằng `<HistoricalScale state={state} />`. Giữ `ContradictionCard` file lại (không xóa) để có thể revert; hoặc xóa nếu bạn xác nhận.
-- **Không đụng**: `src/game/engine/*`, `balance.ts`, `decisions.ts`, `types.ts`.
+## 1. Component mới: `src/components/game/heinrich-portrait.tsx`
 
-## Công thức derive (đọc-only)
+SVG chân dung nửa người của Heinrich đứng trước cửa sổ nhìn ra xưởng, style tranh khắc gỗ (cùng tone với intro art). Tất cả bằng SVG + framer-motion, không cần ảnh raster.
+
+**Cấu trúc SVG (viewBox 0 0 240 260):**
+- Background: cửa sổ chia ô, khói nhà máy phía sau (drift animation).
+- Body: áo vest cổ cao, cà-vạt đen, đồng hồ quả quýt (dây xích lấp lánh khi cash cao).
+- Head: hình oval, tóc chải ngược, ria mép, mắt, lông mày, miệng — mỗi bộ phận là 1 `<g>` để hoán đổi theo mood.
+- Tay: 1 tay chống hông / vuốt cằm / nắm đấm — biến theo mood.
+- Prop phụ (bàn phía trước): xì gà (khói bay khi `content`), ly rượu (nghiêng khi `crisis`), giấy tờ (bay tung khi `rupture`).
+
+**Mood dẫn xuất từ `readScale(state)` + vài field state:**
 
 ```ts
-capitalPressure =
-  clamp(debtRatio) * 30
-  + inventoryRatio * 25
-  + max(0, -profitRateReal) * 40
-  + reinvestmentRate * 10           // 0..100+
-
-laborPressure =
-  contradiction * 0.5
-  + unrest * 0.3
-  + max(0, workHours - 10) * 8
-  + socialUnemployment * 1.2
-  + max(0, 1 - wageIndex) * 25
-
-marketPressure =
-  min(1, inventory/max(1,demand)) * 35
-  + max(0, industrySupply/effectiveDemand - 1) * 30
-
-tilt         = clamp(capitalPressure - laborPressure, -60, 60)   // độ nghiêng (deg/2)
-instability  = clamp(capitalPressure + laborPressure + marketPressure, 0, 200)
-crackLevel   = smoothstep(60, 120, instability + max(0, contradiction - 60))
-phase        = 'stable' | 'accumulation' | 'exploitation' | 'crisis' | 'rupture'
+type Mood =
+  | "content"       // profit tốt, unrest thấp → cười khẩy, xì gà
+  | "greedy"        // accumulation phase, cash tăng → mắt sáng, xoa tay
+  | "stressed"      // exploitation, workHours cao → nhíu mày, lau mồ hôi
+  | "worried"       // crisis / inventory cao → cắn môi, tay chống trán
+  | "furious"       // unrest > 70 → đỏ mặt, đập bàn
+  | "defeated"      // rupture / debt cao → cúi đầu, tay ôm mặt
+  | "triumphant";   // marketShare > 0.5 & profit cao → ngẩng cao, cười lớn
 ```
 
-Phase chọn theo ngưỡng ưu tiên: `rupture` nếu `contradiction≥85 || crackLevel≥0.8`; `crisis` nếu `marketPressure≥45 || overstockStreak≥2`; `exploitation` nếu `laborPressure≥55 || m/v>1`; `accumulation` nếu `capitalPressure≥45`; còn lại `stable`.
+Rule chọn mood (theo thứ tự ưu tiên):
+1. `phase === "rupture"` hoặc `contradiction >= 85` → `defeated`
+2. `unrest >= 70` → `furious`
+3. `phase === "crisis"` hoặc `overstockStreak >= 2` → `worried`
+4. `phase === "exploitation"` hoặc `workHours >= 13` → `stressed`
+5. `marketShare >= 0.5 && profitRateReal > 0.15` → `triumphant`
+6. `phase === "accumulation"` hoặc `cash > 60000` → `greedy`
+7. else → `content`
 
-## Thiết kế thị giác (SVG, motion)
+**Biểu cảm — thay đổi cụ thể:**
+| Mood | Mắt | Lông mày | Miệng | Tay/Body | FX |
+|---|---|---|---|---|---|
+| content | mở vừa | thẳng | mỉm cong nhẹ | chống hông | khói xì gà nhẹ |
+| greedy | híp, hai chấm sáng $ | cong lên | cười lệch | xoa hai tay | xu vàng rơi lấp lánh |
+| stressed | mở to | nhíu | mím chặt | lau trán | mồ hôi giọt |
+| worried | nhìn xuống | chữ V ngược | méo xệch | ôm cằm | ly rượu nghiêng |
+| furious | trợn, đỏ | dốc xuống | há gào | nắm đấm giơ | mặt đỏ + rung mạnh |
+| defeated | nhắm | rũ | mở nhẹ | ôm mặt | giấy tờ bay, khói xám |
+| triumphant | mở | cong | cười to | giơ ly | tia sáng vàng |
 
-```text
-     ╔══════════════ Cán cân lịch sử ══════════════╗
-     ║   [phase badge]         [instability dots]  ║
-     ║                                              ║
-     ║           ╱‾‾‾‾‾‾●‾‾‾‾‾‾╲   ← beam (rotate: tilt°)
-     ║          ▢ Tư bản    Lao động ▢               (đĩa trái/phải, y = -tilt)
-     ║          ║             ║                    ║ (dây, có thể "chain" khi debt cao)
-     ║           ║  ▲ trục ║   ← có vết nứt khi crackLevel cao
-     ║          ▬▬▬▬▬▬▬▬▬▬▬                        ║
-     ║  Tư bản 62 · Lao động 41 · Thị trường 18    ║ (mini bars)
-     ╚══════════════════════════════════════════════╝
+**Motion:**
+- Idle: thở nhẹ (`scale y 1 → 1.01`, 3s loop).
+- Chớp mắt ngẫu nhiên 3–6s.
+- Chuyển mood: `AnimatePresence` fade + `scale-in` 0.4s cho từng bộ phận thay.
+- Hover: tooltip text mô tả tâm trạng ("Heinrich đang lo lắng vì hàng tồn kho…").
+
+**Header trong panel:**
+- Tên "HEINRICH" + chip mood (uppercase, phase color).
+- Dòng phụ: một câu độc thoại ngắn thay theo mood — mảng 3–4 câu / mood, random khi mood đổi.
+  - Ví dụ furious: *"Bọn chúng dám đình công?! Đuổi hết!"*, *"Không ai được rời máy!"*.
+  - Ví dụ worried: *"Kho đầy… mà không ai mua."*.
+  - Ví dụ defeated: *"Có lẽ… tôi đã sai."*.
+
+## 2. Sửa `src/routes/game.tsx` (left panel)
+
+```tsx
+<section className="... lg:col-span-3 ...">
+  <HeinrichPortrait state={state} />        {/* mới, flex-1 */}
+  <HistoricalScale state={state} variant="card" />  {/* thu về card */}
+  <div className="panel-industrial ...">Lực lượng lao động …</div>
+</section>
 ```
 
-- **Beam** (thanh ngang): `motion.g` xoay `rotate: tilt * 0.6` với `transition spring stiffness 60`.
-- **Đĩa trái = Tư bản**: chồng biểu tượng theo trọng số — coin stack (cash/debt), gear (machines), chain (khi debt>0). Đĩa **phải = Lao động**: figure silhouettes (workers), nhịp thở theo health.
-- **Rung** (instability): `animate x/y` bằng noise ±(instability/50)px, loop. Trên `>120` chuyển sang red-shift filter.
-- **Vết nứt trục** (crackLevel): SVG `<path>` zig-zag opacity = crackLevel; xuất hiện dần, không biến mất khi giảm nhẹ (hysteresis 0.15) — kể chuyện tổn thương lâu dài.
-- **Overstock**: khi marketPressure cao, thêm cuộn vải rơi khỏi đĩa Tư bản (motion `y: [0, 40]`, opacity fade), nền đĩa hơi lạnh.
-- **Tiền cách mạng** (`rupture`): nền tối lại, đĩa lao động phát sáng mờ (`filter: drop-shadow`), silhouette đám đông tĩnh phía sau.
+Bỏ `variant="hero"`. Không đổi logic `HistoricalScale` — chỉ dùng bản `card` sẵn có (bỏ block `isHero`, không cần chỉnh code).
 
-Palette dùng token có sẵn: `--gold` (tư bản), `--contradiction` (lao động), `--danger` (rạn), `--muted-foreground`, `--panel-elevated`. Không hardcode màu.
+## 3. Không đụng
 
-## Preview khi hover option (tuỳ chọn giai đoạn 2)
-`ActionPreview` có sẵn `produce(state, DECISIONS[id].apply)`. Ở giai đoạn 2, expose `useHoverAction` để `HistoricalScale` nhận `previewState?` và animate tilt/instability tạm thời. **Không** làm ở giai đoạn 1 để giữ scope nhỏ; đánh dấu TODO.
+- Không đổi game logic, không đổi `pressures.ts`, không đổi state.
+- Không cần asset ảnh mới — toàn bộ Heinrich là SVG inline.
+- `ContradictionCard` giữ nguyên vị trí center.
 
-## Tooltip & Eureka
-- Hover cả khối → `StatTooltip conceptKey="capitalistContradiction"` (giữ nguyên concept đã có).
-- Lần đầu `crackLevel` vượt 0.5 → gọi `discoverConcept('capitalistContradiction')` nếu chưa unlock + `showWarning("Cán cân bắt đầu rạn — mâu thuẫn cơ bản CNTB")`. Dùng đúng API hiện có, không tạo concept mới.
-- Không hiển thị chữ giải thích dài. Chỉ tên phase + 3 số nhỏ.
+## Tệp thay đổi
+- **Tạo**: `src/components/game/heinrich-portrait.tsx`
+- **Sửa**: `src/routes/game.tsx` (thay layout left panel)
 
-## Chi tiết kỹ thuật
-
-**File `src/game/pressures.ts`** (pure, có thể unit-test sau):
-```ts
-export type ScalePhase = 'stable'|'accumulation'|'exploitation'|'crisis'|'rupture';
-export interface ScaleReading {
-  capital: number; labor: number; market: number;
-  tilt: number; instability: number; crackLevel: number;
-  phase: ScalePhase; phaseLabel: string;
-}
-export function readScale(s: GameState): ScaleReading { ... }
-```
-
-**File `src/components/game/historical-scale.tsx`**:
-- Props: `{ state: GameState }`.
-- Nội bộ: `const r = readScale(state)`; useRef cho `crackLevel` hysteresis; `useEffect` phát Eureka.
-- SVG viewBox `0 0 200 140`, responsive `w-full h-[140px]`.
-- Motion: `framer-motion` (đã có).
-- A11y: `role="img" aria-label={\`Cán cân: ${r.phaseLabel}, tư bản ${...}, lao động ${...}\`}`.
-
-**Sửa `game.tsx`** — chỉ 2 dòng:
-- Bỏ `import { ContradictionCard } ...`, thêm `import { HistoricalScale } ...`.
-- Thay `<ContradictionCard value={contradictionInt} unrest={state.unrest} />` bằng `<HistoricalScale state={state} />`.
-
-## Không làm
-- Không đổi balance/công thức kinh tế.
-- Không thêm âm thanh (bạn chưa yêu cầu file audio; có thể bổ sung sau nếu muốn).
-- Không xoá `ContradictionCard.tsx` (giữ để rollback); nếu muốn xoá, nói với mình.
-
-## Deliverable
-1. `src/game/pressures.ts` (mới)
-2. `src/components/game/historical-scale.tsx` (mới, SVG + motion)
-3. `src/routes/game.tsx` (đổi 2 dòng)
-
-Bạn duyệt là mình build.
+Tổng cộng ~1 file mới ~350 dòng SVG + 1 chỉnh nhỏ ở route.
