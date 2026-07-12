@@ -33,6 +33,7 @@ import {
 } from "@/components/game/modals";
 import { StatTooltip } from "@/components/game/stat-tooltip";
 import { HistoricalScale } from "@/components/game/historical-scale";
+import { HeinrichPortrait } from "@/components/game/heinrich-portrait";
 import { ContradictionCard } from "@/components/game/contradiction-card";
 import { ProfitChart } from "@/components/game/profit-chart";
 import { CodexPanel } from "@/components/game/codex-panel";
