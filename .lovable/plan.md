@@ -1,71 +1,108 @@
-## Mục tiêu
-1. Fix cursor: mọi option/tab/button trong khu decisions và tương tác chuyển thành `cursor-pointer`.
-2. Thêm Intro Scene (~90s) với narration audio + 3 ảnh minh họa, có Skip, ghi nhớ đã xem.
+# Cán cân lịch sử (Historical Scale) — thay ContradictionCard
 
----
+## Ý tưởng
+Thay khối "Áp lực xã hội / Mâu thuẫn cơ bản" hiện tại (một thanh máu số) bằng một **cán cân SVG động** — biểu tượng trạng thái lịch sử của xưởng. Cán cân nghiêng theo `tilt`, rung theo `instability`, rạn theo `crackLevel`, và có 5 trạng thái đặt tên: Ổn định · Tích lũy căng · Bóc lột nóng · Khủng hoảng · Rạn vỡ.
 
-## 1. Cursor cho các option
+Vị trí: đúng ô hiện tại của `ContradictionCard` trong `src/routes/game.tsx` (dòng 335). Không đụng logic game (`src/game/*`), chỉ derive từ state hiện có.
 
-**File**: `src/routes/game.tsx`, `src/components/ui/tabs.tsx` (nếu cần), và các decision buttons.
+## Phạm vi (frontend-only)
+- **Tạo mới**: `src/components/game/historical-scale.tsx` — SVG cán cân + animation.
+- **Tạo mới**: `src/game/pressures.ts` — pure functions derive `capitalPressure`, `laborPressure`, `marketPressure`, `tilt`, `instability`, `crackLevel`, `phase` từ `GameState`. Không mutate state.
+- **Sửa**: `src/routes/game.tsx` — thay `<ContradictionCard .../>` bằng `<HistoricalScale state={state} />`. Giữ `ContradictionCard` file lại (không xóa) để có thể revert; hoặc xóa nếu bạn xác nhận.
+- **Không đụng**: `src/game/engine/*`, `balance.ts`, `decisions.ts`, `types.ts`.
 
-- Rà toàn bộ `<button>`, `<TabsTrigger>`, các card decision, chips codex, close-modal — thêm `cursor-pointer` (và `cursor-not-allowed` khi disabled).
-- Tập trung tại tabs 6 nhóm quyết định, 2 nút option lớn (Reduce/Extend, Raise/Cut...), EndTurnButton, DEV toggle, Codex FAB.
+## Công thức derive (đọc-only)
 
----
+```ts
+capitalPressure =
+  clamp(debtRatio) * 30
+  + inventoryRatio * 25
+  + max(0, -profitRateReal) * 40
+  + reinvestmentRate * 10           // 0..100+
 
-## 2. Intro Scene
+laborPressure =
+  contradiction * 0.5
+  + unrest * 0.3
+  + max(0, workHours - 10) * 8
+  + socialUnemployment * 1.2
+  + max(0, 1 - wageIndex) * 25
 
-### Kịch bản narration (tiếng Việt, ~90s, chia 4 beat)
+marketPressure =
+  min(1, inventory/max(1,demand)) * 35
+  + max(0, industrySupply/effectiveDemand - 1) * 30
 
-**Beat 1 — Bối cảnh châu Âu (0-20s, ảnh: thành phố công nghiệp Rhineland đêm)**
-> "Mùa xuân năm 1852. Bốn năm đã trôi qua kể từ khi những chiến lũy cách mạng 1848 sụp đổ trên khắp châu Âu. Ở vùng Rhineland của nước Phổ, khói than một lần nữa che kín bầu trời — nhưng lần này, không phải khói của súng đại bác, mà của những ống khói nhà máy."
+tilt         = clamp(capitalPressure - laborPressure, -60, 60)   // độ nghiêng (deg/2)
+instability  = clamp(capitalPressure + laborPressure + marketPressure, 0, 200)
+crackLevel   = smoothstep(60, 120, instability + max(0, contradiction - 60))
+phase        = 'stable' | 'accumulation' | 'exploitation' | 'crisis' | 'rupture'
+```
 
-**Beat 2 — Nhân vật (20-45s, ảnh: chân dung Heinrich trước xưởng dệt)**
-> "Bạn là Heinrich Müller, ba mươi hai tuổi, vừa thừa kế xưởng dệt của cha mình bên bờ sông Wupper. Bốn mươi công nhân, tám cỗ máy dệt hơi nước, một cuốn sổ cái, và một khoản nợ chưa trả. Cha bạn đã dạy: 'Con ơi, tư bản không nghỉ ngơi.'"
+Phase chọn theo ngưỡng ưu tiên: `rupture` nếu `contradiction≥85 || crackLevel≥0.8`; `crisis` nếu `marketPressure≥45 || overstockStreak≥2`; `exploitation` nếu `laborPressure≥55 || m/v>1`; `accumulation` nếu `capitalPressure≥45`; còn lại `stable`.
 
-**Beat 3 — Cuộc chơi (45-70s, ảnh: bàn giấy với sổ cái, đèn dầu, bản đồ ngành)**
-> "Trước mặt bạn là hai mươi bốn quý — sáu năm — để biến xưởng này thành một đế chế, hay chứng kiến nó sụp đổ. Bauer ở phía nam vẫn dựa vào lao động rẻ. Krupp ở phía bắc đang mua máy mới mỗi tháng. Giá trị xã hội của mỗi thước vải đang giảm từng ngày, và bạn phải chạy — chỉ để đứng yên."
+## Thiết kế thị giác (SVG, motion)
 
-**Beat 4 — Câu hỏi mở (70-90s, ảnh: công nhân xếp hàng vào cổng xưởng lúc bình minh)**
-> "Mỗi quyết định của bạn — kéo dài ngày lao động, hạ tiền lương, vay thêm tín dụng, hay tái đầu tư vào máy móc — sẽ vẽ nên số phận của bạn và của những con người đứng sau cánh cổng kia. Câu hỏi không phải là bạn sẽ thắng hay thua. Mà là: khi mọi chuyện kết thúc, bạn đã trở thành ai?"
+```text
+     ╔══════════════ Cán cân lịch sử ══════════════╗
+     ║   [phase badge]         [instability dots]  ║
+     ║                                              ║
+     ║           ╱‾‾‾‾‾‾●‾‾‾‾‾‾╲   ← beam (rotate: tilt°)
+     ║          ▢ Tư bản    Lao động ▢               (đĩa trái/phải, y = -tilt)
+     ║          ║             ║                    ║ (dây, có thể "chain" khi debt cao)
+     ║           ║  ▲ trục ║   ← có vết nứt khi crackLevel cao
+     ║          ▬▬▬▬▬▬▬▬▬▬▬                        ║
+     ║  Tư bản 62 · Lao động 41 · Thị trường 18    ║ (mini bars)
+     ╚══════════════════════════════════════════════╝
+```
 
-### Assets sinh
-- `src/assets/intro-1-city.jpg` — Rhineland đêm, khắc gỗ thế kỷ 19, tông ấm (imagegen fast)
-- `src/assets/intro-2-heinrich.jpg` — Heinrich đứng trước xưởng dệt (imagegen fast)
-- `src/assets/intro-3-desk.jpg` — bàn giấy sổ cái đèn dầu (imagegen fast)
-- `src/assets/intro-4-workers.jpg` — công nhân xếp hàng cổng xưởng bình minh (imagegen fast)
+- **Beam** (thanh ngang): `motion.g` xoay `rotate: tilt * 0.6` với `transition spring stiffness 60`.
+- **Đĩa trái = Tư bản**: chồng biểu tượng theo trọng số — coin stack (cash/debt), gear (machines), chain (khi debt>0). Đĩa **phải = Lao động**: figure silhouettes (workers), nhịp thở theo health.
+- **Rung** (instability): `animate x/y` bằng noise ±(instability/50)px, loop. Trên `>120` chuyển sang red-shift filter.
+- **Vết nứt trục** (crackLevel): SVG `<path>` zig-zag opacity = crackLevel; xuất hiện dần, không biến mất khi giảm nhẹ (hysteresis 0.15) — kể chuyện tổn thương lâu dài.
+- **Overstock**: khi marketPressure cao, thêm cuộn vải rơi khỏi đĩa Tư bản (motion `y: [0, 40]`, opacity fade), nền đĩa hơi lạnh.
+- **Tiền cách mạng** (`rupture`): nền tối lại, đĩa lao động phát sáng mờ (`filter: drop-shadow`), silhouette đám đông tĩnh phía sau.
 
-### Audio narration
-- Sinh sẵn 1 file MP3 bằng ElevenLabs (voice **Daniel** `onwK4e9ZLuTAKqWW03F9` — nam trầm kể chuyện, hoặc **George** `JBFqnCBsd6RMkjVDRZzb`) qua script `/tmp/lovable_ai.py` không dùng được cho ElevenLabs → sẽ dùng standard connector ElevenLabs.
-- Yêu cầu link connector ElevenLabs; nếu user chưa link, code fallback: nếu file `/public/audio/intro-narration.mp3` tồn tại → dùng; nếu không → hiển thị intro với subtitle chạy theo timing manual, không có audio.
-- File output: `public/audio/intro-narration.mp3` — user có thể ghi đè file này bất cứ lúc nào để thay giọng.
-- Subtitle timings được hardcode theo 4 beat để đồng bộ ảnh + text (không phụ thuộc audio thật sự để đảm bảo intro luôn chạy đúng).
+Palette dùng token có sẵn: `--gold` (tư bản), `--contradiction` (lao động), `--danger` (rạn), `--muted-foreground`, `--panel-elevated`. Không hardcode màu.
 
-### Route & component
-- Tạo `src/routes/intro.tsx` (full-screen scene).
-- Layout: fullscreen, background ảnh với hiệu ứng Ken Burns (scale + pan chậm), overlay tối, subtitle ở dưới cuộn theo beat, progress bar mảnh trên đỉnh.
-- Controls: nút **Skip** góc phải trên (`cursor-pointer`); nút **Bắt đầu** hiện ở beat cuối.
-- Audio: `<audio autoplay>` gọi `/audio/intro-narration.mp3`; nếu load lỗi hoặc file không tồn tại → im lặng, timeline vẫn chạy theo `setTimeout` cho từng beat.
-- Sau khi Skip/kết thúc → set `localStorage.setItem('dk_intro_seen', '1')` → navigate `/game`.
+## Preview khi hover option (tuỳ chọn giai đoạn 2)
+`ActionPreview` có sẵn `produce(state, DECISIONS[id].apply)`. Ở giai đoạn 2, expose `useHoverAction` để `HistoricalScale` nhận `previewState?` và animate tilt/instability tạm thời. **Không** làm ở giai đoạn 1 để giữ scope nhỏ; đánh dấu TODO.
 
-### Menu wiring
-- `src/routes/index.tsx`: nút "Ván mới":
-  - Nếu `localStorage.getItem('dk_intro_seen') !== '1'` → navigate `/intro`.
-  - Nếu đã xem → navigate `/game` như hiện tại.
-  - Thêm nút phụ nhỏ **"Xem lại intro"** trong menu (hoặc trong `/how-to-play`) để chạy lại chủ động.
-- Gọi `reset()` khi bắt đầu ván mới (giữ như hiện tại), gọi trước khi chuyển đến intro.
+## Tooltip & Eureka
+- Hover cả khối → `StatTooltip conceptKey="capitalistContradiction"` (giữ nguyên concept đã có).
+- Lần đầu `crackLevel` vượt 0.5 → gọi `discoverConcept('capitalistContradiction')` nếu chưa unlock + `showWarning("Cán cân bắt đầu rạn — mâu thuẫn cơ bản CNTB")`. Dùng đúng API hiện có, không tạo concept mới.
+- Không hiển thị chữ giải thích dài. Chỉ tên phase + 3 số nhỏ.
 
-### Files sẽ tạo/sửa
-- **Tạo**: `src/routes/intro.tsx`, 4 assets ảnh, `public/audio/intro-narration.mp3` (nếu link được ElevenLabs).
-- **Sửa**: `src/routes/index.tsx` (routing logic + nút xem lại), `src/routes/game.tsx` (cursor pointer), `src/routes/__root.tsx` (head metadata cho intro nếu cần).
-- **Không đụng**: `src/game/*` (engine, decisions, balance, tick).
+## Chi tiết kỹ thuật
 
-### Technical notes
-- ElevenLabs: nếu connector đã có → dùng script Python gọi trực tiếp `api.elevenlabs.io/v1/text-to-speech/{voiceId}` với `ELEVENLABS_API_KEY`, model `eleven_multilingual_v2` (hỗ trợ tiếng Việt tốt), lưu MP3 vào `public/audio/`. Nếu chưa link → hỏi user link, hoặc build intro không audio + hướng dẫn user drop file vào `public/audio/intro-narration.mp3`.
-- Ken Burns dùng CSS keyframe (scale 1 → 1.1, translate nhẹ) — không cần thư viện.
-- Ảnh preload trước khi bắt đầu để tránh nhấp nháy.
+**File `src/game/pressures.ts`** (pure, có thể unit-test sau):
+```ts
+export type ScalePhase = 'stable'|'accumulation'|'exploitation'|'crisis'|'rupture';
+export interface ScaleReading {
+  capital: number; labor: number; market: number;
+  tilt: number; instability: number; crackLevel: number;
+  phase: ScalePhase; phaseLabel: string;
+}
+export function readScale(s: GameState): ScaleReading { ... }
+```
 
----
+**File `src/components/game/historical-scale.tsx`**:
+- Props: `{ state: GameState }`.
+- Nội bộ: `const r = readScale(state)`; useRef cho `crackLevel` hysteresis; `useEffect` phát Eureka.
+- SVG viewBox `0 0 200 140`, responsive `w-full h-[140px]`.
+- Motion: `framer-motion` (đã có).
+- A11y: `role="img" aria-label={\`Cán cân: ${r.phaseLabel}, tư bản ${...}, lao động ${...}\`}`.
 
-## Câu hỏi cần chốt trước khi build
-- Bạn muốn tôi link connector ElevenLabs để sinh file MP3 tự động, hay bạn tự upload `public/audio/intro-narration.mp3` sau?
+**Sửa `game.tsx`** — chỉ 2 dòng:
+- Bỏ `import { ContradictionCard } ...`, thêm `import { HistoricalScale } ...`.
+- Thay `<ContradictionCard value={contradictionInt} unrest={state.unrest} />` bằng `<HistoricalScale state={state} />`.
+
+## Không làm
+- Không đổi balance/công thức kinh tế.
+- Không thêm âm thanh (bạn chưa yêu cầu file audio; có thể bổ sung sau nếu muốn).
+- Không xoá `ContradictionCard.tsx` (giữ để rollback); nếu muốn xoá, nói với mình.
+
+## Deliverable
+1. `src/game/pressures.ts` (mới)
+2. `src/components/game/historical-scale.tsx` (mới, SVG + motion)
+3. `src/routes/game.tsx` (đổi 2 dòng)
+
+Bạn duyệt là mình build.

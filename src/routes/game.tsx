@@ -32,7 +32,7 @@ import {
   StoryModal,
 } from "@/components/game/modals";
 import { StatTooltip } from "@/components/game/stat-tooltip";
-import { ContradictionCard } from "@/components/game/contradiction-card";
+import { HistoricalScale } from "@/components/game/historical-scale";
 import { ProfitChart } from "@/components/game/profit-chart";
 import { CodexPanel } from "@/components/game/codex-panel";
 import { EndTurnButton } from "@/components/game/end-turn-button";
@@ -332,7 +332,7 @@ function GameScreen() {
                 </div>
               </ChartCard>
 
-              <ContradictionCard value={contradictionInt} unrest={state.unrest} />
+              <HistoricalScale state={state} />
             </div>
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
