@@ -173,7 +173,7 @@ function GameScreen() {
           <section className="order-4 flex min-w-0 flex-col gap-3 lg:order-1 lg:col-span-3 lg:min-h-0">
             <HeinrichPortrait state={state} />
             <HistoricalScale state={state} variant="card" />
-            <div className="panel-industrial rounded-lg p-4">
+            <div className="panel-industrial flex flex-1 flex-col rounded-lg p-4">
               <SectionTitle icon={<Users className="h-3.5 w-3.5" />} label="Lực lượng lao động" />
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <MiniStat label="Công nhân" value={String(state.workersActive)} mono />
