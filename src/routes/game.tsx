@@ -281,7 +281,7 @@ function GameScreen() {
               </StatTooltip>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.5fr_1fr_1fr]">
               <ProfitChart
                 data={profitTrend}
                 currentTurn={state.turn}
@@ -296,7 +296,7 @@ function GameScreen() {
                   state.discoveredConcepts.surplusValue ? "c : v : m" : "tư liệu : lương : dôi ra"
                 }
               >
-                <ResponsiveContainer width="100%" height={110}>
+                <ResponsiveContainer width="100%" height={90}>
                   <BarChart
                     data={capitalRatio}
                     layout="vertical"
@@ -318,19 +318,15 @@ function GameScreen() {
                     <XAxis type="number" hide />
                   </BarChart>
                 </ResponsiveContainer>
-                <div className="mt-1 flex justify-around text-[10px] font-mono text-muted-foreground">
-                  <span>
-                    <span className="text-[color:var(--info)]">■</span>{" "}
-                    {state.discoveredConcepts.constantCapital ? "c" : "Tư liệu"} {capitalRatio[0].v}
-                    %
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-mono text-muted-foreground">
+                  <span className="whitespace-nowrap">
+                    <span className="text-[color:var(--info)]">■</span> c {capitalRatio[0].v}%
                   </span>
-                  <span>
-                    <span className="text-gold">■</span>{" "}
-                    {state.discoveredConcepts.variableCapital ? "v" : "Lương"} {capitalRatio[1].v}%
+                  <span className="whitespace-nowrap">
+                    <span className="text-gold">■</span> v {capitalRatio[1].v}%
                   </span>
-                  <span>
-                    <span className="text-[color:var(--success)]">■</span>{" "}
-                    {state.discoveredConcepts.surplusValue ? "m" : "Dôi ra"} {capitalRatio[2].v}%
+                  <span className="whitespace-nowrap">
+                    <span className="text-[color:var(--success)]">■</span> m {capitalRatio[2].v}%
                   </span>
                 </div>
               </ChartCard>
@@ -338,7 +334,7 @@ function GameScreen() {
               <ContradictionCard value={contradictionInt} unrest={state.unrest} />
             </div>
 
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
               <MarketCard
                 label="Phần cầu của xưởng"
                 value={state.demand.toLocaleString("vi-VN")}
