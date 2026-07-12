@@ -134,7 +134,7 @@ export function HeinrichPortrait({ state }: { state: GameState }) {
 
   return (
     <div
-      className={`panel-industrial relative flex flex-1 flex-col overflow-hidden rounded-lg p-3 ${
+      className={`panel-industrial relative flex min-h-[320px] flex-col overflow-hidden rounded-lg p-3 lg:flex-1 ${
         mood === "defeated" ? "pulse-danger border-destructive/60" : ""
       }`}
       role="img"
@@ -144,43 +144,20 @@ export function HeinrichPortrait({ state }: { state: GameState }) {
         <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
           Heinrich · Chủ xưởng
         </div>
-        <div
-          className={`inline-flex rounded border px-1.5 py-0.5 font-mono text-[10px] ${meta.tone}`}
-        >
+        <div className={`inline-flex rounded border px-1.5 py-0.5 font-mono text-[10px] ${meta.tone}`}>
           {meta.label}
         </div>
       </div>
 
       <motion.div
-        animate={
-          shake
-            ? { x: [0, -1.5, 1.5, -1, 1, 0] }
-            : { y: [0, -1.2, 0] }
-        }
-        transition={{
-          duration: shake ? 0.5 : 3.6,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="relative z-10 mt-1 flex flex-1 items-center justify-center"
+        animate={shake ? { x: [0, -1.5, 1.5, -1, 1, 0] } : { y: [0, -1.2, 0] }}
+        transition={{ duration: shake ? 0.5 : 3.6, repeat: Infinity, ease: "easeInOut" }}
+        className="relative z-10 mt-1 flex min-h-[240px] flex-1 items-center justify-center"
       >
-        <svg
-          viewBox="0 0 240 260"
-          className="h-full w-full min-h-[220px]"
-          aria-hidden="true"
-        >
+        <svg viewBox="0 0 240 260" preserveAspectRatio="xMidYMid meet" className="h-auto w-full max-h-[380px]" aria-hidden="true">
           <defs>
             <linearGradient id="hp-sky" x1="0" y1="0" x2="0" y2="1">
-              <stop
-                offset="0%"
-                stopColor={
-                  mood === "defeated" || mood === "furious"
-                    ? "oklch(0.2 0.08 25)"
-                    : mood === "triumphant"
-                      ? "oklch(0.28 0.1 75)"
-                      : "oklch(0.2 0.03 60)"
-                }
-              />
+              <stop offset="0%" stopColor={mood === "defeated" || mood === "furious" ? "oklch(0.2 0.08 25)" : mood === "triumphant" ? "oklch(0.28 0.1 75)" : "oklch(0.2 0.03 60)"} />
               <stop offset="100%" stopColor="oklch(0.1 0.01 60)" />
             </linearGradient>
             <radialGradient id="hp-vignette" cx="50%" cy="45%" r="60%">
@@ -188,58 +165,17 @@ export function HeinrichPortrait({ state }: { state: GameState }) {
               <stop offset="100%" stopColor="oklch(0.06 0.005 60 / 0.7)" />
             </radialGradient>
             <linearGradient id="hp-skin" x1="0" y1="0" x2="0" y2="1">
-              <stop
-                offset="0%"
-                stopColor={
-                  mood === "furious"
-                    ? "oklch(0.7 0.16 30)"
-                    : mood === "defeated"
-                      ? "oklch(0.62 0.04 55)"
-                      : "oklch(0.72 0.06 55)"
-                }
-              />
-              <stop
-                offset="100%"
-                stopColor={
-                  mood === "furious"
-                    ? "oklch(0.55 0.15 25)"
-                    : "oklch(0.55 0.05 55)"
-                }
-              />
+              <stop offset="0%" stopColor={mood === "furious" ? "oklch(0.7 0.16 30)" : mood === "defeated" ? "oklch(0.62 0.04 55)" : "oklch(0.72 0.06 55)"} />
+              <stop offset="100%" stopColor={mood === "furious" ? "oklch(0.55 0.15 25)" : "oklch(0.55 0.05 55)"} />
             </linearGradient>
           </defs>
 
-          {/* Bầu trời + cửa sổ */}
           <rect x="0" y="0" width="240" height="260" fill="url(#hp-sky)" />
 
-          {/* Cửa sổ chia ô sau lưng */}
           <g opacity="0.85">
-            <rect
-              x="20"
-              y="20"
-              width="200"
-              height="150"
-              fill="oklch(0.14 0.02 60)"
-              stroke="oklch(0.32 0.02 60)"
-              strokeWidth="2"
-            />
-            <line
-              x1="120"
-              y1="20"
-              x2="120"
-              y2="170"
-              stroke="oklch(0.32 0.02 60)"
-              strokeWidth="2"
-            />
-            <line
-              x1="20"
-              y1="95"
-              x2="220"
-              y2="95"
-              stroke="oklch(0.32 0.02 60)"
-              strokeWidth="2"
-            />
-            {/* Nhà máy silhouette */}
+            <rect x="20" y="20" width="200" height="150" fill="oklch(0.14 0.02 60)" stroke="oklch(0.32 0.02 60)" strokeWidth="2" />
+            <line x1="120" y1="20" x2="120" y2="170" stroke="oklch(0.32 0.02 60)" strokeWidth="2" />
+            <line x1="20" y1="95" x2="220" y2="95" stroke="oklch(0.32 0.02 60)" strokeWidth="2" />
             <g fill="oklch(0.09 0.01 60)" opacity="0.9">
               <rect x="30" y="120" width="40" height="50" />
               <rect x="38" y="105" width="6" height="18" />
@@ -249,135 +185,44 @@ export function HeinrichPortrait({ state }: { state: GameState }) {
               <rect x="155" y="98" width="7" height="20" />
               <rect x="175" y="102" width="6" height="16" />
             </g>
-            {/* Khói */}
             {[41, 158, 178].map((cx, i) => (
-              <motion.circle
-                key={i}
-                cx={cx}
-                cy={100}
-                r={4}
-                fill={
-                  mood === "defeated"
-                    ? "oklch(0.35 0.02 60)"
-                    : "oklch(0.4 0.02 60)"
-                }
-                animate={{
-                  y: [0, -25, -50],
-                  opacity: [0.6, 0.3, 0],
-                  scale: [1, 1.4, 1.8],
-                }}
-                transition={{
-                  duration: 4 + i,
-                  repeat: Infinity,
-                  delay: i * 0.7,
-                  ease: "easeOut",
-                }}
-              />
+              <motion.circle key={i} cx={cx} cy={100} r={4}
+                fill={mood === "defeated" ? "oklch(0.35 0.02 60)" : "oklch(0.4 0.02 60)"}
+                animate={{ y: [0, -25, -50], opacity: [0.6, 0.3, 0], scale: [1, 1.4, 1.8] }}
+                transition={{ duration: 4 + i, repeat: Infinity, delay: i * 0.7, ease: "easeOut" }} />
             ))}
           </g>
 
-          {/* Bàn phía trước */}
-          <rect
-            x="0"
-            y="230"
-            width="240"
-            height="30"
-            fill="oklch(0.18 0.02 40)"
-          />
-          <rect
-            x="0"
-            y="228"
-            width="240"
-            height="3"
-            fill="oklch(0.28 0.03 40)"
-          />
+          <rect x="0" y="230" width="240" height="30" fill="oklch(0.18 0.02 40)" />
+          <rect x="0" y="228" width="240" height="3" fill="oklch(0.28 0.03 40)" />
 
-          {/* Body — áo vest */}
           <g>
-            {/* Vai */}
-            <path
-              d="M60 260 L70 200 Q120 175 170 200 L180 260 Z"
-              fill="oklch(0.16 0.02 60)"
-              stroke="oklch(0.08 0.01 60)"
-              strokeWidth="1"
-            />
-            {/* Cổ áo trắng */}
-            <path
-              d="M105 200 L120 215 L135 200 L132 220 L108 220 Z"
-              fill="oklch(0.85 0.01 90)"
-            />
-            {/* Cà vạt */}
-            <path
-              d="M116 218 L124 218 L126 245 L120 252 L114 245 Z"
-              fill="oklch(0.15 0.05 25)"
-            />
-            {/* Cổ */}
-            <rect
-              x="112"
-              y="185"
-              width="16"
-              height="18"
-              fill="url(#hp-skin)"
-            />
+            <path d="M60 260 L70 200 Q120 175 170 200 L180 260 Z" fill="oklch(0.16 0.02 60)" stroke="oklch(0.08 0.01 60)" strokeWidth="1" />
+            <path d="M105 200 L120 215 L135 200 L132 220 L108 220 Z" fill="oklch(0.85 0.01 90)" />
+            <path d="M116 218 L124 218 L126 245 L120 252 L114 245 Z" fill="oklch(0.15 0.05 25)" />
+            <rect x="112" y="185" width="16" height="18" fill="url(#hp-skin)" />
           </g>
 
-          {/* Head */}
           <g transform={mood === "defeated" ? "translate(0, 8) rotate(-4 120 155)" : mood === "triumphant" ? "translate(0, -4)" : ""}>
-            {/* Face */}
-            <ellipse
-              cx="120"
-              cy="150"
-              rx="34"
-              ry="42"
-              fill="url(#hp-skin)"
-              stroke="oklch(0.35 0.04 55)"
-              strokeWidth="1"
-            />
-            {/* Tai */}
+            <ellipse cx="120" cy="150" rx="34" ry="42" fill="url(#hp-skin)" stroke="oklch(0.35 0.04 55)" strokeWidth="1" />
             <ellipse cx="87" cy="152" rx="4" ry="7" fill="url(#hp-skin)" />
             <ellipse cx="153" cy="152" rx="4" ry="7" fill="url(#hp-skin)" />
 
-            {/* Tóc chải ngược */}
-            <path
-              d="M88 132 Q92 108 120 108 Q148 108 152 132 Q148 122 138 120 Q128 118 120 122 Q110 126 100 124 Q92 124 88 132 Z"
-              fill="oklch(0.14 0.02 40)"
-            />
-            <path
-              d="M88 132 Q100 118 120 118 Q140 118 152 132"
-              fill="none"
-              stroke="oklch(0.08 0.01 40)"
-              strokeWidth="1"
-            />
+            <path d="M88 132 Q92 108 120 108 Q148 108 152 132 Q148 122 138 120 Q128 118 120 122 Q110 126 100 124 Q92 124 88 132 Z" fill="oklch(0.14 0.02 40)" />
+            <path d="M88 132 Q100 118 120 118 Q140 118 152 132" fill="none" stroke="oklch(0.08 0.01 40)" strokeWidth="1" />
 
-            {/* Lông mày */}
             <Brows mood={mood} />
-
-            {/* Mắt */}
             <Eyes mood={mood} blink={blink} />
 
-            {/* Ria mép */}
-            <path
-              d="M104 168 Q112 172 120 170 Q128 172 136 168 Q132 174 120 174 Q108 174 104 168 Z"
-              fill="oklch(0.14 0.02 40)"
-            />
+            <path d="M104 168 Q112 172 120 170 Q128 172 136 168 Q132 174 120 174 Q108 174 104 168 Z" fill="oklch(0.14 0.02 40)" />
 
-            {/* Miệng */}
             <Mouth mood={mood} />
 
-            {/* Mồ hôi khi stressed */}
             {mood === "stressed" ? (
-              <motion.g
-                animate={{ y: [0, 8, 8], opacity: [1, 1, 0] }}
-                transition={{ duration: 1.6, repeat: Infinity }}
-              >
-                <path
-                  d="M155 138 Q152 145 155 150 Q158 145 155 138 Z"
-                  fill="oklch(0.7 0.12 240)"
-                  opacity="0.85"
-                />
+              <motion.g animate={{ y: [0, 8, 8], opacity: [1, 1, 0] }} transition={{ duration: 1.6, repeat: Infinity }}>
+                <path d="M155 138 Q152 145 155 150 Q158 145 155 138 Z" fill="oklch(0.7 0.12 240)" opacity="0.85" />
               </motion.g>
             ) : null}
-            {/* Đỏ mặt khi furious */}
             {mood === "furious" ? (
               <>
                 <circle cx="98" cy="160" r="6" fill="oklch(0.6 0.2 25)" opacity="0.4" />
@@ -386,7 +231,6 @@ export function HeinrichPortrait({ state }: { state: GameState }) {
             ) : null}
           </g>
 
-          {/* Tay ôm mặt khi defeated */}
           {mood === "defeated" ? (
             <g fill="url(#hp-skin)" stroke="oklch(0.35 0.04 55)" strokeWidth="1">
               <path d="M92 180 Q100 155 118 160 L120 180 Q110 190 92 190 Z" />
@@ -394,35 +238,22 @@ export function HeinrichPortrait({ state }: { state: GameState }) {
             </g>
           ) : null}
 
-          {/* Nắm đấm khi furious */}
           {mood === "furious" ? (
-            <motion.g
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 0.6, repeat: Infinity }}
-            >
+            <motion.g animate={{ y: [0, -6, 0] }} transition={{ duration: 0.6, repeat: Infinity }}>
               <circle cx="70" cy="215" r="12" fill="url(#hp-skin)" stroke="oklch(0.35 0.04 55)" strokeWidth="1" />
               <path d="M64 213 L76 213 M64 217 L76 217" stroke="oklch(0.35 0.04 55)" strokeWidth="1" />
             </motion.g>
           ) : null}
 
-          {/* Xoa tay khi greedy */}
           {mood === "greedy" ? (
-            <motion.g
-              animate={{ x: [0, 3, -3, 0] }}
-              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-            >
+            <motion.g animate={{ x: [0, 3, -3, 0] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}>
               <ellipse cx="95" cy="235" rx="14" ry="8" fill="url(#hp-skin)" />
               <ellipse cx="145" cy="235" rx="14" ry="8" fill="url(#hp-skin)" />
             </motion.g>
           ) : null}
 
-          {/* Ly rượu khi worried */}
           {mood === "worried" ? (
-            <motion.g
-              animate={{ rotate: [-3, 3, -3] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              style={{ transformOrigin: "180px 245px" }}
-            >
+            <motion.g animate={{ rotate: [-3, 3, -3] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} style={{ transformOrigin: "180px 245px" }}>
               <path d="M170 232 L190 232 L186 244 L174 244 Z" fill="oklch(0.35 0.12 25)" opacity="0.7" />
               <path d="M170 232 L190 232 L188 235 L172 235 Z" fill="oklch(0.5 0.15 25)" />
               <rect x="179" y="244" width="2" height="6" fill="oklch(0.3 0.02 60)" />
@@ -430,86 +261,48 @@ export function HeinrichPortrait({ state }: { state: GameState }) {
             </motion.g>
           ) : null}
 
-          {/* Xì gà khi content */}
           {mood === "content" || mood === "triumphant" ? (
             <>
               <rect x="145" y="182" width="16" height="3" fill="oklch(0.25 0.05 40)" />
               <rect x="160" y="182" width="3" height="3" fill="oklch(0.75 0.15 30)" />
-              <motion.circle
-                cx={163}
-                cy={180}
-                r={2.5}
-                fill="oklch(0.55 0.02 60)"
+              <motion.circle cx={163} cy={180} r={2.5} fill="oklch(0.55 0.02 60)"
                 animate={{ y: [-2, -20, -35], opacity: [0.7, 0.3, 0], scale: [1, 1.6, 2.2] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
+                transition={{ duration: 3, repeat: Infinity }} />
             </>
           ) : null}
 
-          {/* Xu vàng rơi khi greedy / triumphant */}
           {mood === "greedy" || mood === "triumphant" ? (
             <>
               {Array.from({ length: 6 }).map((_, i) => (
-                <motion.circle
-                  key={i}
-                  cx={40 + i * 32}
-                  cy={0}
-                  r={2}
-                  fill="var(--gold)"
+                <motion.circle key={i} cx={40 + i * 32} cy={0} r={2} fill="var(--gold)"
                   animate={{ y: [0, 260], opacity: [0, 1, 0] }}
-                  transition={{
-                    duration: 3 + Math.random() * 2,
-                    repeat: Infinity,
-                    delay: i * 0.4,
-                    ease: "easeIn",
-                  }}
-                />
+                  transition={{ duration: 3 + Math.random() * 2, repeat: Infinity, delay: i * 0.4, ease: "easeIn" }} />
               ))}
             </>
           ) : null}
 
-          {/* Giấy tờ bay khi defeated */}
           {mood === "defeated" ? (
             <>
               {Array.from({ length: 5 }).map((_, i) => (
-                <motion.rect
-                  key={i}
-                  x={30 + i * 40}
-                  y={230}
-                  width={10}
-                  height={13}
-                  fill="oklch(0.75 0.02 90)"
+                <motion.rect key={i} x={30 + i * 40} y={230} width={10} height={13} fill="oklch(0.75 0.02 90)"
                   animate={{
                     y: [230, 100, 230],
                     x: [30 + i * 40, 30 + i * 40 + (i % 2 ? 30 : -30), 30 + i * 40],
                     rotate: [0, 180, 360],
                   }}
-                  transition={{
-                    duration: 5 + i,
-                    repeat: Infinity,
-                    delay: i * 0.6,
-                    ease: "easeInOut",
-                  }}
-                  opacity={0.6}
-                />
+                  transition={{ duration: 5 + i, repeat: Infinity, delay: i * 0.6, ease: "easeInOut" }}
+                  opacity={0.6} />
               ))}
             </>
           ) : null}
 
-          {/* Vignette */}
           <rect x="0" y="0" width="240" height="260" fill="url(#hp-vignette)" />
         </svg>
       </motion.div>
 
       <div className="relative z-10 mt-1 min-h-[32px] text-[11px] italic leading-snug text-muted-foreground">
         <AnimatePresence mode="wait">
-          <motion.p
-            key={line}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.35 }}
-          >
+          <motion.p key={line} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.35 }}>
             "{line}"
           </motion.p>
         </AnimatePresence>
@@ -520,7 +313,6 @@ export function HeinrichPortrait({ state }: { state: GameState }) {
 
 function Brows({ mood }: { mood: Mood }) {
   const stroke = "oklch(0.14 0.02 40)";
-  const w = 3;
   const paths: Record<Mood, [string, string]> = {
     content: ["M100 138 L114 137", "M126 137 L140 138"],
     greedy: ["M100 140 Q107 134 114 138", "M126 138 Q133 134 140 140"],
@@ -532,7 +324,7 @@ function Brows({ mood }: { mood: Mood }) {
   };
   const [l, r] = paths[mood];
   return (
-    <g stroke={stroke} strokeWidth={w} fill="none" strokeLinecap="round">
+    <g stroke={stroke} strokeWidth={3} fill="none" strokeLinecap="round">
       <path d={l} />
       <path d={r} />
     </g>
