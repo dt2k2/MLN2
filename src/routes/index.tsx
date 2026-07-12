@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Play, Trophy, BookOpen, Users } from "lucide-react";
+import { Play, Trophy, BookOpen, Users, Film } from "lucide-react";
 import { Gear, Smoke, Embers } from "@/components/game/particles";
 import { MobileWarning } from "@/components/game/mobile-warning";
 import { useGameStore } from "@/game/state";
@@ -11,6 +11,14 @@ export const Route = createFileRoute("/")({
 
 function MenuScreen() {
   const reset = useGameStore((store) => store.reset);
+  const navigate = useNavigate();
+  const startNewGame = () => {
+    reset();
+    const seen =
+      typeof window !== "undefined" && window.localStorage.getItem("dk_intro_seen") === "1";
+    navigate({ to: seen ? "/game" : "/intro" });
+  };
+  const replayIntro = () => navigate({ to: "/intro" });
   return (
     <>
       <MobileWarning />
@@ -90,7 +98,10 @@ function MenuScreen() {
               icon={<Play className="h-5 w-5" />}
               label="Ván mới"
               primary
-              onClick={reset}
+              onClick={(e) => {
+                e.preventDefault();
+                startNewGame();
+              }}
             />
             <MenuButton
               to="/leaderboard"
@@ -103,7 +114,15 @@ function MenuScreen() {
               label="Hướng dẫn chơi"
             />
             <MenuButton to="/credits" icon={<Users className="h-5 w-5" />} label="Đội ngũ" />
+            <button
+              type="button"
+              onClick={replayIntro}
+              className="mt-1 flex cursor-pointer items-center justify-center gap-2 rounded border border-border/40 bg-transparent px-3 py-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground transition hover:border-primary/40 hover:text-gold"
+            >
+              <Film className="h-3 w-3" /> Xem lại intro
+            </button>
           </motion.div>
+
 
           <div className="absolute bottom-6 left-8 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             <span className="text-primary">
@@ -131,7 +150,7 @@ function MenuButton({
   icon: React.ReactNode;
   label: string;
   primary?: boolean;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
 }) {
   return (
     <motion.div variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }}>

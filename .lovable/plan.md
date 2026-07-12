@@ -1,65 +1,71 @@
+## Mục tiêu
+1. Fix cursor: mọi option/tab/button trong khu decisions và tương tác chuyển thành `cursor-pointer`.
+2. Thêm Intro Scene (~90s) với narration audio + 3 ảnh minh họa, có Skip, ghi nhớ đã xem.
 
-# Tối ưu UI/UX màn `/game`
+---
 
-Chỉ chạm lớp presentation (`src/routes/game.tsx`, các component trong `src/components/game/`, `src/styles.css`). Không đổi engine, decisions logic, hay công thức.
+## 1. Cursor cho các option
 
-## Vấn đề hiện tại
+**File**: `src/routes/game.tsx`, `src/components/ui/tabs.tsx` (nếu cần), và các decision buttons.
 
-1. **Header chồng chữ**: `HeaderStat` label `"Dư nợ · lãi tới · nợ/tài sản"` và giá trị `$X · $Y · Z%` bị wrap lộn xộn ở màn hình vừa; label + value đứng cùng cột hẹp gây tràn.
-2. **6 nhóm quyết định** hiển thị đầy đủ ở cột phải hẹp (col-span-3) — mỗi nhóm là card riêng, tổng 6 card + nút "Kết thúc quý" vượt viewport, phải scroll dài; label "Đã dùng" và icon tranh chỗ với title.
-3. **Dashboard 4 stat card** dùng `symbol` dài ("m = giá trị mới − v", "p′ = m/(c+v)") tràn ra khỏi card khi width < 300px.
-4. **MarketCard 6 ô** trên 1 hàng lg:grid-cols-6 → label 2 dòng bị cắt chữ, giá trị mono lớn đè lên unit.
-5. **Nhật ký · Codex**: hàng chip 15 concept + title trên cùng 1 flex, mobile bị wrap đè nút.
-6. **DEV panel** cố định bottom-right đè lên Codex FAB và nội dung log.
-7. **ContradictionCard** + ProfitChart + Capital ratio nhồi 3 cột md nhưng ở lg vẫn 3 cột → chart p′ quá dẹt.
+- Rà toàn bộ `<button>`, `<TabsTrigger>`, các card decision, chips codex, close-modal — thêm `cursor-pointer` (và `cursor-not-allowed` khi disabled).
+- Tập trung tại tabs 6 nhóm quyết định, 2 nút option lớn (Reduce/Extend, Raise/Cut...), EndTurnButton, DEV toggle, Codex FAB.
 
-## Thay đổi
+---
 
-### 1. `game-header.tsx` — tách nợ thành 3 stat riêng
-- Thay 1 `HeaderStat` "Dư nợ · lãi tới · nợ/tài sản" bằng 3 stat riêng: **Dư nợ**, **Lãi quý tới**, **Nợ / Tài sản** (ẩn 2 cái sau khi `debt === 0` để giảm chật).
-- Grid header: `sm:grid-cols-3 lg:flex` với `flex-wrap`; mỗi stat có `min-w-0` + `truncate` cho value, `whitespace-nowrap` cho label ngắn.
-- Rút gọn label: "Xí nghiệp" → "Hãng", "Tư bản tiền tệ" → "Tiền mặt", "Dư nợ · lãi tới · nợ/tài sản" → 3 label ngắn.
-- Ẩn logo "DAS KAPITALIST" ở màn < md, chỉ giữ gear icon để nhường chỗ.
+## 2. Intro Scene
 
-### 2. `routes/game.tsx` — cột phải: gộp Decision groups
-- Đổi từ **6 card dọc** → **1 accordion / segmented**: dùng shadcn `Tabs` (đã có) với 6 tab icon-only ở đầu, panel bên dưới hiện options của nhóm được chọn (2 nút lớn). Chiều cao cố định → không cần scroll.
-- Header nhỏ trên tabs: `SectionTitle` "Quyết định — {quarter}" + counter `{used}/3 nhóm` bên phải.
-- Nhóm đã dùng: tab hiển thị badge chấm gold + disabled; nhóm bị khoá do đạt trần 3 → tab dimmed nhưng vẫn xem được preview.
-- Panel option: 2 button chiếm full width, mỗi button gồm label bold + 1 dòng description muted; `ActionPreview` render ngay dưới (không cần hover) — luôn thấy Δ trước khi bấm.
-- `EndTurnButton` giữ dưới đáy cột, sticky `lg:sticky lg:bottom-0`.
+### Kịch bản narration (tiếng Việt, ~90s, chia 4 beat)
 
-### 3. Dashboard 4 stat (c/v/m/p′)
-- `DashboardCard` prop `symbol`: giới hạn `truncate` + `text-xs`; công thức dài chuyển vào tooltip, chỉ hiện ký hiệu ngắn ("m", "p′") trên card.
-- Grid: `grid-cols-2 xl:grid-cols-4` (bỏ sm:grid-cols-4) để tránh chật ở màn 1024–1280.
+**Beat 1 — Bối cảnh châu Âu (0-20s, ảnh: thành phố công nghiệp Rhineland đêm)**
+> "Mùa xuân năm 1852. Bốn năm đã trôi qua kể từ khi những chiến lũy cách mạng 1848 sụp đổ trên khắp châu Âu. Ở vùng Rhineland của nước Phổ, khói than một lần nữa che kín bầu trời — nhưng lần này, không phải khói của súng đại bác, mà của những ống khói nhà máy."
 
-### 4. Khu chart giữa
-- Đổi grid `md:grid-cols-3` → `lg:grid-cols-[1.4fr_1fr_1fr]`: ProfitChart rộng hơn (chính), Capital ratio + Contradiction hẹp hơn.
-- Capital ratio: bỏ legend 3 dòng dày, gộp thành 1 dòng inline nhỏ với dot color.
+**Beat 2 — Nhân vật (20-45s, ảnh: chân dung Heinrich trước xưởng dệt)**
+> "Bạn là Heinrich Müller, ba mươi hai tuổi, vừa thừa kế xưởng dệt của cha mình bên bờ sông Wupper. Bốn mươi công nhân, tám cỗ máy dệt hơi nước, một cuốn sổ cái, và một khoản nợ chưa trả. Cha bạn đã dạy: 'Con ơi, tư bản không nghỉ ngơi.'"
 
-### 5. Market strip
-- Đổi `lg:grid-cols-6` → `lg:grid-cols-3 xl:grid-cols-6` để label không bị cắt.
-- `MarketCard`: label uppercase `text-[10px]` giới hạn 1 dòng + `truncate` + `title={label}`, value `text-xl` (giảm từ 2xl) — value + unit trên cùng dòng baseline không đè.
+**Beat 3 — Cuộc chơi (45-70s, ảnh: bàn giấy với sổ cái, đèn dầu, bản đồ ngành)**
+> "Trước mặt bạn là hai mươi bốn quý — sáu năm — để biến xưởng này thành một đế chế, hay chứng kiến nó sụp đổ. Bauer ở phía nam vẫn dựa vào lao động rẻ. Krupp ở phía bắc đang mua máy mới mỗi tháng. Giá trị xã hội của mỗi thước vải đang giảm từng ngày, và bạn phải chạy — chỉ để đứng yên."
 
-### 6. Log · Codex
-- Tách thành 2 khối trong cùng panel: hàng đầu là title `Nhật ký`, hàng thứ 2 (border-top) là dải chip 15 concept scroll ngang `overflow-x-auto` với `flex-nowrap`. Không còn flex-wrap chip đè title.
-- Chip disabled: giữ opacity 35 nhưng thêm `cursor-help` + tooltip "Chưa khám phá".
+**Beat 4 — Câu hỏi mở (70-90s, ảnh: công nhân xếp hàng vào cổng xưởng lúc bình minh)**
+> "Mỗi quyết định của bạn — kéo dài ngày lao động, hạ tiền lương, vay thêm tín dụng, hay tái đầu tư vào máy móc — sẽ vẽ nên số phận của bạn và của những con người đứng sau cánh cổng kia. Câu hỏi không phải là bạn sẽ thắng hay thua. Mà là: khi mọi chuyện kết thúc, bạn đã trở thành ai?"
 
-### 7. DEV panel + FAB
-- DEV panel: chuyển thành popover mở từ nút nhỏ `⚙` ở góc, mặc định thu gọn — không đè Codex FAB.
-- Codex FAB: đổi `bottom-4 right-4` → `bottom-4 left-4` để tách khỏi DEV.
+### Assets sinh
+- `src/assets/intro-1-city.jpg` — Rhineland đêm, khắc gỗ thế kỷ 19, tông ấm (imagegen fast)
+- `src/assets/intro-2-heinrich.jpg` — Heinrich đứng trước xưởng dệt (imagegen fast)
+- `src/assets/intro-3-desk.jpg` — bàn giấy sổ cái đèn dầu (imagegen fast)
+- `src/assets/intro-4-workers.jpg` — công nhân xếp hàng cổng xưởng bình minh (imagegen fast)
 
-### 8. `styles.css`
-- Thêm utility `.panel-tight { @apply rounded-lg p-3; }` để dùng thống nhất, giảm padding trong các card mật độ cao.
-- Utility `.stat-value-clip` cho value mono truncate không bị nhảy layout.
+### Audio narration
+- Sinh sẵn 1 file MP3 bằng ElevenLabs (voice **Daniel** `onwK4e9ZLuTAKqWW03F9` — nam trầm kể chuyện, hoặc **George** `JBFqnCBsd6RMkjVDRZzb`) qua script `/tmp/lovable_ai.py` không dùng được cho ElevenLabs → sẽ dùng standard connector ElevenLabs.
+- Yêu cầu link connector ElevenLabs; nếu user chưa link, code fallback: nếu file `/public/audio/intro-narration.mp3` tồn tại → dùng; nếu không → hiển thị intro với subtitle chạy theo timing manual, không có audio.
+- File output: `public/audio/intro-narration.mp3` — user có thể ghi đè file này bất cứ lúc nào để thay giọng.
+- Subtitle timings được hardcode theo 4 beat để đồng bộ ảnh + text (không phụ thuộc audio thật sự để đảm bảo intro luôn chạy đúng).
 
-## Không đổi
+### Route & component
+- Tạo `src/routes/intro.tsx` (full-screen scene).
+- Layout: fullscreen, background ảnh với hiệu ứng Ken Burns (scale + pan chậm), overlay tối, subtitle ở dưới cuộn theo beat, progress bar mảnh trên đỉnh.
+- Controls: nút **Skip** góc phải trên (`cursor-pointer`); nút **Bắt đầu** hiện ở beat cuối.
+- Audio: `<audio autoplay>` gọi `/audio/intro-narration.mp3`; nếu load lỗi hoặc file không tồn tại → im lặng, timeline vẫn chạy theo `setTimeout` cho từng beat.
+- Sau khi Skip/kết thúc → set `localStorage.setItem('dk_intro_seen', '1')` → navigate `/game`.
 
-- Không đổi bất kỳ file nào trong `src/game/*`.
-- Không đổi luồng presentation queue, modal, ending.
-- Không đổi cơ chế 3 nhóm/quý, chỉ đổi cách trình bày lựa chọn.
+### Menu wiring
+- `src/routes/index.tsx`: nút "Ván mới":
+  - Nếu `localStorage.getItem('dk_intro_seen') !== '1'` → navigate `/intro`.
+  - Nếu đã xem → navigate `/game` như hiện tại.
+  - Thêm nút phụ nhỏ **"Xem lại intro"** trong menu (hoặc trong `/how-to-play`) để chạy lại chủ động.
+- Gọi `reset()` khi bắt đầu ván mới (giữ như hiện tại), gọi trước khi chuyển đến intro.
 
-## Verify
+### Files sẽ tạo/sửa
+- **Tạo**: `src/routes/intro.tsx`, 4 assets ảnh, `public/audio/intro-narration.mp3` (nếu link được ElevenLabs).
+- **Sửa**: `src/routes/index.tsx` (routing logic + nút xem lại), `src/routes/game.tsx` (cursor pointer), `src/routes/__root.tsx` (head metadata cho intro nếu cần).
+- **Không đụng**: `src/game/*` (engine, decisions, balance, tick).
 
-- `tsgo` typecheck.
-- Playwright: mở `/game`, screenshot ở viewports 1280×800 và 1440×900, kiểm tra không có text tràn/overlap ở header, decisions column, market strip.
-- Click 1 tab decision → screenshot xác nhận `ActionPreview` render inline.
+### Technical notes
+- ElevenLabs: nếu connector đã có → dùng script Python gọi trực tiếp `api.elevenlabs.io/v1/text-to-speech/{voiceId}` với `ELEVENLABS_API_KEY`, model `eleven_multilingual_v2` (hỗ trợ tiếng Việt tốt), lưu MP3 vào `public/audio/`. Nếu chưa link → hỏi user link, hoặc build intro không audio + hướng dẫn user drop file vào `public/audio/intro-narration.mp3`.
+- Ken Burns dùng CSS keyframe (scale 1 → 1.1, translate nhẹ) — không cần thư viện.
+- Ảnh preload trước khi bắt đầu để tránh nhấp nháy.
+
+---
+
+## Câu hỏi cần chốt trước khi build
+- Bạn muốn tôi link connector ElevenLabs để sinh file MP3 tự động, hay bạn tự upload `public/audio/intro-narration.mp3` sau?
