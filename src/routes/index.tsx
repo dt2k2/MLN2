@@ -32,12 +32,13 @@ function MenuScreen() {
             </span>
           </div>
           <div className="mt-2 h-px bg-gradient-to-r from-gold/40 via-border to-transparent" />
-          <ul className="mt-2 space-y-1 text-[11px] leading-snug text-muted-foreground">
-            <li>SE161931 · Bùi Đức Thắng</li>
-            <li>SE170105 · Nguyễn Lê Đăng Khoa</li>
-            <li>SE185070 · Trần Hồ Phương Khanh</li>
-            <li>SE192802 · Lưu Ngọc Ngân Giang</li>
+          <ul className="mt-2 space-y-1.5 text-xs leading-snug text-foreground/95">
+            <li className="font-medium">SE161931 · Bùi Đức Thắng</li>
+            <li className="font-medium">SE170105 · Nguyễn Lê Đăng Khoa</li>
+            <li className="font-medium">SE185070 · Trần Hồ Phương Khanh</li>
+            <li className="font-medium">SE192802 · Lưu Ngọc Ngân Giang</li>
           </ul>
+          <div className="mt-2 h-px bg-gradient-to-r from-transparent via-border/70 to-transparent" />
           <div className="mt-2 flex items-center gap-1.5 text-[10px] text-muted-foreground/70">
             <span className="font-mono uppercase tracking-wider">Hỗ trợ:</span>
             <span className="font-medium text-foreground/80">Lovable</span>
