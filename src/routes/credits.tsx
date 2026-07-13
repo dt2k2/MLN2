@@ -14,6 +14,15 @@ export const Route = createFileRoute("/credits")({
 
 const sections = [
   {
+    title: "Nhóm thực hiện — IA1908 Group 2",
+    items: [
+      "SE161931 · Bùi Đức Thắng",
+      "SE170105 · Nguyễn Lê Đăng Khoa",
+      "SE185070 · Trần Hồ Phương Khanh",
+      "SE192802 · Lưu Ngọc Ngân Giang",
+    ],
+  },
+  {
     title: "Thiết kế trò chơi",
     items: ["Das Kapitalist Studio", "Tổ nghiên cứu Kinh tế Chính trị"],
   },

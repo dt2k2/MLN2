@@ -23,27 +23,6 @@ function MenuScreen() {
     <>
       <MobileWarning />
       <main className="relative hidden min-h-screen overflow-hidden lg:block">
-        {/* Team info — top-left, only on the first/outer screen */}
-        <div className="absolute top-6 left-6 z-20 max-w-[240px] rounded-lg border border-border/40 bg-panel/70 p-3 backdrop-blur-sm">
-          <div className="flex items-center gap-2">
-            <Users className="h-3.5 w-3.5 text-gold" />
-            <span className="font-display text-xs font-semibold uppercase tracking-widest text-gold">
-              IA1908 Group 2
-            </span>
-          </div>
-          <div className="mt-2 h-px bg-gradient-to-r from-gold/40 via-border to-transparent" />
-          <ul className="mt-2 space-y-1.5 text-xs leading-snug text-foreground/95">
-            <li className="font-medium">SE161931 · Bùi Đức Thắng</li>
-            <li className="font-medium">SE170105 · Nguyễn Lê Đăng Khoa</li>
-            <li className="font-medium">SE185070 · Trần Hồ Phương Khanh</li>
-            <li className="font-medium">SE192802 · Lưu Ngọc Ngân Giang</li>
-          </ul>
-          <div className="mt-2 h-px bg-gradient-to-r from-transparent via-border/70 to-transparent" />
-          <div className="mt-2 flex items-center gap-1.5 text-[10px] text-muted-foreground/70">
-            <span className="font-mono uppercase tracking-wider">Hỗ trợ:</span>
-            <span className="font-medium text-foreground/80">Lovable</span>
-          </div>
-        </div>
         {/* Background layers */}
         <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.25_0.04_45)] via-[oklch(0.16_0.02_40)] to-[oklch(0.1_0.01_35)]" />
 
