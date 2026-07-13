@@ -49,6 +49,10 @@ const sections = [
       "Giáo trình Kinh tế Chính trị Mác - Lênin, NXB Chính trị Quốc gia",
     ],
   },
+  {
+    title: "Hỗ trợ kỹ thuật",
+    items: ["Lovable"],
+  },
 ];
 
 function Credits() {
