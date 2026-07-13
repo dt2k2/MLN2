@@ -171,25 +171,6 @@ function GameScreen() {
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-12 lg:min-h-[calc(100vh-100px)]">
           {/* LEFT PANEL — Factory (below fold on mobile) */}
           <section className="order-4 flex min-w-0 flex-col gap-3 lg:order-1 lg:col-span-3 lg:min-h-0">
-            <div className="panel-industrial rounded-lg p-3">
-              <div className="flex items-center gap-2">
-                <Users className="h-3.5 w-3.5 text-gold" />
-                <span className="font-display text-xs font-semibold uppercase tracking-widest text-gold">
-                  IA1908 Group 2
-                </span>
-              </div>
-              <div className="mt-2 h-px bg-gradient-to-r from-gold/40 via-border to-transparent" />
-              <ul className="mt-2 space-y-1 text-[11px] leading-snug text-muted-foreground">
-                <li>SE161931 · Bùi Đức Thắng</li>
-                <li>SE170105 · Nguyễn Lê Đăng Khoa</li>
-                <li>SE185070 · Trần Hồ Phương Khanh</li>
-                <li>SE192802 · Lưu Ngọc Ngân Giang</li>
-              </ul>
-              <div className="mt-2 flex items-center gap-1.5 text-[10px] text-muted-foreground/70">
-                <span className="font-mono uppercase tracking-wider">Hỗ trợ:</span>
-                <span className="font-medium text-foreground/80">Lovable</span>
-              </div>
-            </div>
             <HeinrichPortrait state={state} />
             <HistoricalScale state={state} variant="card" fill />
             <div className="panel-industrial flex shrink-0 flex-col rounded-lg p-4">
