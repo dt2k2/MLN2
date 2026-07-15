@@ -91,8 +91,9 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         title: "Sản lượng, giá bán và thị phần",
         body: (s: GameState) => {
           const hasQuarter = s.history.length > 0;
+          const sold = Math.max(0, Math.round(s.last.revenue / Math.max(0.01, s.last.sellPrice)));
           const outputLine = hasQuarter
-            ? `Quý vừa rồi xưởng sản xuất ${Math.round(s.last.output).toLocaleString("vi-VN")}, bán ${Math.round(s.last.sold).toLocaleString("vi-VN")}, còn ${Math.round(s.inventory).toLocaleString("vi-VN")} trong kho.`
+            ? `Quý vừa rồi xưởng sản xuất ${Math.round(s.last.output).toLocaleString("vi-VN")}, bán khoảng ${sold.toLocaleString("vi-VN")}, còn ${Math.round(s.inventory).toLocaleString("vi-VN")} trong kho.`
             : "Trước khi quý đầu hoàn tất, sản lượng thực tế chưa xuất hiện — chỉ có dự kiến.";
           return `${outputLine} Giá bán dự kiến $${s.sellPrice.toFixed(1)}/đv chịu ảnh hưởng của giá trị xã hội, cung–cầu và cạnh tranh. Thị phần ${(s.marketShare * 100).toFixed(0)}% giúp tiếp cận nhiều cầu hơn, nhưng mở rộng quá nhanh vẫn có thể làm tồn kho tăng. Chuỗi cần nhớ: thị phần → tiếp cận cầu → sản xuất tạo hàng → thị trường quyết định bao nhiêu hàng bán được.`;
         },
