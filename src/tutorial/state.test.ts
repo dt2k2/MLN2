@@ -19,6 +19,7 @@ beforeEach(() => {
   useTutorialStore.setState({
     active: false,
     stepIndex: 0,
+    pageIndex: 0,
     completed: false,
     skipped: false,
     seenHints: new Set(),
