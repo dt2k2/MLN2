@@ -30,7 +30,9 @@ const PHASE_META: Record<ScalePhase, { label: string; hint: string }> = {
 };
 
 export function readScale(s: GameState): ScaleReading {
-  const debtRatioClamped = clamp(s.last.debtRatio, 0, 3);
+  const productiveAssets =
+    Math.max(0, s.cash) + s.machineBookValue + s.inventory * BAL.unitMaterial * s.materialPrice;
+  const debtRatioClamped = clamp(s.debt / Math.max(1, productiveAssets), 0, 3);
   const inventoryRatio = clamp(s.inventory / Math.max(1, s.demand), 0, 2);
   const wageIndex = s.wagePerWorker / BAL.baseWagePerWorker;
   const supplyRatio = s.effectiveDemand > 0 ? s.industrySupply / s.effectiveDemand : 1;

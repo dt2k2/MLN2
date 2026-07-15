@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { collectStories, quarterNews } from "./story";
+import { BAL } from "./balance";
 import { initialState } from "./state";
 
 describe("narrative", () => {
@@ -14,6 +15,16 @@ describe("narrative", () => {
     const state = initialState(2);
     state.turn = 2;
     expect(collectStories(state).some((story) => story.kind === "chapter")).toBe(false);
+  });
+
+  it("carries the inherited debt and workshop figures into chapter one", () => {
+    const chapter = collectStories(initialState(1)).find((story) => story.id === "chapter-1");
+    expect(chapter?.body).toContain(BAL.initialDebt.toLocaleString("vi-VN"));
+    expect(chapter?.body).toContain(String(BAL.initialMachines));
+    expect(chapter?.body).toContain(String(BAL.initialActiveWorkers));
+    expect(chapter?.body).toContain(
+      (BAL.initialDebt * BAL.quarterlyLoanRate).toLocaleString("vi-VN"),
+    );
   });
 
   it("uses actual state values in conditional beats and suppresses seen stories", () => {

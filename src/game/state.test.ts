@@ -12,6 +12,16 @@ function ready() {
 describe("decision store", () => {
   beforeEach(ready);
 
+  it("starts from the inherited workshop described by the prologue", () => {
+    const state = initialState();
+    expect(state.seed).toBe(BAL.initialSeed);
+    expect(state.cash).toBe(BAL.initialCash);
+    expect(state.debt).toBe(BAL.initialDebt);
+    expect(state.machines).toBe(BAL.initialMachines);
+    expect(state.workersActive).toBe(BAL.initialActiveWorkers);
+    expect(state.workersIdle).toBe(BAL.initialIdleWorkers);
+  });
+
   it("allows at most three different groups per quarter", () => {
     useGameStore.getState().applyDecision("RAISE_WAGE");
     useGameStore.getState().applyDecision("BORROW");
@@ -47,7 +57,21 @@ describe("decision store", () => {
     expect(useGameStore.getState().state.machines).toBe(3);
     useGameStore.getState().applyDecision("BORROW");
     expect(useGameStore.getState().state.cash).toBe(BAL.loanUnit);
-    expect(useGameStore.getState().state.debt).toBe(BAL.loanUnit);
+    expect(useGameStore.getState().state.debt).toBe(BAL.initialDebt + BAL.loanUnit);
+  });
+
+  it("never makes a fixed repayment smaller than the amount on its label", () => {
+    useGameStore.setState({
+      state: { ...initialState(2), cash: 10_000, debt: 3_000 },
+    });
+
+    useGameStore.getState().applyDecision("REPAY_5000");
+    expect(useGameStore.getState().state.debt).toBe(3_000);
+    expect(useGameStore.getState().usedDecisionGroups.size).toBe(0);
+
+    useGameStore.getState().applyDecision("REPAY_ALL");
+    expect(useGameStore.getState().state.debt).toBe(0);
+    expect(useGameStore.getState().state.cash).toBe(7_000);
   });
 
   it("never borrows over the ceiling or repays over debt/cash", () => {
@@ -70,7 +94,8 @@ describe("decision store", () => {
     expect(store.state.activeEffects).toEqual([]);
     expect(store.state.accumulationFund).toBe(0);
     expect(store.state.decisionHistory).toEqual([]);
-    expect(store.state.machineBookValue).toBe(BAL.machinePrice * 3);
+    expect(store.state.machineBookValue).toBe(BAL.machinePrice * BAL.initialMachines);
+    expect(store.state.debt).toBe(BAL.initialDebt);
     expect(store.state.turn).toBe(1);
   });
 

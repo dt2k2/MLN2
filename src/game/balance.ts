@@ -3,6 +3,15 @@ export const BAL = {
   maxTurns: 24,
   startYear: 1852,
   startQuarter: 1,
+  initialSeed: 1852,
+
+  // Di sản mở đầu của xưởng
+  initialCash: 60_000,
+  initialDebt: 15_000,
+  initialMachines: 3,
+  initialActiveWorkers: 32,
+  initialIdleWorkers: 8,
+  initialInventory: 200,
 
   // Lao động
   baseWagePerWorker: 220, // $/quý ở 8h

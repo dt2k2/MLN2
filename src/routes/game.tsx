@@ -44,6 +44,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MAX_DECISION_GROUPS_PER_TURN, useGameStore } from "@/game/state";
 import { DECISION_GROUPS, DECISIONS } from "@/game/decisions";
 import { BAL } from "@/game/balance";
+import { saveEndingReportSnapshot } from "@/game/ending-report";
 import { effectMultiplier } from "@/game/engine/effects";
 import { CONCEPT_INFO, CONCEPT_KEYS } from "@/game/concepts";
 import type { ConceptKey, DecisionGroupId } from "@/game/types";
@@ -88,6 +89,7 @@ function GameScreen() {
 
   useEffect(() => {
     if (presentationQueue.length > 0 || state.pendingEvent || !state.ending) return;
+    saveEndingReportSnapshot(state, state.ending);
     if (state.ending === "revolution") {
       navigate({ to: "/ending/revolution" });
     } else if (state.ending === "bankruptcy") {
@@ -95,7 +97,7 @@ function GameScreen() {
     } else {
       navigate({ to: "/ending/outcome", search: { result: state.ending } });
     }
-  }, [state.ending, state.pendingEvent, presentationQueue.length, navigate]);
+  }, [state, presentationQueue.length, navigate]);
 
   useEffect(() => {
     if (activePresentation?.kind !== "achievement") return;
@@ -166,7 +168,7 @@ function GameScreen() {
               1,
               Math.max(0, state.cash) +
                 state.machineBookValue +
-                state.inventory * Math.max(1, state.sellPrice * 0.6),
+                state.inventory * BAL.unitMaterial * state.materialPrice,
             )
           }
           onPause={showCurrentSummary}

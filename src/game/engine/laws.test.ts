@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { produce } from "immer";
+import { BAL } from "../balance";
 import { DECISIONS } from "../decisions";
 import { advanceQuarter } from "./tick";
 import { initialState } from "../state";
@@ -63,10 +64,9 @@ describe("quarterly value and finance laws", () => {
 
   it("charges simple interest at two percent per quarter without capitalising it", () => {
     const state = initialState(1);
-    state.debt = 15_000;
     const record = computeQuarter(state);
-    expect(record.interestPaid).toBe(300);
-    expect(state.debt).toBe(15_000);
+    expect(record.interestPaid).toBe(BAL.initialDebt * BAL.quarterlyLoanRate);
+    expect(state.debt).toBe(BAL.initialDebt);
   });
 
   it("separates retained profit, owner consumption and operating cash flow", () => {

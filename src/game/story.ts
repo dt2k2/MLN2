@@ -1,11 +1,12 @@
 import type { GameState, StoryPresentation } from "./types";
+import { BAL } from "./balance";
 
 const chapters: Record<number, Omit<StoryPresentation, "id">> = {
   1: {
     kind: "chapter",
     eyebrow: "Chương I · Q1/1852",
-    title: "Sau những chiến lũy",
-    body: "Bốn năm sau cách mạng 1848, Heinrich Müller tiếp quản xưởng dệt gia đình. Trật tự đã trở lại trên phố, nhưng cạnh tranh trong nhà máy chỉ mới bắt đầu.",
+    title: "Sổ cái thừa kế",
+    body: `Bốn năm sau cách mạng 1848, Heinrich tiếp quản ${BAL.initialMachines} máy dệt, ${BAL.initialActiveWorkers} công nhân có ca và ${BAL.initialIdleWorkers} người đang chờ việc. Khoản nợ $${BAL.initialDebt.toLocaleString("vi-VN")} sẽ phát sinh $${(BAL.initialDebt * BAL.quarterlyLoanRate).toLocaleString("vi-VN")} tiền lãi ngay cuối quý đầu nếu chưa được tất toán.`,
   },
   7: {
     kind: "chapter",

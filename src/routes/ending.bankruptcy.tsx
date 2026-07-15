@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import { RotateCcw, Trophy, TrendingDown } from "lucide-react";
 import { EndingDossier } from "@/components/game/ending-dossier";
 import { Gear } from "@/components/game/particles";
-import { buildEndingReport } from "@/game/ending-report";
 import { useGameStore } from "@/game/state";
+import { useEndingReport } from "@/game/use-ending-report";
 
 export const Route = createFileRoute("/ending/bankruptcy")({
   head: () => ({
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/ending/bankruptcy")({
 function BankruptcyEnding() {
   const reset = useGameStore((store) => store.reset);
   const state = useGameStore((store) => store.state);
-  const report = buildEndingReport(state, "bankruptcy");
+  const report = useEndingReport(state, "bankruptcy");
   return (
     <main className="relative min-h-screen overflow-x-hidden">
       <motion.div
@@ -111,7 +111,7 @@ function BankruptcyEnding() {
           transition={{ delay: 3, duration: 1 }}
           className="mt-8 flex flex-wrap justify-center gap-3"
         >
-          <EndingDossier state={state} ending="bankruptcy" />
+          <EndingDossier report={report} />
           <Link
             to="/game"
             onClick={reset}

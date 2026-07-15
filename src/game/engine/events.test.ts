@@ -16,6 +16,7 @@ describe("event engine", () => {
     const state = initialState(1);
     state.turn = 19;
     state.year = 1857;
+    state.debt = 0;
     expect(eligibleEvents(state).some((event) => event.id === "credit-crisis-1857")).toBe(false);
     state.debt = 15_000;
     expect(eligibleEvents(state).some((event) => event.id === "credit-crisis-1857")).toBe(true);

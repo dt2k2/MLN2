@@ -7,6 +7,7 @@ import { createInitialCompetitors } from "./engine/competitors";
 import { checkEnding } from "./engine/endings";
 import { advanceQuarter } from "./engine/tick";
 import { collectStories } from "./story";
+import { clearEndingReportSnapshot } from "./ending-report";
 import type {
   AchievementId,
   ConceptDiscovery,
@@ -61,7 +62,7 @@ function emptyRecord(): QuarterRecord {
     revenue: 0,
     materialCost: 0,
     depreciation: 0,
-    machineBookValue: BAL.machinePrice * 3,
+    machineBookValue: BAL.machinePrice * BAL.initialMachines,
     constantCapitalAdvanced: 0,
     totalCapitalAdvanced: 0,
     operatingCashFlow: 0,
@@ -87,15 +88,15 @@ function emptyRecord(): QuarterRecord {
     laborProductivity: 0.16,
     individualLaborTime: 6.25,
     socialLaborTime: BAL.baseSocialLaborTime,
-    machines: 3,
-    machinesAtTurnStart: 3,
+    machines: BAL.initialMachines,
+    machinesAtTurnStart: BAL.initialMachines,
     workHoursAtTurnStart: BAL.baseWorkHours,
     laborProductivityAtTurnStart: 0.16,
     capitalizedAccumulation: 0,
   };
 }
 
-export function initialState(seed = Date.now() & 0xffff): GameState {
+export function initialState(seed: number = BAL.initialSeed): GameState {
   return {
     seed,
     turn: 1,
@@ -103,18 +104,18 @@ export function initialState(seed = Date.now() & 0xffff): GameState {
     quarter: BAL.startQuarter,
     companyName: "Müller & Söhne Textilwerk",
     protagonistName: "Heinrich Müller",
-    cash: 60_000,
-    debt: 0,
+    cash: BAL.initialCash,
+    debt: BAL.initialDebt,
     ownerConsumption: 0,
     reinvestmentRate: 0.25,
     accumulationFund: 0,
     capitalizedAccumulationThisTurn: 0,
-    machines: 3,
-    machineBookValue: BAL.machinePrice * 3,
-    machinesAtTurnStart: 3,
-    inventory: 200,
-    workersActive: 32,
-    workersIdle: 8,
+    machines: BAL.initialMachines,
+    machineBookValue: BAL.machinePrice * BAL.initialMachines,
+    machinesAtTurnStart: BAL.initialMachines,
+    inventory: BAL.initialInventory,
+    workersActive: BAL.initialActiveWorkers,
+    workersIdle: BAL.initialIdleWorkers,
     wagePerWorker: BAL.baseWagePerWorker,
     workHours: BAL.baseWorkHours,
     workHoursAtTurnStart: BAL.baseWorkHours,
@@ -144,6 +145,11 @@ export function initialState(seed = Date.now() & 0xffff): GameState {
     decisionHistory: [],
     history: [],
     log: [
+      {
+        turn: 1,
+        type: "system",
+        text: `Di sản của xưởng: dư nợ $${BAL.initialDebt.toLocaleString("vi-VN")}, lãi quý đầu $${(BAL.initialDebt * BAL.quarterlyLoanRate).toLocaleString("vi-VN")}.`,
+      },
       {
         turn: 1,
         type: "system",
@@ -246,7 +252,7 @@ export interface GameStore {
   reset: () => void;
 }
 
-const opening = withOpening();
+const opening = withOpening(BAL.initialSeed);
 
 export const useGameStore = create<GameStore>((set, get) => ({
   state: opening.state,
@@ -460,7 +466,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   reset: () => {
-    const fresh = withOpening();
+    clearEndingReportSnapshot();
+    const fresh = withOpening(Date.now() & 0xffff);
     set({
       state: fresh.state,
       usedDecisionGroups: new Set(),

@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import { Flag, RotateCcw, Trophy } from "lucide-react";
 import { EndingDossier } from "@/components/game/ending-dossier";
 import { Embers, Smoke } from "@/components/game/particles";
-import { buildEndingReport } from "@/game/ending-report";
 import { useGameStore } from "@/game/state";
+import { useEndingReport } from "@/game/use-ending-report";
 
 export const Route = createFileRoute("/ending/revolution")({
   head: () => ({
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/ending/revolution")({
 function RevolutionEnding() {
   const reset = useGameStore((store) => store.reset);
   const state = useGameStore((store) => store.state);
-  const report = buildEndingReport(state, "revolution");
+  const report = useEndingReport(state, "revolution");
   return (
     <main className="relative min-h-screen overflow-x-hidden">
       <motion.div
@@ -129,7 +129,7 @@ function RevolutionEnding() {
           transition={{ delay: 3, duration: 1 }}
           className="mt-8 flex flex-wrap justify-center gap-3"
         >
-          <EndingDossier state={state} ending="revolution" />
+          <EndingDossier report={report} />
           <Link
             to="/game"
             onClick={reset}

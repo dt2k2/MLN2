@@ -4,6 +4,7 @@ import { Clock3, GitMerge, RotateCcw, Scale, Trophy } from "lucide-react";
 import { z } from "zod";
 import { EndingDossier } from "@/components/game/ending-dossier";
 import { useGameStore } from "@/game/state";
+import { useEndingReport } from "@/game/use-ending-report";
 
 const resultSchema = z.object({
   result: z.enum(["monopoly", "merger", "reform", "timeout"]),
@@ -57,6 +58,7 @@ function OutcomeEnding() {
   const Icon = outcome.Icon;
   const reset = useGameStore((store) => store.reset);
   const state = useGameStore((store) => store.state);
+  const report = useEndingReport(state, result);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-x-hidden bg-[oklch(0.11_0.01_60)] px-5 py-8">
@@ -78,7 +80,7 @@ function OutcomeEnding() {
           {outcome.description}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <EndingDossier state={state} ending={result} />
+          <EndingDossier report={report} />
           <Link
             to="/game"
             onClick={reset}

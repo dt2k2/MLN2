@@ -42,16 +42,21 @@ function repaymentOption(
   id: "REPAY_5000" | "REPAY_15000" | "REPAY_ALL",
   amount: number | "all",
 ): DecisionOption {
-  const payment = (state: GameState) =>
-    amount === "all" ? state.debt : Math.min(amount, state.debt);
+  const payment = (state: GameState) => (amount === "all" ? state.debt : amount);
   return {
     id,
     groupId: "CREDIT",
     label: amount === "all" ? "Tất toán" : `Trả $${amount.toLocaleString("en-US")}`,
     description: "Giảm dư nợ gốc; lãi quý sau giảm theo.",
-    canApply: (state) => state.debt > 0 && state.cash >= payment(state),
-    disabledReason: (state) =>
-      state.debt <= 0 ? "Doanh nghiệp chưa có nợ." : "Tiền mặt không đủ để trả khoản này.",
+    canApply: (state) =>
+      state.debt > 0 && (amount === "all" || state.debt >= amount) && state.cash >= payment(state),
+    disabledReason: (state) => {
+      if (state.debt <= 0) return "Doanh nghiệp chưa có nợ.";
+      if (amount !== "all" && state.debt < amount) {
+        return "Dư nợ thấp hơn mức này; hãy chọn Tất toán.";
+      }
+      return "Tiền mặt không đủ để trả khoản này.";
+    },
     apply: (state) => {
       const paid = payment(state);
       state.cash -= paid;

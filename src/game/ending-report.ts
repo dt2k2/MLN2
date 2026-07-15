@@ -24,6 +24,7 @@ export interface EndingPivot {
 }
 
 export interface EndingReport {
+  available: boolean;
   thesis: string;
   qualification: string;
   metrics: EndingMetric[];
@@ -31,6 +32,8 @@ export interface EndingReport {
   causalChain: string[];
   counterfactuals: string[];
 }
+
+const ENDING_REPORT_STORAGE_KEY = "dk_ending_report_v1";
 
 const money = (value: number) =>
   `${value < 0 ? "−" : ""}$${Math.abs(Math.round(value)).toLocaleString("vi-VN")}`;
@@ -188,6 +191,36 @@ function structuralPivots(state: GameState): EndingPivot[] {
   ].sort((a, b) => a.turn - b.turn);
 }
 
+function hasEndingEvidence(state: GameState, ending: EndingId) {
+  if (state.ending === ending) return true;
+  if (ending === "revolution") {
+    return (
+      state.contradiction >= BAL.contradictionRevolution ||
+      (state.unrest >= BAL.unrestRiot && state.riotStreak >= 3)
+    );
+  }
+  if (ending === "bankruptcy") {
+    return (
+      state.cash <= BAL.bankruptcyCashFloor || state.debtStressStreak >= BAL.bankruptcyStressTurns
+    );
+  }
+  if (ending === "merger") {
+    return state.decisionHistory.some((entry) => entry.id === "krupp-merger:0");
+  }
+  if (ending === "monopoly") {
+    return state.history.length >= BAL.maxTurns && state.marketShare >= BAL.monopolyShare;
+  }
+  if (ending === "reform") {
+    return (
+      state.history.length >= BAL.maxTurns &&
+      state.contradiction < BAL.reformContradictionMax &&
+      state.health >= BAL.reformHealthMin &&
+      state.last.accountingProfit > 0
+    );
+  }
+  return state.history.length >= BAL.maxTurns;
+}
+
 function thesisFor(state: GameState, ending: EndingId) {
   if (ending === "revolution") {
     if (state.contradiction >= BAL.contradictionRevolution) {
@@ -294,6 +327,21 @@ function counterfactuals(ending: EndingId) {
 }
 
 export function buildEndingReport(state: GameState, ending: EndingId): EndingReport {
+  const available = hasEndingEvidence(state, ending);
+  if (!available) {
+    return {
+      available: false,
+      thesis:
+        "Dữ liệu của ván dẫn tới kết cục không còn trong bộ nhớ phiên này. Hồ sơ không dựng lại số liệu hoặc quan hệ nhân quả khi chưa có bằng chứng.",
+      qualification:
+        "Hãy đi tới ending từ một ván vừa hoàn tất; snapshot tổng kết chỉ tồn tại trong phiên trình duyệt hiện tại.",
+      metrics: [],
+      pivots: [],
+      causalChain: [],
+      counterfactuals: [],
+    };
+  }
+
   const totalProfit = state.history.reduce((sum, record) => sum + record.accountingProfit, 0);
   const totalSurplus = state.history.reduce((sum, record) => sum + record.m, 0);
   const peakExploitation = Math.max(0, ...state.history.map((record) => record.exploitation));
@@ -306,6 +354,7 @@ export function buildEndingReport(state: GameState, ending: EndingId): EndingRep
   const pivots = [...decisions, ...supplementalPivots].sort((a, b) => a.turn - b.turn);
 
   return {
+    available: true,
     thesis: thesisFor(state, ending),
     qualification:
       "Các quyết định của Heinrich có thể tăng tốc, trì hoãn hoặc chuyển dạng kết cục. Báo cáo không quy một hiện tượng cấu trúc về một lựa chọn đạo đức đơn lẻ.",
@@ -353,4 +402,39 @@ export function buildEndingReport(state: GameState, ending: EndingId): EndingRep
     causalChain: causalChain(state, ending),
     counterfactuals: counterfactuals(ending),
   };
+}
+
+export function saveEndingReportSnapshot(state: GameState, ending: EndingId) {
+  if (typeof window === "undefined") return;
+  const report = buildEndingReport(state, ending);
+  if (!report.available) return;
+  window.sessionStorage.setItem(
+    ENDING_REPORT_STORAGE_KEY,
+    JSON.stringify({ version: 1, ending, report }),
+  );
+}
+
+export function loadEndingReportSnapshot(ending: EndingId): EndingReport | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(ENDING_REPORT_STORAGE_KEY);
+    if (!raw) return null;
+    const snapshot = JSON.parse(raw) as {
+      version?: number;
+      ending?: EndingId;
+      report?: EndingReport;
+    };
+    if (snapshot.version !== 1 || snapshot.ending !== ending || !snapshot.report?.available) {
+      return null;
+    }
+    return snapshot.report;
+  } catch {
+    return null;
+  }
+}
+
+export function clearEndingReportSnapshot() {
+  if (typeof window !== "undefined") {
+    window.sessionStorage.removeItem(ENDING_REPORT_STORAGE_KEY);
+  }
 }

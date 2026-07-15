@@ -6,6 +6,7 @@ import city from "@/assets/intro-1-city.jpg";
 import heinrich from "@/assets/intro-2-heinrich.jpg";
 import desk from "@/assets/intro-3-desk.jpg";
 import workers from "@/assets/intro-4-workers.jpg";
+import { BAL } from "@/game/balance";
 
 export const Route = createFileRoute("/intro")({
   head: () => ({
@@ -32,28 +33,28 @@ const BEATS: Beat[] = [
   {
     img: city,
     start: 0,
-    end: 20,
+    end: 21,
     caption: "Rhineland, Vương quốc Phổ · Mùa xuân 1852",
     text: "Mùa xuân năm 1852. Bốn năm đã trôi qua kể từ khi những chiến lũy cách mạng 1848 sụp đổ trên khắp châu Âu. Ở vùng Rhineland của nước Phổ, khói than một lần nữa che kín bầu trời — nhưng lần này, không phải khói của súng đại bác, mà của những ống khói nhà máy.",
   },
   {
     img: heinrich,
-    start: 20,
-    end: 40,
-    caption: "Heinrich Müller · 32 tuổi · Xưởng dệt Müller & Sohn",
-    text: "Bạn là Heinrich Müller, ba mươi hai tuổi, vừa thừa kế xưởng dệt của cha mình bên bờ sông Wupper. Bốn mươi công nhân, tám cỗ máy dệt hơi nước, một cuốn sổ cái, và một khoản nợ chưa trả. Cha bạn đã dạy: \u201CCon ơi — tư bản không nghỉ ngơi.\u201D",
+    start: 21,
+    end: 43,
+    caption: "Heinrich Müller · 32 tuổi · Müller & Söhne Textilwerk",
+    text: `Bạn là Heinrich Müller, ba mươi hai tuổi, vừa thừa kế xưởng dệt bên sông Wupper: ${BAL.initialMachines} cổ máy dệt hơi nước, ${BAL.initialActiveWorkers} công nhân có ca, ${BAL.initialIdleWorkers} người chờ việc và khoản nợ ngân hàng $${BAL.initialDebt.toLocaleString("vi-VN")} vẫn sinh lãi. Cha bạn từng dạy: “Con ơi — tư bản không nghỉ ngơi.”`,
   },
   {
     img: desk,
-    start: 40,
-    end: 64,
+    start: 43,
+    end: 65,
     caption: "24 quý · 6 năm · Sổ cái đang mở",
     text: "Trước mặt bạn là hai mươi bốn quý — sáu năm — để biến xưởng này thành một đế chế, hay chứng kiến nó sụp đổ. Bauer ở phía nam vẫn dựa vào lao động rẻ. Krupp ở phía bắc đang mua máy mới mỗi tháng. Giá trị xã hội của mỗi thước vải đang giảm từng ngày, và bạn phải chạy — chỉ để đứng yên.",
   },
   {
     img: workers,
-    start: 64,
-    end: 87,
+    start: 65,
+    end: 91,
     caption: "Cổng xưởng · Bình minh",
     text: "Mỗi quyết định của bạn — kéo dài ngày lao động, hạ tiền lương, vay thêm tín dụng, hay tái đầu tư vào máy móc — sẽ vẽ nên số phận của bạn và của những con người đứng sau cánh cổng kia. Câu hỏi không phải là bạn sẽ thắng hay thua. Mà là: khi mọi chuyện kết thúc, bạn đã trở thành ai?",
   },

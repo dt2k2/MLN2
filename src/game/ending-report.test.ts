@@ -1,9 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { BAL } from "./balance";
-import { buildEndingReport } from "./ending-report";
+import {
+  buildEndingReport,
+  clearEndingReportSnapshot,
+  loadEndingReportSnapshot,
+  saveEndingReportSnapshot,
+} from "./ending-report";
 import { initialState } from "./state";
 
 describe("ending historical report", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
   it("describes bankruptcy from actual liquidity evidence", () => {
     const state = initialState(1);
     state.cash = BAL.bankruptcyCashFloor - 500;
@@ -36,6 +43,7 @@ describe("ending historical report", () => {
 
   it("uses recorded choices as pivots without claiming single-cause morality", () => {
     const state = initialState(1);
+    state.ending = "revolution";
     state.decisionHistory.push({
       turn: 1,
       year: BAL.startYear,
@@ -56,12 +64,17 @@ describe("ending historical report", () => {
   it("does not invent an ending cause after direct navigation loses the game state", () => {
     const state = initialState(1);
 
-    expect(buildEndingReport(state, "revolution").thesis).toContain("không còn trong bộ nhớ");
-    expect(buildEndingReport(state, "bankruptcy").thesis).toContain("không còn trong bộ nhớ");
+    const revolution = buildEndingReport(state, "revolution");
+    const bankruptcy = buildEndingReport(state, "bankruptcy");
+    expect(revolution.thesis).toContain("không còn trong bộ nhớ");
+    expect(revolution.metrics).toEqual([]);
+    expect(bankruptcy.thesis).toContain("không còn trong bộ nhớ");
+    expect(bankruptcy.metrics).toEqual([]);
   });
 
   it("never replaces recorded decisions with supplemental structural pivots", () => {
     const state = initialState(1);
+    state.ending = "bankruptcy";
     const ids = ["BUY_MACHINE", "BORROW", "LAYOFF", "EXTEND_HOURS", "REINVEST_100"] as const;
     state.decisionHistory = ids.map((id, index) => ({
       turn: index + 1,
@@ -76,5 +89,25 @@ describe("ending historical report", () => {
 
     expect(report.pivots).toHaveLength(5);
     expect(new Set(report.pivots.map((pivot) => pivot.id))).toEqual(new Set(ids));
+  });
+
+  it("keeps only the matching ending snapshot for the current browser session", () => {
+    const values = new Map<string, string>();
+    vi.stubGlobal("window", {
+      sessionStorage: {
+        getItem: (key: string) => values.get(key) ?? null,
+        setItem: (key: string, value: string) => values.set(key, value),
+        removeItem: (key: string) => values.delete(key),
+      },
+    });
+    const state = initialState(1);
+    state.ending = "merger";
+
+    saveEndingReportSnapshot(state, "merger");
+
+    expect(loadEndingReportSnapshot("merger")?.available).toBe(true);
+    expect(loadEndingReportSnapshot("timeout")).toBeNull();
+    clearEndingReportSnapshot();
+    expect(loadEndingReportSnapshot("merger")).toBeNull();
   });
 });
