@@ -87,7 +87,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         learnMoreAnchor: "thi-truong",
       },
       {
-        target: "market-price",
+        target: "market-group-output",
         title: "Sản lượng, giá bán và thị phần",
         body: (s: GameState) => {
           const hasQuarter = s.history.length > 0;
