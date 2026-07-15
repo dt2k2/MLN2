@@ -12,6 +12,7 @@ export function DashboardCard({
   icon: Icon,
   tone = "default",
   hint,
+  contextLabel,
   flashOnDrop = false,
 }: {
   label: string;
@@ -23,6 +24,7 @@ export function DashboardCard({
   icon?: LucideIcon;
   tone?: "default" | "gold" | "danger" | "success" | "info";
   hint?: string;
+  contextLabel?: string;
   flashOnDrop?: boolean;
 }) {
   const toneColor = {
@@ -67,7 +69,16 @@ export function DashboardCard({
       <div className={`mt-3 text-3xl font-semibold ${shake ? "text-destructive" : toneColor}`}>
         <AnimatedNumber value={value} prefix={prefix} suffix={suffix} decimals={decimals} />
       </div>
-      {hint ? <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div> : null}
+      {contextLabel || hint ? (
+        <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+          {contextLabel ? (
+            <span className="shrink-0 rounded border border-primary/30 bg-primary/10 px-1.5 py-0.5 font-mono text-[9px] uppercase text-primary">
+              {contextLabel}
+            </span>
+          ) : null}
+          {hint ? <span className="min-w-0 truncate">{hint}</span> : null}
+        </div>
+      ) : null}
       <div className="pointer-events-none absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
     </div>
   );

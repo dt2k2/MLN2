@@ -46,6 +46,7 @@ import { DECISION_GROUPS, DECISIONS } from "@/game/decisions";
 import { BAL } from "@/game/balance";
 import { saveEndingReportSnapshot } from "@/game/ending-report";
 import { effectMultiplier } from "@/game/engine/effects";
+import { computeQuarter } from "@/game/engine/laws";
 import { CONCEPT_INFO, CONCEPT_KEYS } from "@/game/concepts";
 import type { ConceptKey, DecisionGroupId } from "@/game/types";
 import { TutorialOverlay } from "@/components/tutorial/TutorialOverlay";
@@ -107,7 +108,14 @@ function GameScreen() {
     ) {
       tutorialStart();
     }
-  }, [presentationQueue.length, state.turn, tutorialActive, tutorialCompleted, tutorialSkipped, tutorialStart]);
+  }, [
+    presentationQueue.length,
+    state.turn,
+    tutorialActive,
+    tutorialCompleted,
+    tutorialSkipped,
+    tutorialStart,
+  ]);
 
   useEffect(() => {
     if (presentationQueue.length > 0 || state.pendingEvent || !state.ending) return;
@@ -131,6 +139,10 @@ function GameScreen() {
   }, [activePresentation, dismissPresentation]);
 
   const last = state.last;
+  const projectedQuarter = useMemo(() => computeQuarter(state), [state]);
+  const isFirstQuarterProjection = state.history.length === 0;
+  const dashboardRecord = isFirstQuarterProjection ? projectedQuarter : last;
+  const dashboardContext = isFirstQuarterProjection ? "Dự kiến quý này" : "Quý vừa qua";
   const eurekaDiscovery =
     activePresentation?.kind === "eureka"
       ? state.discoveredConcepts[activePresentation.conceptKey]
@@ -264,22 +276,24 @@ function GameScreen() {
                     state.discoveredConcepts.constantCapital ? "Tư bản bất biến" : "Chi phí tư liệu"
                   }
                   symbol={state.discoveredConcepts.constantCapital ? "c" : undefined}
-                  value={Math.round(last.cTransferred)}
+                  value={Math.round(dashboardRecord.cTransferred)}
                   prefix="$"
                   icon={Cog}
                   tone="info"
                   hint="Nguyên liệu + khấu hao"
+                  contextLabel={dashboardContext}
                 />
               </StatTooltip>
               <StatTooltip conceptKey="variableCapital">
                 <DashboardCard
                   label={state.discoveredConcepts.variableCapital ? "Tư bản khả biến" : "Quỹ lương"}
                   symbol={state.discoveredConcepts.variableCapital ? "v" : undefined}
-                  value={Math.round(last.v)}
+                  value={Math.round(dashboardRecord.v)}
                   prefix="$"
                   icon={Users}
                   tone="gold"
                   hint="Tiền lương công nhân"
+                  contextLabel={dashboardContext}
                 />
               </StatTooltip>
               <StatTooltip conceptKey="surplusValue">
@@ -288,35 +302,37 @@ function GameScreen() {
                     state.discoveredConcepts.surplusValue ? "Giá trị thặng dư" : "Giá trị dôi ra"
                   }
                   symbol={state.discoveredConcepts.surplusValue ? "m" : undefined}
-                  value={Math.round(last.m)}
+                  value={Math.round(dashboardRecord.m)}
                   prefix="$"
                   icon={TrendingUp}
                   tone="success"
                   hint={
                     state.discoveredConcepts.surplusRate
-                      ? `m′ = ${(last.exploitation * 100).toFixed(0)}%`
+                      ? `m′ = ${(dashboardRecord.exploitation * 100).toFixed(0)}%`
                       : "So với quỹ lương"
                   }
+                  contextLabel={dashboardContext}
                 />
               </StatTooltip>
               <StatTooltip conceptKey="profitRate">
                 <DashboardCard
                   label={
                     state.discoveredConcepts.profitRate
-                      ? "Tỷ suất lợi nhuận quý"
+                      ? "Tỷ suất lợi nhuận thực quý"
                       : "Hiệu suất vốn quý"
                   }
-                  symbol={state.discoveredConcepts.profitRate ? "p′" : undefined}
-                  value={+(last.profitRate * 100).toFixed(1)}
+                  symbol={state.discoveredConcepts.profitRate ? "p′ thực" : undefined}
+                  value={+(dashboardRecord.profitRateReal * 100).toFixed(1)}
                   suffix="%"
                   decimals={1}
                   icon={Zap}
                   tone="gold"
                   hint={
                     state.discoveredConcepts.organicComposition
-                      ? `c/v = ${last.organic.toFixed(2)}`
-                      : "Cơ cấu chi phí"
+                      ? `c/v = ${dashboardRecord.organic.toFixed(2)}`
+                      : "Lợi nhuận kế toán / tổng vốn ứng"
                   }
+                  contextLabel={dashboardContext}
                   flashOnDrop
                 />
               </StatTooltip>
@@ -454,11 +470,11 @@ function GameScreen() {
               </div>
             </div>
 
-
-
-
             {/* Bottom log */}
-            <div data-tutorial="log-panel" className="panel-industrial flex min-h-[190px] flex-1 flex-col rounded-lg p-4">
+            <div
+              data-tutorial="log-panel"
+              className="panel-industrial flex min-h-[190px] flex-1 flex-col rounded-lg p-4"
+            >
               <SectionTitle icon={<Clock className="h-3.5 w-3.5" />} label="Nhật ký · Codex" />
               <div className="mt-2 -mx-1 flex gap-1 overflow-x-auto px-1 pb-1">
                 {CONCEPT_KEYS.map((key) => {
@@ -498,7 +514,10 @@ function GameScreen() {
 
           {/* RIGHT PANEL — Decisions */}
           <section className="order-3 flex min-w-0 flex-col gap-3 lg:col-span-3 lg:min-h-0">
-            <div data-tutorial="decision-panel" className="panel-industrial flex min-h-0 flex-1 flex-col rounded-lg p-3">
+            <div
+              data-tutorial="decision-panel"
+              className="panel-industrial flex min-h-0 flex-1 flex-col rounded-lg p-3"
+            >
               <SectionTitle
                 icon={<Info className="h-3.5 w-3.5" />}
                 label={`Quyết định — ${quarterLabel}`}
@@ -513,7 +532,10 @@ function GameScreen() {
                 onValueChange={(v) => setActiveGroup(v as DecisionGroupId)}
                 className="mt-3 flex min-h-0 flex-1 flex-col"
               >
-                <TabsList data-tutorial="decision-tabs" className="grid h-auto w-full grid-cols-6 gap-1 bg-panel-elevated/40 p-1">
+                <TabsList
+                  data-tutorial="decision-tabs"
+                  className="grid h-auto w-full grid-cols-6 gap-1 bg-panel-elevated/40 p-1"
+                >
                   {DECISION_GROUPS.map((group) => {
                     const Icon = GROUP_ICONS[group.id];
                     const used = usedDecisionGroups.has(group.id);

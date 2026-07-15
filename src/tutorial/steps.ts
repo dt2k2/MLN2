@@ -74,7 +74,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
       {
         target: "dashboard-grid",
         title: "Cấu trúc giá trị một quý",
-        body: "Chi phí tư liệu là vật liệu và phần giá trị máy móc chuyển vào sản phẩm. Quỹ lương là tiền trả cho lao động. Giá trị dôi ra là phần lao động tạo thêm vượt quá lương — không đồng nghĩa với tiền mặt hay lợi nhuận đã bán được. Hiệu suất vốn cho biết lợi nhuận thực so với vốn ứng cho quý đó.",
+        body: "Trước khi quý đầu hoàn tất, bốn thẻ này là dự kiến theo điều kiện hiện tại và sẽ đổi khi bạn ra quyết định. Chi phí tư liệu gồm vật liệu và phần giá trị máy móc chuyển vào sản phẩm; quỹ lương là tiền trả cho lao động; giá trị dôi ra là phần lao động tạo thêm vượt quá lương. Hiệu suất vốn so sánh lợi nhuận kế toán dự kiến với tổng vốn ứng — kết quả thực chỉ được ghi nhận khi quý kết thúc.",
         placement: "right",
         learnMoreAnchor: "cau-thanh-gia-tri",
       },
