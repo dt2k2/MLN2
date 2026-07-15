@@ -399,8 +399,11 @@ function GameScreen() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-              <div data-tutorial="market-group-demand" className="contents">
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+              <div
+                data-tutorial="market-group-demand"
+                className="grid grid-cols-2 gap-3 md:grid-cols-3"
+              >
                 <MarketCard
                   label="Cầu dành cho xưởng"
                   value={state.demand.toLocaleString("vi-VN")}
@@ -423,7 +426,10 @@ function GameScreen() {
                   tutorialId="market-supply-industry"
                 />
               </div>
-              <div data-tutorial="market-group-output" className="contents">
+              <div
+                data-tutorial="market-group-output"
+                className="grid grid-cols-2 gap-3 md:grid-cols-3"
+              >
                 <MarketCard
                   label="Sản lượng"
                   value={Math.round(last.output).toLocaleString("vi-VN")}
@@ -447,6 +453,7 @@ function GameScreen() {
                 />
               </div>
             </div>
+
 
 
 
