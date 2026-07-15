@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import heinrichPoster from "@/assets/intro-2-heinrich.jpg";
+import neutralCutout from "@/assets/heinrich/01-neutral.webp";
+import expansionCutout from "@/assets/heinrich/02-expansion.webp";
+import hardlineCutout from "@/assets/heinrich/03-hardline.webp";
+import marketCrisisCutout from "@/assets/heinrich/04-market-crisis.webp";
+import laborConflictCutout from "@/assets/heinrich/05-labor-conflict.webp";
+import ruptureCutout from "@/assets/heinrich/06-rupture.webp";
+import dominantCutout from "@/assets/heinrich/07-dominant.webp";
 import heinrichCutout from "@/assets/heinrich/heinrich-cutout.webp";
 import heinrichRoom from "@/assets/heinrich/heinrich-room.webp";
 import { deriveHeinrichPresentation } from "@/game/heinrich";
@@ -13,6 +20,16 @@ const videoModules = import.meta.glob("../../assets/heinrich/*.mp4", {
   query: "?url",
   import: "default",
 }) as Record<string, string>;
+
+const HERO_CUTOUTS: Record<HeroCondition, string> = {
+  neutral: neutralCutout,
+  expansion: expansionCutout,
+  hardline: hardlineCutout,
+  "market-crisis": marketCrisisCutout,
+  "labor-conflict": laborConflictCutout,
+  rupture: ruptureCutout,
+  dominant: dominantCutout,
+};
 
 const SMOKE_PARTICLES = [
   { left: "8%", bottom: "31%", size: 22, delay: 0, drift: -6 },
@@ -49,9 +66,11 @@ function HeinrichMotionPoster({
 }) {
   const profile = HERO_VISUAL_PROFILES[condition];
   const [roomReady, setRoomReady] = useState(false);
-  const [cutoutReady, setCutoutReady] = useState(false);
-  const [layerFailed, setLayerFailed] = useState(false);
-  const layersReady = roomReady && cutoutReady && !layerFailed;
+  const [roomFailed, setRoomFailed] = useState(false);
+  const [loadedCutouts, setLoadedCutouts] = useState<HeroCondition[]>([]);
+  const [failedCutouts, setFailedCutouts] = useState<HeroCondition[]>([]);
+  const subjectSrc = failedCutouts.includes(condition) ? heinrichCutout : HERO_CUTOUTS[condition];
+  const layersReady = roomReady && loadedCutouts.includes(condition) && !roomFailed;
   const smokeDuration = profile.smoke === "strained" ? 3.2 : profile.smoke === "dense" ? 4.2 : 6.5;
   const smokeOpacity =
     profile.smoke === "dense" ? 0.38 : profile.smoke === "strained" ? 0.24 : 0.16;
@@ -64,11 +83,19 @@ function HeinrichMotionPoster({
         y: [0, profile.backgroundY, 0],
       };
   const subjectAnimation = reducedMotion
-    ? { scale: 1, x: 0, y: 0 }
+    ? {
+        scale: profile.subjectBaseScale,
+        scaleY: 1,
+        x: profile.subjectBaseX,
+        y: profile.subjectBaseY,
+        rotate: 0,
+      }
     : {
-        scale: [1, profile.subjectScale, 1],
-        x: [0, profile.subjectX, 0],
-        y: [0, profile.subjectY, 0],
+        scale: profile.subjectMotion.scale.map((delta) => profile.subjectBaseScale * (1 + delta)),
+        scaleY: profile.subjectMotion.scaleY.map((delta) => 1 + delta),
+        x: profile.subjectMotion.x.map((delta) => profile.subjectBaseX + delta),
+        y: profile.subjectMotion.y.map((delta) => profile.subjectBaseY + delta),
+        rotate: profile.subjectMotion.rotate,
       };
 
   return (
@@ -85,15 +112,42 @@ function HeinrichMotionPoster({
         alt=""
         className="pointer-events-none absolute h-px w-px opacity-0"
         onLoad={() => setRoomReady(true)}
-        onError={() => setLayerFailed(true)}
+        onError={() => setRoomFailed(true)}
       />
       <img
-        src={heinrichCutout}
+        key={`active-${condition}-${subjectSrc}`}
+        src={subjectSrc}
         alt=""
+        fetchPriority="high"
         className="pointer-events-none absolute h-px w-px opacity-0"
-        onLoad={() => setCutoutReady(true)}
-        onError={() => setLayerFailed(true)}
+        onLoad={() =>
+          setLoadedCutouts((current) =>
+            current.includes(condition) ? current : [...current, condition],
+          )
+        }
+        onError={() =>
+          setFailedCutouts((current) =>
+            current.includes(condition) ? current : [...current, condition],
+          )
+        }
       />
+      {(Object.entries(HERO_CUTOUTS) as [HeroCondition, string][])
+        .filter(([key]) => key !== condition)
+        .map(([key, source]) => (
+          <img
+            key={key}
+            src={failedCutouts.includes(key) ? heinrichCutout : source}
+            alt=""
+            fetchPriority="low"
+            className="pointer-events-none absolute h-px w-px opacity-0"
+            onLoad={() =>
+              setLoadedCutouts((current) => (current.includes(key) ? current : [...current, key]))
+            }
+            onError={() =>
+              setFailedCutouts((current) => (current.includes(key) ? current : [...current, key]))
+            }
+          />
+        ))}
 
       <AnimatePresence initial={false} mode="popLayout">
         {layersReady ? (
@@ -195,16 +249,17 @@ function HeinrichMotionPoster({
             ) : null}
 
             <motion.img
-              src={heinrichCutout}
+              src={subjectSrc}
               alt=""
               draggable={false}
-              className="absolute inset-0 h-full w-full object-cover object-center drop-shadow-[0_8px_12px_rgba(0,0,0,0.24)]"
-              style={{ filter: profile.subjectFilter }}
+              className="absolute inset-0 h-full w-full object-cover object-center drop-shadow-[0_8px_12px_rgba(0,0,0,0.24)] will-change-transform"
+              style={{ filter: profile.subjectFilter, transformOrigin: "50% 100%" }}
               animate={subjectAnimation}
               transition={{
-                duration: reducedMotion ? 0 : profile.cycleSeconds * 0.72,
+                duration: reducedMotion ? 0 : profile.subjectMotion.duration,
                 ease: "easeInOut",
                 repeat: reducedMotion ? 0 : Infinity,
+                repeatDelay: reducedMotion ? 0 : profile.subjectMotion.repeatDelay,
               }}
             />
 

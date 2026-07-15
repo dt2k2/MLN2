@@ -2,15 +2,26 @@ import type { HeroCondition } from "@/game/heinrich";
 
 export type HeroMediaMode = "video" | "motion-poster" | "static-poster" | "fallback-poster";
 
+export interface HeroSubjectMotion {
+  x: number[];
+  y: number[];
+  scale: number[];
+  scaleY: number[];
+  rotate: number[];
+  duration: number;
+  repeatDelay: number;
+}
+
 export interface HeroVisualProfile {
   backgroundFilter: string;
   backgroundScale: number;
   backgroundX: number;
   backgroundY: number;
   subjectFilter: string;
-  subjectScale: number;
-  subjectX: number;
-  subjectY: number;
+  subjectBaseScale: number;
+  subjectBaseX: number;
+  subjectBaseY: number;
+  subjectMotion: HeroSubjectMotion;
   tint: string;
   vignetteOpacity: number;
   smoke: "steady" | "slow" | "strained" | "dense";
@@ -28,9 +39,18 @@ export const HERO_VISUAL_PROFILES: Record<HeroCondition, HeroVisualProfile> = {
     backgroundX: -2,
     backgroundY: 0,
     subjectFilter: "saturate(0.98) brightness(0.98)",
-    subjectScale: 1.006,
-    subjectX: 0,
-    subjectY: -1,
+    subjectBaseScale: 0.96,
+    subjectBaseX: -6,
+    subjectBaseY: 2,
+    subjectMotion: {
+      x: [0, -1, 1, 0],
+      y: [0, -3, -1, 0],
+      scale: [0, 0.014, 0.008, 0],
+      scaleY: [0, 0.008, 0.003, 0],
+      rotate: [0, -0.16, 0.1, 0],
+      duration: 5.8,
+      repeatDelay: 0.4,
+    },
     tint: "rgba(198, 142, 45, 0.08)",
     vignetteOpacity: 0.22,
     smoke: "steady",
@@ -45,10 +65,19 @@ export const HERO_VISUAL_PROFILES: Record<HeroCondition, HeroVisualProfile> = {
     backgroundScale: 1.035,
     backgroundX: -4,
     backgroundY: -1,
-    subjectFilter: "saturate(1.04) brightness(1.03)",
-    subjectScale: 1.018,
-    subjectX: 1,
-    subjectY: -2,
+    subjectFilter: "saturate(1.02) brightness(1.01)",
+    subjectBaseScale: 0.97,
+    subjectBaseX: 0,
+    subjectBaseY: 2,
+    subjectMotion: {
+      x: [0, 4, 2, 0],
+      y: [0, -5, -3, 0],
+      scale: [0, 0.03, 0.02, 0],
+      scaleY: [0, 0.012, 0.006, 0],
+      rotate: [0, -0.28, -0.12, 0],
+      duration: 4.8,
+      repeatDelay: 0.8,
+    },
     tint: "rgba(225, 148, 25, 0.11)",
     vignetteOpacity: 0.18,
     smoke: "steady",
@@ -63,10 +92,19 @@ export const HERO_VISUAL_PROFILES: Record<HeroCondition, HeroVisualProfile> = {
     backgroundScale: 1.018,
     backgroundX: -2,
     backgroundY: 0,
-    subjectFilter: "saturate(0.88) contrast(1.18) brightness(0.91)",
-    subjectScale: 1.004,
-    subjectX: 0,
-    subjectY: 0,
+    subjectFilter: "saturate(0.95) contrast(1.12) brightness(0.94)",
+    subjectBaseScale: 0.97,
+    subjectBaseX: 0,
+    subjectBaseY: 2,
+    subjectMotion: {
+      x: [0, 4, 4, 0],
+      y: [0, -2, -2, 0],
+      scale: [0, 0.016, 0.014, 0],
+      scaleY: [0, 0.006, 0.006, 0],
+      rotate: [0, 0.34, 0.28, 0],
+      duration: 2.5,
+      repeatDelay: 1.8,
+    },
     tint: "rgba(168, 52, 20, 0.17)",
     vignetteOpacity: 0.34,
     smoke: "strained",
@@ -81,10 +119,19 @@ export const HERO_VISUAL_PROFILES: Record<HeroCondition, HeroVisualProfile> = {
     backgroundScale: 1.018,
     backgroundX: 0,
     backgroundY: 4,
-    subjectFilter: "saturate(0.56) brightness(0.8) contrast(1.08)",
-    subjectScale: 1.006,
-    subjectX: 0,
-    subjectY: 2,
+    subjectFilter: "saturate(0.78) brightness(0.88) contrast(1.05)",
+    subjectBaseScale: 0.91,
+    subjectBaseX: -15,
+    subjectBaseY: 3,
+    subjectMotion: {
+      x: [0, -2, 1, 0],
+      y: [0, 5, 3, 0],
+      scale: [0, -0.012, -0.006, 0],
+      scaleY: [0, -0.01, -0.005, 0],
+      rotate: [0, -0.38, -0.16, 0],
+      duration: 6.6,
+      repeatDelay: 0.8,
+    },
     tint: "rgba(38, 77, 96, 0.28)",
     vignetteOpacity: 0.47,
     smoke: "slow",
@@ -99,10 +146,19 @@ export const HERO_VISUAL_PROFILES: Record<HeroCondition, HeroVisualProfile> = {
     backgroundScale: 1.025,
     backgroundX: -3,
     backgroundY: 0,
-    subjectFilter: "saturate(0.72) brightness(0.82) contrast(1.12)",
-    subjectScale: 1.012,
-    subjectX: 4,
-    subjectY: 0,
+    subjectFilter: "saturate(0.82) brightness(0.87) contrast(1.1)",
+    subjectBaseScale: 0.97,
+    subjectBaseX: 0,
+    subjectBaseY: 2,
+    subjectMotion: {
+      x: [0, 6, 3, 0],
+      y: [0, -3, -1, 0],
+      scale: [0, 0.022, 0.012, 0],
+      scaleY: [0, 0.008, 0.004, 0],
+      rotate: [0, 0.42, 0.18, 0],
+      duration: 3.7,
+      repeatDelay: 0.7,
+    },
     tint: "rgba(96, 40, 45, 0.25)",
     vignetteOpacity: 0.41,
     smoke: "strained",
@@ -117,10 +173,19 @@ export const HERO_VISUAL_PROFILES: Record<HeroCondition, HeroVisualProfile> = {
     backgroundScale: 1.035,
     backgroundX: -5,
     backgroundY: 1,
-    subjectFilter: "saturate(0.7) brightness(0.75) contrast(1.2)",
-    subjectScale: 1.014,
-    subjectX: 2,
-    subjectY: 1,
+    subjectFilter: "saturate(0.84) brightness(0.83) contrast(1.14)",
+    subjectBaseScale: 0.95,
+    subjectBaseX: 0,
+    subjectBaseY: 3,
+    subjectMotion: {
+      x: [0, -5, 4, -3, 2, 0],
+      y: [0, 3, -3, 2, -1, 0],
+      scale: [0, 0.022, 0.008, 0.018, 0.01, 0],
+      scaleY: [0, -0.01, 0.012, -0.006, 0.006, 0],
+      rotate: [0, -0.55, 0.48, -0.32, 0.22, 0],
+      duration: 1.15,
+      repeatDelay: 2.3,
+    },
     tint: "rgba(158, 25, 18, 0.31)",
     vignetteOpacity: 0.56,
     smoke: "dense",
@@ -136,9 +201,18 @@ export const HERO_VISUAL_PROFILES: Record<HeroCondition, HeroVisualProfile> = {
     backgroundX: -3,
     backgroundY: -2,
     subjectFilter: "saturate(1.02) brightness(1.04) contrast(1.04)",
-    subjectScale: 1.02,
-    subjectX: 0,
-    subjectY: -2,
+    subjectBaseScale: 0.98,
+    subjectBaseX: -10,
+    subjectBaseY: 2,
+    subjectMotion: {
+      x: [0, 2, 1, 0],
+      y: [0, -5, -3, 0],
+      scale: [0, 0.028, 0.02, 0],
+      scaleY: [0, 0.012, 0.007, 0],
+      rotate: [0, -0.18, -0.08, 0],
+      duration: 5.6,
+      repeatDelay: 1,
+    },
     tint: "rgba(231, 170, 52, 0.13)",
     vignetteOpacity: 0.14,
     smoke: "steady",

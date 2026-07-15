@@ -114,6 +114,21 @@ describe("concept discovery", () => {
     expect(checkQuarterDiscoveries(state).map((item) => item.key)).toContain("relativeSurplus");
   });
 
+  it("requires organic composition to cross the threshold from below", () => {
+    const state = initialState(1);
+    state.history = [
+      record({ turn: 1, organic: 11, machines: 3 }),
+      record({ turn: 2, organic: 12, machines: 4 }),
+    ];
+
+    expect(checkQuarterDiscoveries(state).map((item) => item.key)).not.toContain(
+      "organicComposition",
+    );
+
+    state.history[0].organic = 9;
+    expect(checkQuarterDiscoveries(state).map((item) => item.key)).toContain("organicComposition");
+  });
+
   it("requires both industry overproduction and high firm inventory", () => {
     const state = initialState(1);
     state.history = [

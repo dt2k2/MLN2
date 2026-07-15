@@ -127,14 +127,18 @@ function GameScreen() {
     [state.history],
   );
 
-  const cvmTotal = Math.max(1, last.cTransferred + last.v + last.m);
+  const cvmTotal = Math.max(1, last.commodityValue);
   const capitalRatio = [
     {
       name: "c",
       v: Math.round((last.cTransferred / cvmTotal) * 100),
       color: "var(--color-info)",
     },
-    { name: "v", v: Math.round((last.v / cvmTotal) * 100), color: "var(--gold)" },
+    {
+      name: "v",
+      v: Math.round((last.reproducedVariableCapital / cvmTotal) * 100),
+      color: "var(--gold)",
+    },
     { name: "m", v: Math.round((last.m / cvmTotal) * 100), color: "var(--success)" },
   ];
 
@@ -301,10 +305,12 @@ function GameScreen() {
 
               <ChartCard
                 title={
-                  state.discoveredConcepts.organicComposition ? "Cơ cấu tư bản" : "Cơ cấu chi phí"
+                  state.discoveredConcepts.surplusValue ? "Cấu thành giá trị" : "Giá trị sản phẩm"
                 }
                 hint={
-                  state.discoveredConcepts.surplusValue ? "c : v : m" : "tư liệu : lương : dôi ra"
+                  state.discoveredConcepts.surplusValue
+                    ? "c chuyển dịch : v tái tạo : m"
+                    : "tư liệu : lương tái tạo : dôi ra"
                 }
               >
                 <ResponsiveContainer width="100%" height={90}>
@@ -340,6 +346,12 @@ function GameScreen() {
                     <span className="text-[color:var(--success)]">■</span> m {capitalRatio[2].v}%
                   </span>
                 </div>
+                {last.unrecoveredVariableCapital > 0 && (
+                  <p className="mt-1 text-[10px] text-destructive">
+                    Quỹ lương chưa tái tạo: $
+                    {Math.round(last.unrecoveredVariableCapital).toLocaleString("vi-VN")}
+                  </p>
+                )}
               </ChartCard>
 
               <ContradictionCard value={contradictionInt} unrest={state.unrest} />

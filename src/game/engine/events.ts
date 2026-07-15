@@ -440,7 +440,7 @@ export const EVENTS: EventDef[] = [
           tone: "accept",
           previewLabel: "Kết thúc: tập trung tư bản",
           apply: (state) => {
-            state.ending = "monopoly";
+            state.ending = "merger";
           },
         },
         {

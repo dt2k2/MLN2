@@ -50,6 +50,8 @@ function emptyRecord(): QuarterRecord {
     v: 0,
     m: 0,
     newValue: 0,
+    reproducedVariableCapital: 0,
+    unrecoveredVariableCapital: 0,
     effectiveLaborHours: 0,
     validatedLaborHours: 0,
     necessaryLaborTime: 0,
@@ -139,6 +141,7 @@ export function initialState(seed = Date.now() & 0xffff): GameState {
     eventHistory: {},
     seenStoryIds: {},
     ownerSignals: [],
+    decisionHistory: [],
     history: [],
     log: [
       {
@@ -278,6 +281,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
         draft,
         stance ? { turn: draft.turn, stance, source: `decision:${decision.id}` } : undefined,
       );
+      draft.decisionHistory.push({
+        turn: draft.turn,
+        year: draft.year,
+        quarter: draft.quarter,
+        source: "decision",
+        id: decision.id,
+        label: decision.label,
+        groupId: decision.groupId,
+        ownerStance: stance,
+      });
       draft.log.unshift({
         turn: draft.turn,
         type: "decision",
@@ -372,6 +385,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     let resolved = produce(previous, (draft) => {
       if (!draft.pendingEvent) return;
       const eventTitle = draft.pendingEvent.title;
+      const eventId = draft.pendingEvent.id;
       choice.apply(draft);
       appendOwnerSignal(
         draft,
@@ -383,6 +397,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
             }
           : undefined,
       );
+      draft.decisionHistory.push({
+        turn: draft.turn,
+        year: draft.year,
+        quarter: draft.quarter,
+        source: "event",
+        id: `${eventId}:${choiceIndex}`,
+        label: `${eventTitle}: ${choice.label}`,
+        ownerStance: choice.ownerStance,
+      });
       draft.log.unshift({
         turn: draft.turn,
         type: "decision",

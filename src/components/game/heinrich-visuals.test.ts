@@ -23,6 +23,20 @@ describe("Heinrich visual profiles", () => {
       smoke: "dense",
     });
     expect(HERO_VISUAL_PROFILES.neutral.shake).toBe(false);
+    for (const condition of conditions) {
+      const profile = HERO_VISUAL_PROFILES[condition];
+      expect(profile.subjectBaseScale).toBeGreaterThan(0.8);
+      expect(profile.subjectBaseScale).toBeLessThanOrEqual(1);
+      expect(Number.isFinite(profile.subjectBaseX)).toBe(true);
+      expect(Number.isFinite(profile.subjectBaseY)).toBe(true);
+      const keyframeCount = profile.subjectMotion.x.length;
+      expect(profile.subjectMotion.y).toHaveLength(keyframeCount);
+      expect(profile.subjectMotion.scale).toHaveLength(keyframeCount);
+      expect(profile.subjectMotion.scaleY).toHaveLength(keyframeCount);
+      expect(profile.subjectMotion.rotate).toHaveLength(keyframeCount);
+      expect(Math.max(...profile.subjectMotion.x.map(Math.abs))).toBeGreaterThanOrEqual(1);
+      expect(profile.subjectMotion.duration).toBeGreaterThan(0);
+    }
   });
 
   it("uses a playable MP4 ahead of the motion poster", () => {

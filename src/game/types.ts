@@ -29,6 +29,17 @@ export interface OwnerSignal {
   source: string;
 }
 
+export interface DecisionHistoryEntry {
+  turn: number;
+  year: number;
+  quarter: number;
+  source: "decision" | "event";
+  id: string;
+  label: string;
+  groupId?: DecisionGroupId;
+  ownerStance?: OwnerStance;
+}
+
 export type ConceptKey =
   | "commodity"
   | "socialLabor"
@@ -92,7 +103,7 @@ export type PresentationItem =
   | { id: string; kind: "event"; eventId: string }
   | { id: string; kind: "story"; story: StoryPresentation };
 
-export type EndingId = "revolution" | "bankruptcy" | "monopoly" | "reform" | "timeout";
+export type EndingId = "revolution" | "bankruptcy" | "monopoly" | "merger" | "reform" | "timeout";
 
 export type TimedEffectKind =
   | "outputMultiplier"
@@ -134,6 +145,8 @@ export interface QuarterRecord {
   v: number;
   m: number;
   newValue: number;
+  reproducedVariableCapital: number;
+  unrecoveredVariableCapital: number;
   effectiveLaborHours: number;
   validatedLaborHours: number;
   necessaryLaborTime: number;
@@ -250,6 +263,7 @@ export interface GameState {
   eventHistory: Record<string, EventHistoryEntry>;
   seenStoryIds: Record<string, true>;
   ownerSignals: OwnerSignal[];
+  decisionHistory: DecisionHistoryEntry[];
 
   history: QuarterRecord[];
   log: LogEntry[];

@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Flag, RotateCcw, Trophy } from "lucide-react";
+import { EndingDossier } from "@/components/game/ending-dossier";
 import { Embers, Smoke } from "@/components/game/particles";
+import { buildEndingReport } from "@/game/ending-report";
 import { useGameStore } from "@/game/state";
 
 export const Route = createFileRoute("/ending/revolution")({
@@ -19,8 +21,10 @@ export const Route = createFileRoute("/ending/revolution")({
 
 function RevolutionEnding() {
   const reset = useGameStore((store) => store.reset);
+  const state = useGameStore((store) => store.state);
+  const report = buildEndingReport(state, "revolution");
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="relative min-h-screen overflow-x-hidden">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -73,7 +77,7 @@ function RevolutionEnding() {
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,oklch(0.05_0.05_20/0.9)_100%)]" />
 
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-8 text-center">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-5 py-10 text-center sm:px-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -85,7 +89,7 @@ function RevolutionEnding() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 1.2 }}
-          className="mt-6 font-display text-7xl font-bold uppercase tracking-widest text-[oklch(0.85_0.18_28)] drop-shadow-[0_4px_20px_oklch(0.5_0.2_25/0.8)]"
+          className="mt-6 font-display text-3xl font-bold uppercase tracking-wider text-[oklch(0.85_0.18_28)] drop-shadow-[0_4px_20px_oklch(0.5_0.2_25/0.8)] sm:text-7xl sm:tracking-widest"
         >
           Cách mạng đã nổ ra
         </motion.h1>
@@ -108,10 +112,9 @@ function RevolutionEnding() {
             Kết cục lịch sử
           </div>
           <p className="mt-3 text-sm leading-relaxed text-[oklch(0.9_0.02_30)]">
-            Việc kéo dài ngày lao động, cắt giảm nhân công và không ngừng nâng cao tỷ suất bóc lột
-            đã đẩy chỉ số <span className="text-[oklch(0.75_0.2_25)]">Mâu thuẫn giai cấp</span> vượt
-            ngưỡng 100. Công nhân của xưởng bạn liên kết với vô sản toàn thành phố. Máy móc bị đập
-            phá, nhà máy bốc cháy, và bạn — nhà tư bản — bị lịch sử gạt sang một bên.
+            {report.thesis} Những lựa chọn trong xưởng đã tác động đến nhịp tích tụ xung đột, nhưng
+            kết cục cũng hình thành từ quan hệ lao động và sức ép xã hội vượt ra ngoài ý chí của một
+            chủ xưởng.
           </p>
           <p className="mt-3 text-sm italic leading-relaxed text-[oklch(0.75_0.05_30)]">
             "Giai cấp tư sản, do đó, đã tạo ra những vũ khí sẽ giết chết chính mình; nó cũng đã tạo
@@ -124,8 +127,9 @@ function RevolutionEnding() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 3, duration: 1 }}
-          className="mt-8 flex gap-3"
+          className="mt-8 flex flex-wrap justify-center gap-3"
         >
+          <EndingDossier state={state} ending="revolution" />
           <Link
             to="/game"
             onClick={reset}

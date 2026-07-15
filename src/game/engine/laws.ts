@@ -38,10 +38,12 @@ export function computeQuarter(s: GameState): QuarterRecord {
   const effectiveLaborHours = laborHours * laborIntensity;
   const validatedLaborHours = Math.min(effectiveLaborHours, output * socialLaborTime);
   const newValue = validatedLaborHours * BAL.valuePerLaborHour;
+  const reproducedVariableCapital = Math.min(v, newValue);
+  const unrecoveredVariableCapital = Math.max(0, v - newValue);
   const m = Math.max(0, newValue - v);
   const necessaryLaborTime = Math.min(validatedLaborHours, v / BAL.valuePerLaborHour);
   const surplusLaborTime = Math.max(0, validatedLaborHours - necessaryLaborTime);
-  const commodityValue = cTransferred + v + m;
+  const commodityValue = cTransferred + newValue;
 
   const quarterDemand = s.demand * demandEffect;
   const effectiveDemand = s.effectiveDemand * demandEffect;
@@ -74,6 +76,8 @@ export function computeQuarter(s: GameState): QuarterRecord {
     v,
     m,
     newValue,
+    reproducedVariableCapital,
+    unrecoveredVariableCapital,
     effectiveLaborHours,
     validatedLaborHours,
     necessaryLaborTime,

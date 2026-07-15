@@ -319,7 +319,7 @@ export function checkQuarterDiscoveries(state: GameState): ConceptDiscovery[] {
 
   if (
     previous &&
-    (previous.organic <= BAL.organicDiscoveryThreshold || previous.turn === 1) &&
+    previous.organic <= BAL.organicDiscoveryThreshold &&
     record.organic > BAL.organicDiscoveryThreshold &&
     record.machines > 3
   ) {

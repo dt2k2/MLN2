@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { RotateCcw, Trophy, TrendingDown } from "lucide-react";
+import { EndingDossier } from "@/components/game/ending-dossier";
 import { Gear } from "@/components/game/particles";
+import { buildEndingReport } from "@/game/ending-report";
 import { useGameStore } from "@/game/state";
 
 export const Route = createFileRoute("/ending/bankruptcy")({
@@ -10,8 +12,7 @@ export const Route = createFileRoute("/ending/bankruptcy")({
       { title: "Phá sản — Das Kapitalist" },
       {
         name: "description",
-        content:
-          "Kết cục: tư bản của bạn đã sụp đổ dưới quy luật xu hướng giảm sút của tỷ suất lợi nhuận.",
+        content: "Kết cục: chu chuyển tư bản của xưởng bị gián đoạn bởi khủng hoảng tài chính.",
       },
     ],
   }),
@@ -20,8 +21,10 @@ export const Route = createFileRoute("/ending/bankruptcy")({
 
 function BankruptcyEnding() {
   const reset = useGameStore((store) => store.reset);
+  const state = useGameStore((store) => store.state);
+  const report = buildEndingReport(state, "bankruptcy");
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="relative min-h-screen overflow-x-hidden">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -57,7 +60,7 @@ function BankruptcyEnding() {
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,oklch(0.05_0.01_225/0.9)_100%)]" />
 
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-8 text-center">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-5 py-10 text-center sm:px-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -69,7 +72,7 @@ function BankruptcyEnding() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 1.2 }}
-          className="mt-6 font-display text-7xl font-bold uppercase tracking-widest text-[oklch(0.9_0.05_230)] drop-shadow-[0_4px_20px_oklch(0.3_0.05_235/0.8)]"
+          className="mt-6 font-display text-3xl font-bold uppercase tracking-wider text-[oklch(0.9_0.05_230)] drop-shadow-[0_4px_20px_oklch(0.3_0.05_235/0.8)] sm:text-7xl sm:tracking-widest"
         >
           Tư bản đã sụp đổ
         </motion.h1>
@@ -92,10 +95,9 @@ function BankruptcyEnding() {
             Phân tích kinh tế
           </div>
           <p className="mt-3 text-sm leading-relaxed text-[oklch(0.9_0.02_230)]">
-            Đầu tư ồ ạt vào tư bản bất biến (c) mà không tăng tương ứng phần khả biến (v) đã kéo{" "}
-            <span className="text-[oklch(0.85_0.12_235)]">cấu tạo hữu cơ của tư bản</span> lên cao.
-            Theo quy luật xu hướng giảm sút của tỷ suất lợi nhuận, p′ = m/(c+v) tụt xuống đến mức
-            không đủ trả lãi vay. Xưởng đóng cửa, máy móc rỉ sét, công nhân đói khát tản mát.
+            {report.thesis} Phá sản ở đây là gián đoạn chu chuyển tiền tệ của tư bản. Nó có thể đến
+            từ tồn kho, tín dụng, chi phí, cạnh tranh hoặc đầu tư quá mức; không được đồng nhất máy
+            móc với nguyên nhân duy nhất.
           </p>
           <p className="mt-3 text-sm italic leading-relaxed text-[oklch(0.75_0.05_235)]">
             "Rào cản thực sự của nền sản xuất tư bản chủ nghĩa chính là bản thân tư bản."
@@ -107,8 +109,9 @@ function BankruptcyEnding() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 3, duration: 1 }}
-          className="mt-8 flex gap-3"
+          className="mt-8 flex flex-wrap justify-center gap-3"
         >
+          <EndingDossier state={state} ending="bankruptcy" />
           <Link
             to="/game"
             onClick={reset}

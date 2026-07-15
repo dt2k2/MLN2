@@ -62,14 +62,32 @@ describe("decision store", () => {
 
   it("resets group limits and all transient game history", () => {
     useGameStore.getState().applyDecision("LAYOFF");
+    expect(useGameStore.getState().state.decisionHistory).toHaveLength(1);
     useGameStore.getState().reset();
     const store = useGameStore.getState();
     expect(store.usedDecisionGroups.size).toBe(0);
     expect(store.state.eventHistory).toEqual({});
     expect(store.state.activeEffects).toEqual([]);
     expect(store.state.accumulationFund).toBe(0);
+    expect(store.state.decisionHistory).toEqual([]);
     expect(store.state.machineBookValue).toBe(BAL.machinePrice * 3);
     expect(store.state.turn).toBe(1);
+  });
+
+  it("records successful decisions with their historical context", () => {
+    useGameStore.getState().applyDecision("RAISE_WAGE");
+
+    expect(useGameStore.getState().state.decisionHistory).toEqual([
+      expect.objectContaining({
+        turn: 1,
+        year: BAL.startYear,
+        quarter: 1,
+        source: "decision",
+        id: "RAISE_WAGE",
+        groupId: "WAGES",
+        ownerStance: "reformist",
+      }),
+    ]);
   });
 
   it("presents only the three-step first production series without auto-accumulation", () => {

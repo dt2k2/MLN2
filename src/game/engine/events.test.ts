@@ -21,6 +21,18 @@ describe("event engine", () => {
     expect(eligibleEvents(state).some((event) => event.id === "credit-crisis-1857")).toBe(true);
   });
 
+  it("does not date the 1857 credit crisis in the 1856 part of phase four", () => {
+    const state = initialState(1);
+    state.turn = 19;
+    state.year = 1856;
+    state.debt = 15_000;
+    expect(eligibleEvents(state).some((event) => event.id === "credit-crisis-1857")).toBe(false);
+
+    state.turn = 21;
+    state.year = 1857;
+    expect(eligibleEvents(state).some((event) => event.id === "credit-crisis-1857")).toBe(true);
+  });
+
   it("demands no more principal than is outstanding", () => {
     const definition = EVENTS.find((event) => event.id === "credit-crisis-1857");
     const state = initialState(1);
@@ -70,5 +82,16 @@ describe("event engine", () => {
     const state = initialState(1);
     state.eventHistory["defective-cloth"] = { count: 1, lastTurn: 1 };
     expect(eligibleEvents(state).some((event) => event.id === "defective-cloth")).toBe(false);
+  });
+
+  it("treats accepting Krupp's offer as a takeover rather than a monopoly victory", () => {
+    const definition = EVENTS.find((event) => event.id === "krupp-merger");
+    const state = initialState(1);
+    state.turn = 19;
+    state.marketShare = 0.2;
+
+    definition!.build(state).choices[0].apply(state);
+
+    expect(state.ending).toBe("merger");
   });
 });

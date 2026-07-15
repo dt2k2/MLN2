@@ -8,10 +8,24 @@ import { computeQuarter } from "./laws";
 describe("quarterly value and finance laws", () => {
   it("keeps the Marxist value identities explicit", () => {
     const record = computeQuarter(initialState(1));
-    expect(record.newValue).toBeCloseTo(record.v + record.m);
-    expect(record.commodityValue).toBeCloseTo(record.cTransferred + record.v + record.m);
+    expect(record.newValue).toBeCloseTo(record.reproducedVariableCapital + record.m);
+    expect(record.unrecoveredVariableCapital).toBe(0);
+    expect(record.commodityValue).toBeCloseTo(record.cTransferred + record.newValue);
     expect(record.profitRate).toBeCloseTo(record.m / record.totalCapitalAdvanced);
     expect(record.exploitation).toBeCloseTo(record.m / record.v);
+  });
+
+  it("does not turn an unreproduced wage advance into commodity value", () => {
+    const state = initialState(1);
+    state.wagePerWorker = 1_000;
+    const record = computeQuarter(state);
+
+    expect(record.newValue).toBeLessThan(record.v);
+    expect(record.m).toBe(0);
+    expect(record.reproducedVariableCapital).toBeCloseTo(record.newValue);
+    expect(record.unrecoveredVariableCapital).toBeCloseTo(record.v - record.newValue);
+    expect(record.commodityValue).toBeCloseTo(record.cTransferred + record.newValue);
+    expect(record.commodityValue).toBeLessThan(record.cTransferred + record.v);
   });
 
   it("machinery raises productivity without directly creating new value", () => {
