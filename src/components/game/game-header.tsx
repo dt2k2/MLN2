@@ -69,38 +69,48 @@ export function GameHeader({
             value={<AnimatedNumber value={money} prefix="$" className="text-gold" />}
           />
         </div>
-        <HeaderStat
-          icon={<Coins className="h-3.5 w-3.5 text-primary" />}
-          label="Quỹ tích lũy"
-          value={<AnimatedNumber value={accumulationFund} prefix="$" className="text-primary" />}
-        />
+        <div data-tutorial="header-fund" className="contents">
+          <HeaderStat
+            icon={<Coins className="h-3.5 w-3.5 text-primary" />}
+            label="Quỹ tích lũy"
+            value={<AnimatedNumber value={accumulationFund} prefix="$" className="text-primary" />}
+          />
+        </div>
         {hasDebt ? (
           <>
-            <HeaderStat
-              icon={<Landmark className="h-3.5 w-3.5" />}
-              label="Dư nợ"
-              value={
-                <span className="whitespace-nowrap font-mono">
-                  ${Math.round(debt).toLocaleString("vi-VN")}
-                </span>
-              }
-            />
-            <HeaderStat
-              icon={<Landmark className="h-3.5 w-3.5" />}
-              label="Lãi quý tới"
-              value={
-                <span className="whitespace-nowrap font-mono text-destructive">
-                  ${Math.round(nextInterest).toLocaleString("vi-VN")}
-                </span>
-              }
-            />
-            <HeaderStat
-              icon={<Landmark className="h-3.5 w-3.5" />}
-              label="Nợ / Tài sản"
-              value={
-                <span className="whitespace-nowrap font-mono">{(debtRatio * 100).toFixed(0)}%</span>
-              }
-            />
+            <div data-tutorial="header-debt" className="contents">
+              <HeaderStat
+                icon={<Landmark className="h-3.5 w-3.5" />}
+                label="Dư nợ"
+                value={
+                  <span className="whitespace-nowrap font-mono">
+                    ${Math.round(debt).toLocaleString("vi-VN")}
+                  </span>
+                }
+              />
+            </div>
+            <div data-tutorial="header-next-interest" className="contents">
+              <HeaderStat
+                icon={<Landmark className="h-3.5 w-3.5" />}
+                label="Lãi quý tới"
+                value={
+                  <span className="whitespace-nowrap font-mono text-destructive">
+                    ${Math.round(nextInterest).toLocaleString("vi-VN")}
+                  </span>
+                }
+              />
+            </div>
+            <div data-tutorial="header-debt-ratio" className="contents">
+              <HeaderStat
+                icon={<Landmark className="h-3.5 w-3.5" />}
+                label="Nợ / Tài sản"
+                value={
+                  <span className="whitespace-nowrap font-mono">
+                    {(debtRatio * 100).toFixed(0)}%
+                  </span>
+                }
+              />
+            </div>
           </>
         ) : null}
       </div>

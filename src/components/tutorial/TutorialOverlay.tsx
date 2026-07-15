@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Lightbulb, SkipForward, X } from "lucide-react";
-import { TUTORIAL_STEPS } from "@/tutorial/steps";
+import { ArrowLeft, ArrowRight, ExternalLink, Lightbulb, SkipForward, X } from "lucide-react";
+import { TUTORIAL_STEPS, visiblePages } from "@/tutorial/steps";
 import { useTutorialStore, hintFor } from "@/tutorial/state";
 import { useTargetRect, type TargetRect } from "@/tutorial/use-target-rect";
 import { useGameStore } from "@/game/state";
+import type { GameState } from "@/game/types";
 
-const PANEL_WIDTH = 340;
+const PANEL_WIDTH = 360;
 const PANEL_GAP = 16;
 
 function panelPosition(
@@ -17,20 +19,20 @@ function panelPosition(
   const width = Math.min(PANEL_WIDTH, viewport.w - 24);
   const isMobile = viewport.w < 768;
   if (isMobile) {
-    return { top: viewport.h - 260, left: (viewport.w - width) / 2, width };
+    return { top: viewport.h - 300, left: (viewport.w - width) / 2, width };
   }
 
   let p = placement;
   if (p === "auto") {
     if (rect.left + rect.width + PANEL_GAP + width < viewport.w) p = "right";
     else if (rect.left - PANEL_GAP - width > 0) p = "left";
-    else if (rect.top - PANEL_GAP - 220 > 0) p = "top";
+    else if (rect.top - PANEL_GAP - 260 > 0) p = "top";
     else p = "bottom";
   }
 
   const centerY = Math.max(
     12,
-    Math.min(viewport.h - 240, rect.top + rect.height / 2 - 100),
+    Math.min(viewport.h - 280, rect.top + rect.height / 2 - 120),
   );
   switch (p) {
     case "right":
@@ -47,14 +49,14 @@ function panelPosition(
       };
     case "top":
       return {
-        top: Math.max(12, rect.top - PANEL_GAP - 220),
+        top: Math.max(12, rect.top - PANEL_GAP - 260),
         left: Math.max(12, Math.min(viewport.w - width - 12, rect.left)),
         width,
       };
     case "bottom":
     default:
       return {
-        top: Math.min(viewport.h - 240, rect.top + rect.height + PANEL_GAP),
+        top: Math.min(viewport.h - 280, rect.top + rect.height + PANEL_GAP),
         left: Math.max(12, Math.min(viewport.w - width - 12, rect.left)),
         width,
       };
@@ -62,22 +64,16 @@ function panelPosition(
 }
 
 function useViewport() {
-  const get = () => ({
+  const [vp, set] = useState(() => ({
     w: typeof window === "undefined" ? 1280 : window.innerWidth,
     h: typeof window === "undefined" ? 800 : window.innerHeight,
-  });
-  const [vp, set] = useStateOrDefault(get);
+  }));
   useEffect(() => {
-    const onResize = () => set(get());
+    const onResize = () => set({ w: window.innerWidth, h: window.innerHeight });
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return vp;
-}
-
-function useStateOrDefault<T>(init: () => T) {
-  return useState<T>(init);
 }
 
 export function TutorialOverlay({
@@ -87,6 +83,7 @@ export function TutorialOverlay({
 }) {
   const active = useTutorialStore((s) => s.active);
   const stepIndex = useTutorialStore((s) => s.stepIndex);
+  const pageIndex = useTutorialStore((s) => s.pageIndex);
   const next = useTutorialStore((s) => s.next);
   const prev = useTutorialStore((s) => s.previous);
   const requestSkip = useTutorialStore((s) => s.requestSkip);
@@ -96,8 +93,9 @@ export function TutorialOverlay({
   const pendingHint = useTutorialStore((s) => s.pendingHint);
   const dismissHint = useTutorialStore((s) => s.dismissHint);
 
+  const gameState = useGameStore((s) => s.state);
   const queueLen = useGameStore((s) => s.presentationQueue.length);
-  const pendingEvent = useGameStore((s) => s.state.pendingEvent);
+  const pendingEvent = gameState.pendingEvent;
   const paused = queueLen > 0 || !!pendingEvent;
 
   const step = active ? TUTORIAL_STEPS[stepIndex] : null;
@@ -123,7 +121,15 @@ export function TutorialOverlay({
   return (
     <>
       {active && !paused && step ? (
-        <StepOverlay stepIndex={stepIndex} viewport={viewport} onNext={next} onPrev={prev} onSkip={requestSkip} />
+        <StepOverlay
+          stepIndex={stepIndex}
+          pageIndex={pageIndex}
+          gameState={gameState}
+          viewport={viewport}
+          onNext={next}
+          onPrev={prev}
+          onSkip={requestSkip}
+        />
       ) : null}
 
       {pendingHint ? <HintOverlay id={pendingHint} viewport={viewport} onClose={dismissHint} /> : null}
@@ -135,24 +141,35 @@ export function TutorialOverlay({
 
 function StepOverlay({
   stepIndex,
+  pageIndex,
+  gameState,
   viewport,
   onNext,
   onPrev,
   onSkip,
 }: {
   stepIndex: number;
+  pageIndex: number;
+  gameState: GameState;
   viewport: { w: number; h: number };
   onNext: () => void;
   onPrev: () => void;
   onSkip: () => void;
 }) {
   const step = TUTORIAL_STEPS[stepIndex];
-  const rect = useTargetRect(step.target, [stepIndex]);
-  if (!rect) return null;
+  const pages = visiblePages(step, gameState);
+  const safePageIndex = Math.min(pageIndex, Math.max(0, pages.length - 1));
+  const page = pages[safePageIndex];
+  const rect = useTargetRect(page?.target ?? null, [stepIndex, safePageIndex]);
+  if (!page || !rect) return null;
 
-  const panel = panelPosition(rect, step.placement ?? "auto", viewport);
-  const total = TUTORIAL_STEPS.length;
+  const panel = panelPosition(rect, page.placement ?? "auto", viewport);
+  const totalSteps = TUTORIAL_STEPS.length;
   const padding = 8;
+  const isLastPage = safePageIndex >= pages.length - 1;
+  const isFirstOfAll = stepIndex === 0 && safePageIndex === 0;
+  const advance = step.advance.kind;
+  const bodyText = typeof page.body === "function" ? page.body(gameState) : page.body;
 
   return (
     <div
@@ -189,7 +206,7 @@ function StepOverlay({
       </svg>
 
       <motion.div
-        key={stepIndex}
+        key={`${stepIndex}-${safePageIndex}`}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22 }}
@@ -201,19 +218,30 @@ function StepOverlay({
             <Lightbulb className="h-3 w-3" /> Hướng dẫn
           </span>
           <span>
-            Bước {stepIndex + 1}/{total}
+            Bước {stepIndex + 1}/{totalSteps}
+            {pages.length > 1 ? ` · ${safePageIndex + 1}/${pages.length}` : ""}
           </span>
         </div>
         <h3 id="tutorial-title" className="mt-2 font-display text-lg text-gold">
-          {step.title}
+          {page.title}
         </h3>
         <p
           id="tutorial-body"
           aria-live="polite"
           className="mt-2 text-sm leading-relaxed text-foreground/90"
         >
-          {step.body}
+          {bodyText}
         </p>
+        {page.learnMoreAnchor ? (
+          <Link
+            to="/how-to-play"
+            hash={page.learnMoreAnchor}
+            target="_blank"
+            className="mt-2 inline-flex items-center gap-1 text-[11px] text-primary/80 hover:text-gold"
+          >
+            <ExternalLink className="h-3 w-3" /> Tìm hiểu thêm
+          </Link>
+        ) : null}
         <div className="mt-4 flex items-center justify-between gap-2">
           <button
             onClick={onSkip}
@@ -224,12 +252,19 @@ function StepOverlay({
           <div className="flex items-center gap-2">
             <button
               onClick={onPrev}
-              disabled={stepIndex === 0}
+              disabled={isFirstOfAll}
               className="flex items-center gap-1 rounded border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/60 hover:text-foreground disabled:opacity-40"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Quay lại
             </button>
-            {step.advance.kind === "manual" ? (
+            {!isLastPage ? (
+              <button
+                onClick={onNext}
+                className="flex items-center gap-1 rounded bg-gold px-3 py-1.5 text-xs font-semibold text-[oklch(0.15_0.01_60)] hover:brightness-110"
+              >
+                Xem chỉ số tiếp theo <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            ) : advance === "manual" ? (
               <button
                 onClick={onNext}
                 className="flex items-center gap-1 rounded bg-gold px-3 py-1.5 text-xs font-semibold text-[oklch(0.15_0.01_60)] hover:brightness-110"
