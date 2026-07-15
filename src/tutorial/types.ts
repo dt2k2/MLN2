@@ -26,6 +26,8 @@ export type TutorialTargetId =
   | "market-output"
   | "market-price"
   | "market-share"
+  | "market-group-demand"
+  | "market-group-output"
   | "cvm-chart"
   | "profit-chart"
   | "contradiction"
