@@ -79,7 +79,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         learnMoreAnchor: "cau-thanh-gia-tri",
       },
       {
-        target: "market-firm-demand",
+        target: "market-group-demand",
         title: "Cầu, cung và phần cầu của xưởng",
         body: (s: GameState) =>
           `Cầu hiệu dụng ngành (${s.effectiveDemand.toLocaleString("vi-VN")} đvsp) là lượng hàng toàn thị trường có khả năng thanh toán. Tổng cung ngành (${Math.round(s.industrySupply).toLocaleString("vi-VN")}) là sản lượng dự kiến của bạn và các đối thủ. Cầu dành cho xưởng (${s.demand.toLocaleString("vi-VN")}) là phần bạn có khả năng giành được dựa trên thị phần. Sản xuất vượt con số đó có nguy cơ nằm lại trong kho.`,
