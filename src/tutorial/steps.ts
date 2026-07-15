@@ -196,7 +196,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
           return `Quý vừa rồi giá trị sản phẩm chia theo cơ cấu c ${c}% · v ${v}% · m ${m}%. c là giá trị tư liệu chuyển vào hàng hóa (không phải toàn bộ tiền mặt đã chi). v là phần ứng ra để mua sức lao động. m là phần giá trị mới do lao động tạo ra vượt quá v — không đồng nhất với lợi nhuận kế toán. Đây là cơ cấu giá trị của quý, không phải tỷ suất lợi nhuận.`;
         },
         showIf: (s: GameState) => s.history.length > 0 && s.last.commodityValue > 0,
-        placement: "top",
+        placement: "bottom",
         learnMoreAnchor: "cau-thanh-gia-tri",
       },
       {
@@ -207,7 +207,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
           return `Biểu đồ theo dõi lợi nhuận kế toán so với vốn xưởng đã ứng cho từng quý. Quý vừa rồi hiệu suất vốn là ${rate}%. Đường đi lên cho thấy vốn đang sinh lợi tốt hơn; đường đi xuống có thể do chi phí tăng, hàng không bán được, lãi vay hoặc vốn máy tăng nhanh hơn lợi nhuận. Đây là tỷ suất từng quý, không phải cả năm — cần thêm các quý sau mới biết đây là xu hướng tăng hay giảm.`;
         },
         showIf: (s: GameState) => s.history.length > 0,
-        placement: "top",
+        placement: "bottom",
         learnMoreAnchor: "hieu-suat-von",
       },
     ],
