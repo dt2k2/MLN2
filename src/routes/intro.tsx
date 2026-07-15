@@ -131,13 +131,16 @@ function IntroScene() {
       />
 
       {/* Scene background — Ken Burns */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         <motion.div
           key={current.img}
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1.15 }}
-          exit={{ opacity: 0, scale: 1.2 }}
-          transition={{ opacity: { duration: 1.2 }, scale: { duration: current.end - current.start, ease: "linear" } }}
+          exit={{ opacity: 0 }}
+          transition={{
+            opacity: { duration: 1.2 },
+            scale: { duration: current.end - current.start, ease: "linear" },
+          }}
           className="absolute inset-0"
         >
           <img
