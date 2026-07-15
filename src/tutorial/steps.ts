@@ -83,7 +83,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         title: "Cầu, cung và phần cầu của xưởng",
         body: (s: GameState) =>
           `Cầu hiệu dụng ngành (${s.effectiveDemand.toLocaleString("vi-VN")} đvsp) là lượng hàng toàn thị trường có khả năng thanh toán. Tổng cung ngành (${Math.round(s.industrySupply).toLocaleString("vi-VN")}) là sản lượng dự kiến của bạn và các đối thủ. Cầu dành cho xưởng (${s.demand.toLocaleString("vi-VN")}) là phần bạn có khả năng giành được dựa trên thị phần. Sản xuất vượt con số đó có nguy cơ nằm lại trong kho.`,
-        placement: "top",
+        placement: "bottom",
         learnMoreAnchor: "thi-truong",
       },
       {
@@ -97,7 +97,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
             : "Trước khi quý đầu hoàn tất, sản lượng thực tế chưa xuất hiện — chỉ có dự kiến.";
           return `${outputLine} Giá bán dự kiến $${s.sellPrice.toFixed(1)}/đv chịu ảnh hưởng của giá trị xã hội, cung–cầu và cạnh tranh. Thị phần ${(s.marketShare * 100).toFixed(0)}% giúp tiếp cận nhiều cầu hơn, nhưng mở rộng quá nhanh vẫn có thể làm tồn kho tăng. Chuỗi cần nhớ: thị phần → tiếp cận cầu → sản xuất tạo hàng → thị trường quyết định bao nhiêu hàng bán được.`;
         },
-        placement: "top",
+        placement: "bottom",
         learnMoreAnchor: "thi-truong",
       },
       {
