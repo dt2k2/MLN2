@@ -856,11 +856,13 @@ function MarketCard({
   value,
   unit,
   tone,
+  tutorialId,
 }: {
   label: string;
   value: string;
   unit: string;
   tone: "info" | "gold" | "success" | "danger";
+  tutorialId?: string;
 }) {
   const c = {
     info: "text-[color:var(--info)]",
@@ -869,7 +871,7 @@ function MarketCard({
     danger: "text-destructive",
   }[tone];
   return (
-    <div className="panel-industrial rounded-lg p-3">
+    <div data-tutorial={tutorialId} className="panel-industrial rounded-lg p-3">
       <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {label}
       </div>
