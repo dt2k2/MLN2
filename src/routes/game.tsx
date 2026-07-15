@@ -321,104 +321,127 @@ function GameScreen() {
             </div>
 
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.5fr_1fr_1fr]">
-              <ProfitChart
-                data={profitTrend}
-                currentTurn={state.turn}
-                unlocked={!!state.discoveredConcepts.profitRate}
-              />
+              <div data-tutorial="profit-chart">
+                <ProfitChart
+                  data={profitTrend}
+                  currentTurn={state.turn}
+                  unlocked={!!state.discoveredConcepts.profitRate}
+                  hasData={state.history.length > 0}
+                />
+              </div>
 
-              <ChartCard
-                title={
-                  state.discoveredConcepts.surplusValue ? "Cấu thành giá trị" : "Giá trị sản phẩm"
-                }
-                hint={
-                  state.discoveredConcepts.surplusValue
-                    ? "c chuyển dịch : v tái tạo : m"
-                    : "tư liệu : lương tái tạo : dôi ra"
-                }
-              >
-                <ResponsiveContainer width="100%" height={90}>
-                  <BarChart
-                    data={capitalRatio}
-                    layout="vertical"
-                    margin={{ top: 4, right: 8, bottom: 4, left: 8 }}
-                  >
-                    <ReTooltip
-                      contentStyle={{
-                        background: "oklch(0.18 0.006 60)",
-                        border: "1px solid oklch(0.32 0.008 60)",
-                        borderRadius: 6,
-                        fontSize: 11,
-                      }}
-                    />
-                    <Bar dataKey="v" radius={4}>
-                      {capitalRatio.map((c) => (
-                        <Cell key={c.name} fill={c.color} />
-                      ))}
-                    </Bar>
-                    <XAxis type="number" hide />
-                  </BarChart>
-                </ResponsiveContainer>
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-mono text-muted-foreground">
-                  <span className="whitespace-nowrap">
-                    <span className="text-[color:var(--info)]">■</span> c {capitalRatio[0].v}%
-                  </span>
-                  <span className="whitespace-nowrap">
-                    <span className="text-gold">■</span> v {capitalRatio[1].v}%
-                  </span>
-                  <span className="whitespace-nowrap">
-                    <span className="text-[color:var(--success)]">■</span> m {capitalRatio[2].v}%
-                  </span>
-                </div>
-                {last.unrecoveredVariableCapital > 0 && (
-                  <p className="mt-1 text-[10px] text-destructive">
-                    Quỹ lương chưa tái tạo: $
-                    {Math.round(last.unrecoveredVariableCapital).toLocaleString("vi-VN")}
-                  </p>
-                )}
-              </ChartCard>
+              <div data-tutorial="cvm-chart">
+                <ChartCard
+                  title={
+                    state.discoveredConcepts.surplusValue ? "Cấu thành giá trị" : "Giá trị sản phẩm"
+                  }
+                  hint={
+                    state.discoveredConcepts.surplusValue
+                      ? "c chuyển dịch : v tái tạo : m"
+                      : "tư liệu : lương tái tạo : dôi ra"
+                  }
+                >
+                  {state.history.length === 0 || last.commodityValue <= 0 ? (
+                    <div className="flex h-[110px] items-center justify-center text-center text-xs text-muted-foreground">
+                      Chưa có dữ liệu quý
+                    </div>
+                  ) : (
+                    <>
+                      <ResponsiveContainer width="100%" height={90}>
+                        <BarChart
+                          data={capitalRatio}
+                          layout="vertical"
+                          margin={{ top: 4, right: 8, bottom: 4, left: 8 }}
+                        >
+                          <ReTooltip
+                            contentStyle={{
+                              background: "oklch(0.18 0.006 60)",
+                              border: "1px solid oklch(0.32 0.008 60)",
+                              borderRadius: 6,
+                              fontSize: 11,
+                            }}
+                          />
+                          <Bar dataKey="v" radius={4}>
+                            {capitalRatio.map((c) => (
+                              <Cell key={c.name} fill={c.color} />
+                            ))}
+                          </Bar>
+                          <XAxis type="number" hide />
+                        </BarChart>
+                      </ResponsiveContainer>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-mono text-foreground/80">
+                        <span className="whitespace-nowrap">
+                          <span className="text-[color:var(--info)]">■</span> c {capitalRatio[0].v}%
+                        </span>
+                        <span className="whitespace-nowrap">
+                          <span className="text-gold">■</span> v {capitalRatio[1].v}%
+                        </span>
+                        <span className="whitespace-nowrap">
+                          <span className="text-[color:var(--success)]">■</span> m{" "}
+                          {capitalRatio[2].v}%
+                        </span>
+                      </div>
+                      {last.unrecoveredVariableCapital > 0 && (
+                        <p className="mt-1 text-[10px] text-destructive">
+                          Quỹ lương chưa tái tạo: $
+                          {Math.round(last.unrecoveredVariableCapital).toLocaleString("vi-VN")}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </ChartCard>
+              </div>
 
-              <ContradictionCard value={contradictionInt} unrest={state.unrest} />
+              <div data-tutorial="contradiction">
+                <ContradictionCard value={contradictionInt} unrest={state.unrest} />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
               <MarketCard
-                label="Phần cầu của xưởng"
+                label="Cầu dành cho xưởng"
                 value={state.demand.toLocaleString("vi-VN")}
                 unit="đvsp"
                 tone="info"
+                tutorialId="market-firm-demand"
               />
               <MarketCard
                 label="Cầu hiệu dụng ngành"
                 value={state.effectiveDemand.toLocaleString("vi-VN")}
                 unit="đvsp"
                 tone="info"
+                tutorialId="market-demand-industry"
               />
               <MarketCard
                 label="Tổng cung ngành"
                 value={Math.round(state.industrySupply).toLocaleString("vi-VN")}
                 unit="đvsp"
                 tone={state.industrySupply > state.effectiveDemand ? "danger" : "success"}
+                tutorialId="market-supply-industry"
               />
               <MarketCard
                 label="Sản lượng"
                 value={Math.round(last.output).toLocaleString("vi-VN")}
                 unit="đvsp"
                 tone="gold"
+                tutorialId="market-output"
               />
               <MarketCard
                 label="Giá bán"
                 value={`$${state.sellPrice.toFixed(1)}`}
                 unit="/đv"
                 tone="success"
+                tutorialId="market-price"
               />
               <MarketCard
                 label="Thị phần"
                 value={`${(state.marketShare * 100).toFixed(0)}%`}
                 unit=""
                 tone={state.marketShare > 0.4 ? "success" : "danger"}
+                tutorialId="market-share"
               />
             </div>
+
 
             {/* Bottom log */}
             <div data-tutorial="log-panel" className="panel-industrial flex min-h-[190px] flex-1 flex-col rounded-lg p-4">
