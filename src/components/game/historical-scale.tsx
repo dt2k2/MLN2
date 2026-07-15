@@ -448,18 +448,43 @@ export function HistoricalScale({
             isHero ? "text-[10px]" : "text-[9px]"
           }`}
         >
-          <PressureBar label="Tư bản" value={r.capital} color="var(--gold)" />
-          <PressureBar label="Lao động" value={r.labor} color="oklch(0.65 0.18 25)" />
-          <PressureBar label="Thị trường" value={r.market} color="var(--info)" />
+          <PressureBar
+            label="Tư bản"
+            value={r.capital}
+            color="var(--gold)"
+            tutorialId="historical-scale-capital"
+          />
+          <PressureBar
+            label="Lao động"
+            value={r.labor}
+            color="oklch(0.65 0.18 25)"
+            tutorialId="historical-scale-labor"
+          />
+          <PressureBar
+            label="Thị trường"
+            value={r.market}
+            color="var(--info)"
+            tutorialId="historical-scale-market"
+          />
         </div>
       </div>
     </StatTooltip>
   );
 }
 
-function PressureBar({ label, value, color }: { label: string; value: number; color: string }) {
+function PressureBar({
+  label,
+  value,
+  color,
+  tutorialId,
+}: {
+  label: string;
+  value: number;
+  color: string;
+  tutorialId?: string;
+}) {
   return (
-    <div className="flex flex-col gap-0.5">
+    <div data-tutorial={tutorialId} className="flex flex-col gap-0.5">
       <div className="flex items-center justify-between text-muted-foreground">
         <span>{label}</span>
         <span style={{ color }}>{Math.round(value)}</span>
