@@ -18,16 +18,19 @@ export function ProfitChart({
   data,
   currentTurn,
   unlocked,
+  hasData = true,
 }: {
   data: { q: string; v: number; i: number }[];
   currentTurn: number;
   unlocked: boolean;
+  hasData?: boolean;
 }) {
   const rows: Row[] = data.map((d, i) => ({
     ...d,
     turn: currentTurn - (data.length - 1 - i),
   }));
   const last = rows[rows.length - 1];
+  const isEmpty = !hasData || rows.length === 0;
 
   return (
     <div className="panel-industrial rounded-lg p-3">
@@ -36,9 +39,14 @@ export function ProfitChart({
           {unlocked ? "Xu hướng tỷ suất lợi nhuận p′" : "Xu hướng hiệu suất tổng vốn"}
         </div>
         <div className="font-mono text-[10px] text-muted-foreground/70">
-          {last ? phaseFor(last.turn) : "—"}
+          {isEmpty ? "—" : last ? phaseFor(last.turn) : "—"}
         </div>
       </div>
+      {isEmpty ? (
+        <div className="mt-2 flex h-[110px] items-center justify-center text-center text-xs text-muted-foreground">
+          Chưa có dữ liệu quý
+        </div>
+      ) : (
       <div className="mt-2">
         <ResponsiveContainer width="100%" height={110}>
           <AreaChart data={rows} margin={{ top: 6, right: 6, bottom: 12, left: 0 }}>
