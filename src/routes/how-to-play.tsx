@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, BookOpen, Clock, Users, TrendingUp, AlertTriangle } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, BookOpen, Clock, Users, TrendingUp, AlertTriangle, Lightbulb } from "lucide-react";
 import { Gear } from "@/components/game/particles";
+import { useTutorialStore } from "@/tutorial/state";
 
 export const Route = createFileRoute("/how-to-play")({
   head: () => ({
@@ -125,15 +126,32 @@ function HowToPlay() {
           </ol>
         </section>
 
-        <div className="mt-12 flex justify-center">
+        <div className="mt-12 flex flex-wrap justify-center gap-3">
           <Link
             to="/game"
             className="rounded-md border border-primary/70 bg-primary/15 px-8 py-3 font-display text-sm uppercase tracking-[0.3em] text-gold shadow-[0_0_30px_oklch(0.5_0.1_60/0.25)] hover:bg-primary/25"
           >
             Bắt đầu ván mới →
           </Link>
+          <RestartTutorialButton />
         </div>
       </div>
     </main>
+  );
+}
+
+function RestartTutorialButton() {
+  const restart = useTutorialStore((s) => s.restart);
+  const navigate = useNavigate();
+  return (
+    <button
+      onClick={() => {
+        restart();
+        navigate({ to: "/game" });
+      }}
+      className="flex items-center gap-2 rounded-md border border-border bg-panel-elevated px-6 py-3 font-display text-sm uppercase tracking-[0.3em] text-muted-foreground hover:border-primary/60 hover:text-gold"
+    >
+      <Lightbulb className="h-4 w-4" /> Chơi lại hướng dẫn
+    </button>
   );
 }

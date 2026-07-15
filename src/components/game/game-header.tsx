@@ -39,32 +39,36 @@ export function GameHeader({
 
       <div className="order-3 grid w-full min-w-0 grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-4 lg:order-none lg:flex lg:w-auto lg:flex-1 lg:items-center lg:gap-6">
         <HeaderStat icon={<Factory className="h-3.5 w-3.5" />} label="Hãng" value={company} />
-        <HeaderStat
-          icon={<Calendar className="h-3.5 w-3.5" />}
-          label="Lượt"
-          value={
-            <span className="whitespace-nowrap">
-              <AnimatePresence mode="popLayout">
-                <motion.span
-                  key={turn}
-                  initial={{ scale: 1.5 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.35 }}
-                  className="inline-block font-mono"
-                >
-                  {turn}
-                </motion.span>
-              </AnimatePresence>
-              <span className="text-muted-foreground"> / 24</span>
-            </span>
-          }
-        />
+        <div data-tutorial="header-turn" className="contents">
+          <HeaderStat
+            icon={<Calendar className="h-3.5 w-3.5" />}
+            label="Lượt"
+            value={
+              <span className="whitespace-nowrap">
+                <AnimatePresence mode="popLayout">
+                  <motion.span
+                    key={turn}
+                    initial={{ scale: 1.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.35 }}
+                    className="inline-block font-mono"
+                  >
+                    {turn}
+                  </motion.span>
+                </AnimatePresence>
+                <span className="text-muted-foreground"> / 24</span>
+              </span>
+            }
+          />
+        </div>
         <HeaderStat icon={<Calendar className="h-3.5 w-3.5" />} label="Quý" value={quarter} />
-        <HeaderStat
-          icon={<Coins className="h-3.5 w-3.5 text-gold" />}
-          label="Tiền mặt"
-          value={<AnimatedNumber value={money} prefix="$" className="text-gold" />}
-        />
+        <div data-tutorial="header-cash" className="contents">
+          <HeaderStat
+            icon={<Coins className="h-3.5 w-3.5 text-gold" />}
+            label="Tiền mặt"
+            value={<AnimatedNumber value={money} prefix="$" className="text-gold" />}
+          />
+        </div>
         <HeaderStat
           icon={<Coins className="h-3.5 w-3.5 text-primary" />}
           label="Quỹ tích lũy"

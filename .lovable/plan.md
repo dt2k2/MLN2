@@ -1,108 +1,116 @@
-# Cán cân lịch sử (Historical Scale) — thay ContradictionCard
+# Tutorial "Người điều hành mới" — Das Kapitalist
 
-## Ý tưởng
-Thay khối "Áp lực xã hội / Mâu thuẫn cơ bản" hiện tại (một thanh máu số) bằng một **cán cân SVG động** — biểu tượng trạng thái lịch sử của xưởng. Cán cân nghiêng theo `tilt`, rung theo `instability`, rạn theo `crackLevel`, và có 5 trạng thái đặt tên: Ổn định · Tích lũy căng · Bóc lột nóng · Khủng hoảng · Rạn vỡ.
+Xây một lớp hướng dẫn quan sát trạng thái game và spotlight các control có sẵn. Không đổi kinh tế/event/concept/balance. Không đổi presentation queue.
 
-Vị trí: đúng ô hiện tại của `ContradictionCard` trong `src/routes/game.tsx` (dòng 335). Không đụng logic game (`src/game/*`), chỉ derive từ state hiện có.
+## 1. Kiến trúc mô-đun
 
-## Phạm vi (frontend-only)
-- **Tạo mới**: `src/components/game/historical-scale.tsx` — SVG cán cân + animation.
-- **Tạo mới**: `src/game/pressures.ts` — pure functions derive `capitalPressure`, `laborPressure`, `marketPressure`, `tilt`, `instability`, `crackLevel`, `phase` từ `GameState`. Không mutate state.
-- **Sửa**: `src/routes/game.tsx` — thay `<ContradictionCard .../>` bằng `<HistoricalScale state={state} />`. Giữ `ContradictionCard` file lại (không xóa) để có thể revert; hoặc xóa nếu bạn xác nhận.
-- **Không đụng**: `src/game/engine/*`, `balance.ts`, `decisions.ts`, `types.ts`.
+Tạo thư mục mới `src/tutorial/` — tách biệt hoàn toàn khỏi `src/game/`:
 
-## Công thức derive (đọc-only)
+- `src/tutorial/types.ts` — `TutorialStepId`, `TutorialTarget`, `TutorialDefinition`, `TutorialState`, `ContextualHintId`, `TutorialVersion`.
+- `src/tutorial/steps.ts` — mảng 8 bước chính (nội dung tiếng Việt theo spec). Mỗi step: `id`, `targetId`, `title`, `body`, `advance` ("manual" | { kind: "decision-applied" } | { kind: "quarter-ended" } | { kind: "queue-empty" } | { kind: "preview-viewed" }), `pickSafeDecision?(state)` trả về `DecisionOptionId` gợi ý (mặc định `RAISE_WAGE` nếu hợp lệ), `openGroup?: DecisionGroupId`.
+- `src/tutorial/hints.ts` — bảng contextual hint (7 loại theo spec) + predicate `shouldTrigger(state, prevState)` chạy dựa trên `state.history` cuối và diff.
+- `src/tutorial/storage.ts` — read/write `localStorage` key `das-kapitalist:tutorial:v1` với schema `{ version, completed, skipped, seenHints: string[] }`; guard `typeof window` và try/catch; migration khi bump version bỏ qua dữ liệu cũ chứ không crash.
+- `src/tutorial/state.ts` — zustand store `useTutorialStore` với: `active`, `stepIndex`, `completedSteps`, `seenHints`, `pendingHint`, `awaitingAction`; actions `start/next/previous/skip/complete/restart/dismissHint/observeGameChange`.
+- `src/tutorial/observer.tsx` — component vô hình gắn 1 lần ở `game.tsx`, subscribe `useGameStore` và gọi `observeGameChange` khi state thay đổi (kiểm tra queue, applied decision, end of quarter, contextual hint triggers).
 
-```ts
-capitalPressure =
-  clamp(debtRatio) * 30
-  + inventoryRatio * 25
-  + max(0, -profitRateReal) * 40
-  + reinvestmentRate * 10           // 0..100+
+Tutorial state hoàn toàn tách khỏi `useGameStore`. Không thêm gì vào `GameState`.
 
-laborPressure =
-  contradiction * 0.5
-  + unrest * 0.3
-  + max(0, workHours - 10) * 8
-  + socialUnemployment * 1.2
-  + max(0, 1 - wageIndex) * 25
+## 2. Component overlay
 
-marketPressure =
-  min(1, inventory/max(1,demand)) * 35
-  + max(0, industrySupply/effectiveDemand - 1) * 30
+`src/components/tutorial/`:
 
-tilt         = clamp(capitalPressure - laborPressure, -60, 60)   // độ nghiêng (deg/2)
-instability  = clamp(capitalPressure + laborPressure + marketPressure, 0, 200)
-crackLevel   = smoothstep(60, 120, instability + max(0, contradiction - 60))
-phase        = 'stable' | 'accumulation' | 'exploitation' | 'crisis' | 'rupture'
-```
+- `TutorialOverlay.tsx` — root. Nếu `active` và không có presentation modal đang mở (`presentationQueue.length === 0 && !pendingEvent`), render:
+  - `Spotlight`: portal dùng `getBoundingClientRect()` của target element (attribute `data-tutorial="{id}"`) để vẽ mask SVG có "khoét lỗ" (rect radius) + backdrop `bg-black/55`. Không chặn pointer trên vùng khoét (pointer-events: none trên overlay, mask cho vùng ngoài).
+  - `TutorialPanel`: tooltip đặt bằng `@radix-ui/react-popper` (đã có với shadcn) hoặc tính toán thủ công. Có `title`, `body` (2-4 câu), footer với `Bước n/8`, nút `Quay lại` / `Tiếp tục` / `Bỏ qua`. Nút Tiếp tục bị disable khi `awaitingAction` true. Trên mobile (<768px) chuyển thành bottom sheet.
+  - `role="dialog"` + `aria-live="polite"` cho body; announce khi step đổi.
+  - Animation opacity/translate 220ms; tôn trọng `prefers-reduced-motion`.
+- `CoachMark.tsx` — cho contextual hint. Popover nhỏ neo vào target, đóng bằng nút X hoặc Esc; không có Backdrop.
+- `SkipConfirmDialog.tsx` — reuse `AlertDialog` shadcn cho bỏ qua tutorial chính.
 
-Phase chọn theo ngưỡng ưu tiên: `rupture` nếu `contradiction≥85 || crackLevel≥0.8`; `crisis` nếu `marketPressure≥45 || overstockStreak≥2`; `exploitation` nếu `laborPressure≥55 || m/v>1`; `accumulation` nếu `capitalPressure≥45`; còn lại `stable`.
+Icon dùng từ `lucide-react` (`Lightbulb`, `ArrowLeft`, `ArrowRight`, `X`, `SkipForward`).
 
-## Thiết kế thị giác (SVG, motion)
+## 3. Đánh dấu target trong UI hiện tại
+
+Thêm attribute `data-tutorial="..."` (không đổi layout/CSS) tại các điểm ở `src/routes/game.tsx`:
+
+- `header-turn` — vùng lượt/quý trong `GameHeader` (thêm ở `game-header.tsx`).
+- `header-cash`, `header-debt`, `header-fund` — 3 ô KPI trong header.
+- `dash-c`, `dash-v`, `dash-m`, `dash-profit` — 4 `DashboardCard` chính.
+- `contradiction` — `ContradictionCard`.
+- `decision-panel`, `decision-tabs`, `decision-group-{id}` — panel bên phải + từng TabsTrigger.
+- `end-quarter` — `EndTurnButton`.
+- `summary-modal-root` — thêm vào TurnSummaryModal cho step 8.
+
+## 4. 8 bước chính (bám spec)
+
+Bảng step (id → target → advance):
 
 ```text
-     ╔══════════════ Cán cân lịch sử ══════════════╗
-     ║   [phase badge]         [instability dots]  ║
-     ║                                              ║
-     ║           ╱‾‾‾‾‾‾●‾‾‾‾‾‾╲   ← beam (rotate: tilt°)
-     ║          ▢ Tư bản    Lao động ▢               (đĩa trái/phải, y = -tilt)
-     ║          ║             ║                    ║ (dây, có thể "chain" khi debt cao)
-     ║           ║  ▲ trục ║   ← có vết nứt khi crackLevel cao
-     ║          ▬▬▬▬▬▬▬▬▬▬▬                        ║
-     ║  Tư bản 62 · Lao động 41 · Thị trường 18    ║ (mini bars)
-     ╚══════════════════════════════════════════════╝
+1 objective          header-turn           manual
+2 cash-debt          header-cash           manual (spotlight lần lượt cash → debt qua sub-step)
+3a costs             dash-c                manual
+3b wages             dash-v                manual
+3c surplus           dash-m                manual
+3d profit            dash-profit           manual
+3e pressure          contradiction         manual
+4 decisions          decision-panel        manual (giải thích 6 nhóm, spotlight tabs)
+5 preview            decision-group-WAGES  preview-viewed (mở tab, chờ user hover/click 1 option → phát hiện qua onMouseEnter set flag)
+6 apply              decision-panel        decision-applied (bất kỳ quyết định hợp lệ nào)
+7 end-quarter        end-quarter           quarter-ended
+8 summary            summary-modal-root    manual (chỉ chạy SAU khi queue có summary được đóng)
 ```
 
-- **Beam** (thanh ngang): `motion.g` xoay `rotate: tilt * 0.6` với `transition spring stiffness 60`.
-- **Đĩa trái = Tư bản**: chồng biểu tượng theo trọng số — coin stack (cash/debt), gear (machines), chain (khi debt>0). Đĩa **phải = Lao động**: figure silhouettes (workers), nhịp thở theo health.
-- **Rung** (instability): `animate x/y` bằng noise ±(instability/50)px, loop. Trên `>120` chuyển sang red-shift filter.
-- **Vết nứt trục** (crackLevel): SVG `<path>` zig-zag opacity = crackLevel; xuất hiện dần, không biến mất khi giảm nhẹ (hysteresis 0.15) — kể chuyện tổn thương lâu dài.
-- **Overstock**: khi marketPressure cao, thêm cuộn vải rơi khỏi đĩa Tư bản (motion `y: [0, 40]`, opacity fade), nền đĩa hơi lạnh.
-- **Tiền cách mạng** (`rupture`): nền tối lại, đĩa lao động phát sáng mờ (`filter: drop-shadow`), silhouette đám đông tĩnh phía sau.
+Text tiếng Việt lấy nguyên từ spec (không dùng thuật ngữ Marxist trước khi concept discovered → check `state.discoveredConcepts[key]` và fallback ngôn ngữ vận hành).
 
-Palette dùng token có sẵn: `--gold` (tư bản), `--contradiction` (lao động), `--danger` (rạn), `--muted-foreground`, `--panel-elevated`. Không hardcode màu.
+Vì quyết định apply ngay khi click (không có confirm step), step 5 giải thích rõ: *"Đưa chuột lên một lựa chọn để xem preview. Khi bạn click, quyết định sẽ áp dụng ngay lập tức."* → advance qua `onMouseEnter` trên option button trong tab WAGES. Step 6 tách riêng để user chọn hành động an toàn.
 
-## Preview khi hover option (tuỳ chọn giai đoạn 2)
-`ActionPreview` có sẵn `produce(state, DECISIONS[id].apply)`. Ở giai đoạn 2, expose `useHoverAction` để `HistoricalScale` nhận `previewState?` và animate tilt/instability tạm thời. **Không** làm ở giai đoạn 1 để giữ scope nhỏ; đánh dấu TODO.
+## 5. Luồng đồng bộ với gameplay
 
-## Tooltip & Eureka
-- Hover cả khối → `StatTooltip conceptKey="capitalistContradiction"` (giữ nguyên concept đã có).
-- Lần đầu `crackLevel` vượt 0.5 → gọi `discoverConcept('capitalistContradiction')` nếu chưa unlock + `showWarning("Cán cân bắt đầu rạn — mâu thuẫn cơ bản CNTB")`. Dùng đúng API hiện có, không tạo concept mới.
-- Không hiển thị chữ giải thích dài. Chỉ tên phase + 3 số nhỏ.
+Trong `observer.tsx`:
 
-## Chi tiết kỹ thuật
+- Subscribe `state.presentationQueue`, `state.pendingEvent`, `state.ending` → set `paused` khi có bất cứ modal educational nào. Overlay ẩn khi paused, không unmount step.
+- Subscribe `usedDecisionGroups` (từ store) → khi tăng, và step hiện tại chờ `decision-applied`, gọi `next()`.
+- Subscribe `state.history.length` → khi tăng, và step chờ `quarter-ended`, chờ queue trống rồi advance sang step 8.
+- Chạy `hints.ts` triggers sau mỗi state change nếu tutorial chính đã complete/skip, chỉ trigger khi không có modal đang mở, và chỉ 1 hint/lượt.
 
-**File `src/game/pressures.ts`** (pure, có thể unit-test sau):
-```ts
-export type ScalePhase = 'stable'|'accumulation'|'exploitation'|'crisis'|'rupture';
-export interface ScaleReading {
-  capital: number; labor: number; market: number;
-  tilt: number; instability: number; crackLevel: number;
-  phase: ScalePhase; phaseLabel: string;
-}
-export function readScale(s: GameState): ScaleReading { ... }
-```
+Nếu target chưa mount (ví dụ tab decision khác đang active), step tự set `activeGroup` thông qua ref callback được `game.tsx` truyền vào tutorial context (`setActiveDecisionGroup`).
 
-**File `src/components/game/historical-scale.tsx`**:
-- Props: `{ state: GameState }`.
-- Nội bộ: `const r = readScale(state)`; useRef cho `crackLevel` hysteresis; `useEffect` phát Eureka.
-- SVG viewBox `0 0 200 140`, responsive `w-full h-[140px]`.
-- Motion: `framer-motion` (đã có).
-- A11y: `role="img" aria-label={\`Cán cân: ${r.phaseLabel}, tư bản ${...}, lao động ${...}\`}`.
+## 6. Điểm khởi động
 
-**Sửa `game.tsx`** — chỉ 2 dòng:
-- Bỏ `import { ContradictionCard } ...`, thêm `import { HistoricalScale } ...`.
-- Thay `<ContradictionCard value={contradictionInt} unrest={state.unrest} />` bằng `<HistoricalScale state={state} />`.
+- Sau khi user đóng chapter "Sổ cái thừa kế" — dùng `useEffect` trong `game.tsx`: khi `presentationQueue` chuyển từ non-empty → empty lần đầu ở turn 1 và storage cho biết chưa complete/skip, gọi `tutorial.start()`.
+- Menu tạm dừng (nút Pause hiện có) + trang `/how-to-play`: thêm mục "Chơi lại hướng dẫn" gọi `restart()` rồi `navigate("/game")`.
 
-## Không làm
-- Không đổi balance/công thức kinh tế.
-- Không thêm âm thanh (bạn chưa yêu cầu file audio; có thể bổ sung sau nếu muốn).
-- Không xoá `ContradictionCard.tsx` (giữ để rollback); nếu muốn xoá, nói với mình.
+## 7. Reset game
 
-## Deliverable
-1. `src/game/pressures.ts` (mới)
-2. `src/components/game/historical-scale.tsx` (mới, SVG + motion)
-3. `src/routes/game.tsx` (đổi 2 dòng)
+`useGameStore.reset()` không đụng tutorial storage. Tutorial storage chỉ bị wipe khi user bấm "Chơi lại hướng dẫn" (không phải "Chơi lại"). Test đảm bảo.
 
-Bạn duyệt là mình build.
+## 8. Accessibility & responsive
+
+- Tooltip: `role="dialog"`, `aria-modal="false"` (không trap focus), `aria-labelledby`, `aria-describedby`, `aria-live="polite"` khi đổi step.
+- Esc: coach mark → đóng ngay; tutorial chính → mở `SkipConfirmDialog`.
+- Tab/Shift+Tab luân chuyển giữa Back/Next/Skip.
+- Mobile <768px: bottom sheet full width, cách nút "Kết thúc quý" ≥ 80px; spotlight cuộn target vào giữa viewport bằng `scrollIntoView({block:"center"})` một lần khi step mở.
+- `prefers-reduced-motion`: opacity thay animate translate.
+
+## 9. Tests (Vitest)
+
+`src/tutorial/*.test.ts(x)`:
+
+- `storage.test.ts`: read/write round-trip, version bump bỏ dữ liệu cũ, SSR-safe (mock `window = undefined`).
+- `state.test.ts`: start/next/previous, không quay lại quá 0, skip/complete set flag, restart clear.
+- `observer.test.tsx`: mock `useGameStore`, giả lập queue có modal → overlay không render; queue trống + step chờ quarter-ended + history tăng → advance.
+- `steps.test.ts`: step 6 chỉ complete khi `usedDecisionGroups.size` tăng; step 5 chấp nhận bất kỳ hover trong tab; step 8 chỉ render sau khi summary được dismiss.
+- `hints.test.ts`: mỗi hint chỉ trigger 1 lần; không trigger khi modal mở.
+- Integration nhẹ: render `<GameScreen />` với state mới → overlay xuất hiện; sau `reset()` không xóa completed flag.
+
+Không sửa `simulation.test.ts`, `concepts.test.ts`, `state.test.ts` (game state) hay 15 concept trigger.
+
+## 10. Production gate
+
+Sau khi implement: `bunx vitest run`, `bunx tsgo --noEmit`, ESLint, build. Playwright smoke: viewport 1440×900 và 360×800, chạy toàn tutorial + reset không mở lại + restart mở lại + Eureka giữa tutorial pause đúng.
+
+## Ghi chú kỹ thuật (không cần với user)
+
+- Không đưa refs của gameplay vào tutorial store; dùng `document.querySelector('[data-tutorial="..."]')` với `useLayoutEffect` + `ResizeObserver` để tự cập nhật spotlight khi layout đổi.
+- Overlay mount ở cuối `<GameScreen>` cùng cấp modal để nằm dưới `EventModal`/`ConceptModal` khi cần (z-index thấp hơn 50 của Radix Dialog nhưng cao hơn dashboard: dùng `z-40`).
+- Không đụng `state.ts`, `decisions.ts`, `engine/*`, `concepts.ts`, `balance.ts`.

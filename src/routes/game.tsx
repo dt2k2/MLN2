@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, ResponsiveContainer, XAxis, Tooltip as ReTooltip, Cell } from "recharts";
 import {
@@ -48,6 +48,9 @@ import { saveEndingReportSnapshot } from "@/game/ending-report";
 import { effectMultiplier } from "@/game/engine/effects";
 import { CONCEPT_INFO, CONCEPT_KEYS } from "@/game/concepts";
 import type { ConceptKey, DecisionGroupId } from "@/game/types";
+import { TutorialOverlay } from "@/components/tutorial/TutorialOverlay";
+import { TutorialObserver } from "@/tutorial/observer";
+import { useTutorialStore } from "@/tutorial/state";
 
 export const Route = createFileRoute("/game")({
   head: () => ({
@@ -86,6 +89,25 @@ function GameScreen() {
   const [activeGroup, setActiveGroup] = useState<DecisionGroupId>("WORKDAY");
   const navigate = useNavigate();
   const activePresentation = presentationQueue[0];
+  const tutorialStart = useTutorialStore((s) => s.start);
+  const tutorialCompleted = useTutorialStore((s) => s.completed);
+  const tutorialSkipped = useTutorialStore((s) => s.skipped);
+  const tutorialActive = useTutorialStore((s) => s.active);
+  const prevQueueLenRef = useRef(presentationQueue.length);
+  useEffect(() => {
+    const prev = prevQueueLenRef.current;
+    prevQueueLenRef.current = presentationQueue.length;
+    if (
+      state.turn === 1 &&
+      prev > 0 &&
+      presentationQueue.length === 0 &&
+      !tutorialActive &&
+      !tutorialCompleted &&
+      !tutorialSkipped
+    ) {
+      tutorialStart();
+    }
+  }, [presentationQueue.length, state.turn, tutorialActive, tutorialCompleted, tutorialSkipped, tutorialStart]);
 
   useEffect(() => {
     if (presentationQueue.length > 0 || state.pendingEvent || !state.ending) return;
@@ -233,7 +255,7 @@ function GameScreen() {
 
           {/* CENTER PANEL */}
           <section className="order-2 flex min-w-0 flex-col gap-3 lg:col-span-6 lg:min-h-0">
-            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <div data-tutorial="dashboard-grid" className="grid grid-cols-2 gap-3 xl:grid-cols-4">
               <StatTooltip conceptKey="constantCapital">
                 <DashboardCard
                   label={
@@ -399,7 +421,7 @@ function GameScreen() {
             </div>
 
             {/* Bottom log */}
-            <div className="panel-industrial flex min-h-[190px] flex-1 flex-col rounded-lg p-4">
+            <div data-tutorial="log-panel" className="panel-industrial flex min-h-[190px] flex-1 flex-col rounded-lg p-4">
               <SectionTitle icon={<Clock className="h-3.5 w-3.5" />} label="Nhật ký · Codex" />
               <div className="mt-2 -mx-1 flex gap-1 overflow-x-auto px-1 pb-1">
                 {CONCEPT_KEYS.map((key) => {
@@ -439,7 +461,7 @@ function GameScreen() {
 
           {/* RIGHT PANEL — Decisions */}
           <section className="order-3 flex min-w-0 flex-col gap-3 lg:col-span-3 lg:min-h-0">
-            <div className="panel-industrial flex min-h-0 flex-1 flex-col rounded-lg p-3">
+            <div data-tutorial="decision-panel" className="panel-industrial flex min-h-0 flex-1 flex-col rounded-lg p-3">
               <SectionTitle
                 icon={<Info className="h-3.5 w-3.5" />}
                 label={`Quyết định — ${quarterLabel}`}
@@ -454,7 +476,7 @@ function GameScreen() {
                 onValueChange={(v) => setActiveGroup(v as DecisionGroupId)}
                 className="mt-3 flex min-h-0 flex-1 flex-col"
               >
-                <TabsList className="grid h-auto w-full grid-cols-6 gap-1 bg-panel-elevated/40 p-1">
+                <TabsList data-tutorial="decision-tabs" className="grid h-auto w-full grid-cols-6 gap-1 bg-panel-elevated/40 p-1">
                   {DECISION_GROUPS.map((group) => {
                     const Icon = GROUP_ICONS[group.id];
                     const used = usedDecisionGroups.has(group.id);
@@ -535,7 +557,9 @@ function GameScreen() {
                 })}
               </Tabs>
             </div>
-            <EndTurnButton onEnd={endQuarter} />
+            <div data-tutorial="end-quarter">
+              <EndTurnButton onEnd={endQuarter} />
+            </div>
           </section>
         </div>
 
@@ -693,6 +717,8 @@ function GameScreen() {
           onClose={dismissPresentation}
           story={activePresentation?.kind === "story" ? activePresentation.story : undefined}
         />
+        <TutorialObserver />
+        <TutorialOverlay onOpenDecisionGroup={(g) => setActiveGroup(g as DecisionGroupId)} />
       </div>
     </div>
   );
