@@ -400,49 +400,54 @@ function GameScreen() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-              <MarketCard
-                label="Cầu dành cho xưởng"
-                value={state.demand.toLocaleString("vi-VN")}
-                unit="đvsp"
-                tone="info"
-                tutorialId="market-firm-demand"
-              />
-              <MarketCard
-                label="Cầu hiệu dụng ngành"
-                value={state.effectiveDemand.toLocaleString("vi-VN")}
-                unit="đvsp"
-                tone="info"
-                tutorialId="market-demand-industry"
-              />
-              <MarketCard
-                label="Tổng cung ngành"
-                value={Math.round(state.industrySupply).toLocaleString("vi-VN")}
-                unit="đvsp"
-                tone={state.industrySupply > state.effectiveDemand ? "danger" : "success"}
-                tutorialId="market-supply-industry"
-              />
-              <MarketCard
-                label="Sản lượng"
-                value={Math.round(last.output).toLocaleString("vi-VN")}
-                unit="đvsp"
-                tone="gold"
-                tutorialId="market-output"
-              />
-              <MarketCard
-                label="Giá bán"
-                value={`$${state.sellPrice.toFixed(1)}`}
-                unit="/đv"
-                tone="success"
-                tutorialId="market-price"
-              />
-              <MarketCard
-                label="Thị phần"
-                value={`${(state.marketShare * 100).toFixed(0)}%`}
-                unit=""
-                tone={state.marketShare > 0.4 ? "success" : "danger"}
-                tutorialId="market-share"
-              />
+              <div data-tutorial="market-group-demand" className="contents">
+                <MarketCard
+                  label="Cầu dành cho xưởng"
+                  value={state.demand.toLocaleString("vi-VN")}
+                  unit="đvsp"
+                  tone="info"
+                  tutorialId="market-firm-demand"
+                />
+                <MarketCard
+                  label="Cầu hiệu dụng ngành"
+                  value={state.effectiveDemand.toLocaleString("vi-VN")}
+                  unit="đvsp"
+                  tone="info"
+                  tutorialId="market-demand-industry"
+                />
+                <MarketCard
+                  label="Tổng cung ngành"
+                  value={Math.round(state.industrySupply).toLocaleString("vi-VN")}
+                  unit="đvsp"
+                  tone={state.industrySupply > state.effectiveDemand ? "danger" : "success"}
+                  tutorialId="market-supply-industry"
+                />
+              </div>
+              <div data-tutorial="market-group-output" className="contents">
+                <MarketCard
+                  label="Sản lượng"
+                  value={Math.round(last.output).toLocaleString("vi-VN")}
+                  unit="đvsp"
+                  tone="gold"
+                  tutorialId="market-output"
+                />
+                <MarketCard
+                  label="Giá bán"
+                  value={`$${state.sellPrice.toFixed(1)}`}
+                  unit="/đv"
+                  tone="success"
+                  tutorialId="market-price"
+                />
+                <MarketCard
+                  label="Thị phần"
+                  value={`${(state.marketShare * 100).toFixed(0)}%`}
+                  unit=""
+                  tone={state.marketShare > 0.4 ? "success" : "danger"}
+                  tutorialId="market-share"
+                />
+              </div>
             </div>
+
 
 
             {/* Bottom log */}
