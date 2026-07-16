@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "sdk_version": "0.22.2",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "das-kapitalist-mcp",
+      "version": "0.1.0",
+      "title": "DAS KAPITALIST MCP"
+    },
+    "tools": [
+      {
+        "name": "get_game_overview",
+        "title": "Get game overview",
+        "description": "Return a Vietnamese overview of DAS KAPITALIST: the loop, decision groups, key metrics and possible endings.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_marxist_concepts",
+        "title": "List Marxist concepts",
+        "description": "List all Marxist political-economy concepts taught by the DAS KAPITALIST game, with their keys and short Vietnamese titles.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "explain_marxist_concept",
+        "title": "Explain a Marxist concept",
+        "description": "Return the Vietnamese definition, symbol and (if available) formula for one Marxist concept covered by DAS KAPITALIST. Use `list_marxist_concepts` first to get valid keys.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string",
+              "enum": [
+                "commodity",
+                "socialLabor",
+                "constantCapital",
+                "variableCapital",
+                "surplusValue",
+                "absoluteSurplus",
+                "relativeSurplus",
+                "surplusRate",
+                "capitalAccumulation",
+                "organicComposition",
+                "reserveArmy",
+                "profitRate",
+                "overproductionCrisis",
+                "capitalistContradiction",
+                "fallingProfitRate"
+              ],
+              "description": "Concept key, e.g. 'surplusValue' or 'profitRate'."
+            }
+          },
+          "required": [
+            "key"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
