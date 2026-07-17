@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+<<<<<<< HEAD
 import { R2, R3, R4, R5, accumulationFundAfterPurchase, computeR5, computeR6 } from "./numbers";
+=======
+import { R2, R3, R4, R5, computeR5, computeR6 } from "./numbers";
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
 
 describe("Round 2 — c/v/m", () => {
   it("phân loại đúng giá trị chuyển dịch và giá trị mới", () => {
@@ -25,9 +29,13 @@ describe("Round 4 — máy móc và chuẩn xã hội", () => {
     expect(R4.post.output).toBe(12);
     expect(R4.post.newValue).toBe(R4.pre.newValue);
     expect(R4.post.hoursPerUnit).toBeCloseTo(0.6667, 3);
+<<<<<<< HEAD
     expect(R4.socialLaborTime.after).toBeCloseTo(0.6667, 3);
     expect(R4.necessaryLabor.after).toBe(3.5);
     expect(R4.surplusLabor.after).toBe(4.5);
+=======
+    expect(R4.socialNorm.after).toBe(3.5);
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
   });
 });
 
@@ -40,7 +48,11 @@ describe("Round 5 — khủng hoảng thừa", () => {
     expect(r.unsold).toBe(30);
     expect(r.revenue).toBe(700);
     expect(r.costs).toBe(700);
+<<<<<<< HEAD
     expect(r.realizedProfit).toBe(0);
+=======
+    expect(r.accountingProfit).toBe(0);
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
   });
   it("output 80 bán được 70, tồn 10", () => {
     const r = computeR5(80);
@@ -58,6 +70,7 @@ describe("Round 5 — khủng hoảng thừa", () => {
 
 describe("Round 6 — tích lũy", () => {
   it("bốn tỷ lệ giữ lại", () => {
+<<<<<<< HEAD
     expect(computeR6(25)).toMatchObject({
       retained: 10,
       ownerConsumption: 30,
@@ -80,5 +93,11 @@ describe("Round 6 — tích lũy", () => {
     });
     expect(accumulationFundAfterPurchase(75)).toBe(0);
     expect(accumulationFundAfterPurchase(100)).toBe(10);
+=======
+    expect(computeR6(25)).toMatchObject({ retained: 10, ownerConsumption: 30, canBuyMachine: false });
+    expect(computeR6(50)).toMatchObject({ retained: 20, ownerConsumption: 20, canBuyMachine: false });
+    expect(computeR6(75)).toMatchObject({ retained: 30, ownerConsumption: 10, canBuyMachine: true });
+    expect(computeR6(100)).toMatchObject({ retained: 40, ownerConsumption: 0, canBuyMachine: true });
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
   });
 });

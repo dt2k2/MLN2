@@ -17,22 +17,34 @@ export function Round3Absolute({ onSimulate, running }: Props) {
   const m = surplus * (R3.wage / necessary); // = surplus * 10
   const mRate = m / v;
 
+<<<<<<< HEAD
   const exploring = hours > 8;
   const reachedTarget = hours === 10;
+=======
+  const changed = hours > 8;
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
 
   return (
     <Stage
       resultTray={
+<<<<<<< HEAD
         running || exploring ? (
+=======
+        running || changed ? (
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
           <div className="grid grid-cols-4 gap-3 text-center font-mono">
             <Cell label="Ngày làm" value={`${hours}h`} tone="muted" />
             <Cell label="v" value={`$${v}`} tone="info" />
             <Cell label="m" value={`$${m.toFixed(0)}`} tone="gold" />
+<<<<<<< HEAD
             <Cell
               label="m′"
               value={`${(mRate * 100).toFixed(0)}%`}
               tone={mRate > 1 ? "danger" : "success"}
             />
+=======
+            <Cell label="m′" value={`${(mRate * 100).toFixed(0)}%`} tone={mRate > 1 ? "danger" : "success"} />
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
           </div>
         ) : (
           <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground/60">
@@ -52,7 +64,11 @@ export function Round3Absolute({ onSimulate, running }: Props) {
           <input
             type="range"
             min={8}
+<<<<<<< HEAD
             max={10}
+=======
+            max={12}
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
             step={1}
             value={hours}
             onChange={(e) => setHours(Number(e.target.value))}
@@ -61,8 +77,13 @@ export function Round3Absolute({ onSimulate, running }: Props) {
           />
           <div className="mt-1 flex justify-between font-mono text-[10px] text-muted-foreground">
             <span>8h</span>
+<<<<<<< HEAD
             <span>9h</span>
             <span>10h</span>
+=======
+            <span>10h</span>
+            <span>12h</span>
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
           </div>
         </div>
         <div className="rounded-md border border-border/60 bg-panel/40 p-4">
@@ -88,7 +109,11 @@ export function Round3Absolute({ onSimulate, running }: Props) {
             </motion.div>
           </div>
         </div>
+<<<<<<< HEAD
         {reachedTarget && !running && (
+=======
+        {changed && !running && (
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
           <button
             type="button"
             onClick={onSimulate}
@@ -102,6 +127,7 @@ export function Round3Absolute({ onSimulate, running }: Props) {
   );
 }
 
+<<<<<<< HEAD
 function Cell({
   label,
   value,
@@ -111,6 +137,9 @@ function Cell({
   value: string;
   tone: "muted" | "info" | "gold" | "success" | "danger";
 }) {
+=======
+function Cell({ label, value, tone }: { label: string; value: string; tone: "muted" | "info" | "gold" | "success" | "danger" }) {
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
   const cls = {
     muted: "text-muted-foreground",
     info: "text-info",

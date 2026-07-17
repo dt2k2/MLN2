@@ -4,19 +4,32 @@ import { Stage } from "../components/Stage";
 import { R2 } from "../numbers";
 import { cn } from "@/lib/utils";
 
+<<<<<<< HEAD
 type Bucket = "transfer" | "advanced" | "source" | null;
+=======
+type Bucket = "transfer" | "new" | null;
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
 interface Item {
   id: string;
   label: string;
   amount: number;
+<<<<<<< HEAD
   correct: Exclude<Bucket, null>;
+=======
+  correct: "transfer" | "new";
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
 }
 
 const ITEMS: Item[] = [
   { id: "mat", label: "Nguyên liệu", amount: R2.materials, correct: "transfer" },
   { id: "dep", label: "Hao mòn máy", amount: R2.depreciation, correct: "transfer" },
+<<<<<<< HEAD
   { id: "wage", label: "Tiền lương", amount: R2.wage, correct: "advanced" },
   { id: "living", label: "Lao động sống", amount: R2.livingLaborValue, correct: "source" },
+=======
+  { id: "wage", label: "Tiền lương", amount: R2.wage, correct: "new" },
+  { id: "living", label: "Lao động sống tạo giá trị mới", amount: R2.livingLaborValue, correct: "new" },
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
 ];
 
 interface Props {
@@ -38,7 +51,11 @@ export function Round2Value({ onSimulate, running }: Props) {
   return (
     <Stage
       resultTray={
+<<<<<<< HEAD
         running ? (
+=======
+        running || allCorrect ? (
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
           <div className="grid grid-cols-4 gap-3 text-center font-mono">
             <StatCell label="c" value={`$${R2.c}`} tone="muted" />
             <StatCell label="v" value={`$${R2.v}`} tone="info" />
@@ -84,6 +101,7 @@ export function Round2Value({ onSimulate, running }: Props) {
                   </button>
                   <button
                     type="button"
+<<<<<<< HEAD
                     onClick={() => place(it.id, "advanced")}
                     className={cn(
                       "cursor-pointer rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest transition",
@@ -105,6 +123,16 @@ export function Round2Value({ onSimulate, running }: Props) {
                         : "border-border/60 text-muted-foreground hover:border-primary/40",
                     )}
                     aria-label={`${it.label} — nguồn tạo giá trị mới`}
+=======
+                    onClick={() => place(it.id, "new")}
+                    className={cn(
+                      "cursor-pointer rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest transition",
+                      b === "new"
+                        ? "border-primary bg-primary/20 text-gold"
+                        : "border-border/60 text-muted-foreground hover:border-primary/40",
+                    )}
+                    aria-label={`${it.label} — tạo giá trị mới`}
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
                   >
                     Tạo mới
                   </button>
@@ -113,6 +141,7 @@ export function Round2Value({ onSimulate, running }: Props) {
             );
           })}
         </div>
+<<<<<<< HEAD
         <div className="grid grid-cols-3 gap-3">
           <Bucket
             title="Chuyển giá trị cũ (c)"
@@ -129,6 +158,11 @@ export function Round2Value({ onSimulate, running }: Props) {
             items={ITEMS.filter((it) => placed[it.id] === "source")}
             tone="gold"
           />
+=======
+        <div className="grid grid-cols-2 gap-3">
+          <Bucket title="Chuyển giá trị cũ (c)" items={ITEMS.filter((it) => placed[it.id] === "transfer")} tone="muted" />
+          <Bucket title="Giá trị mới (v + m)" items={ITEMS.filter((it) => placed[it.id] === "new")} tone="gold" />
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
         </div>
         {allPlaced && !running && (
           <motion.button
@@ -153,6 +187,7 @@ export function Round2Value({ onSimulate, running }: Props) {
   );
 }
 
+<<<<<<< HEAD
 function Bucket({
   title,
   items,
@@ -176,15 +211,28 @@ function Bucket({
       <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
         {title}
       </div>
+=======
+function Bucket({ title, items, tone }: { title: string; items: Item[]; tone: "muted" | "gold" }) {
+  return (
+    <div className={cn(
+      "min-h-[80px] rounded-md border border-dashed p-3",
+      tone === "gold" ? "border-primary/40 bg-primary/5" : "border-border/50 bg-panel/30",
+    )}>
+      <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{title}</div>
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
       <div className="mt-2 flex flex-wrap gap-1">
         {items.length === 0 ? (
           <span className="font-mono text-[10px] text-muted-foreground/60">—</span>
         ) : (
           items.map((it) => (
+<<<<<<< HEAD
             <span
               key={it.id}
               className="rounded bg-panel/70 px-2 py-1 font-mono text-[11px] text-foreground"
             >
+=======
+            <span key={it.id} className="rounded bg-panel/70 px-2 py-1 font-mono text-[11px] text-foreground">
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
               {it.label} ${it.amount}
             </span>
           ))
@@ -194,6 +242,7 @@ function Bucket({
   );
 }
 
+<<<<<<< HEAD
 function StatCell({
   label,
   value,
@@ -209,6 +258,10 @@ function StatCell({
     gold: "text-gold",
     success: "text-success",
   }[tone];
+=======
+function StatCell({ label, value, tone }: { label: string; value: string; tone: "muted" | "info" | "gold" | "success" }) {
+  const cls = { muted: "text-muted-foreground", info: "text-info", gold: "text-gold", success: "text-success" }[tone];
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
   return (
     <div className="rounded border border-border/40 bg-panel/50 p-2">
       <div className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{label}</div>

@@ -55,9 +55,13 @@ export function RoundHeader({ state, onGoto }: Props) {
                 className={cn(
                   "flex flex-1 items-center gap-2 rounded-md border px-3 py-2 text-left transition",
                   isCurrent && "border-primary/70 bg-primary/10 text-gold",
+<<<<<<< HEAD
                   !isCurrent &&
                     unlocked &&
                     "border-border/50 bg-panel/40 text-foreground hover:border-primary/40",
+=======
+                  !isCurrent && unlocked && "border-border/50 bg-panel/40 text-foreground hover:border-primary/40",
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
                   !unlocked && "border-border/30 bg-panel/20 text-muted-foreground/60",
                   clickable ? "cursor-pointer" : "cursor-not-allowed",
                 )}

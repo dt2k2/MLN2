@@ -30,6 +30,7 @@ export function Round4Machine({ onSimulate, running }: Props) {
         showPost ? (
           <div className="grid grid-cols-4 gap-3 text-center font-mono">
             <Cell label="Sản lượng" value={`${R4.pre.output} → ${R4.post.output}`} tone="gold" />
+<<<<<<< HEAD
             <Cell
               label="Giờ/đv"
               value={`${R4.pre.hoursPerUnit} → ${R4.post.hoursPerUnit.toFixed(2)}`}
@@ -43,6 +44,13 @@ export function Round4Machine({ onSimulate, running }: Props) {
                   ? `${R4.necessaryLabor.before}h → ${R4.necessaryLabor.after}h`
                   : `${R4.necessaryLabor.before}h`
               }
+=======
+            <Cell label="Giờ/đv" value={`${R4.pre.hoursPerUnit} → ${R4.post.hoursPerUnit.toFixed(2)}`} tone="info" />
+            <Cell label="Giá trị mới" value={`$${R4.post.newValue}`} tone="muted" />
+            <Cell
+              label="Tất yếu"
+              value={showNorm ? `${R4.socialNorm.before}h → ${R4.socialNorm.after}h` : `${R4.socialNorm.before}h`}
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
               tone={showNorm ? "danger" : "muted"}
             />
           </div>
@@ -57,6 +65,7 @@ export function Round4Machine({ onSimulate, running }: Props) {
         <div className="grid grid-cols-2 gap-4">
           <Side title="Xưởng của bạn" active>
             <Stat label="Lao động sống" value={`${R4.pre.livingHours}h`} />
+<<<<<<< HEAD
             <Stat
               label="Sản lượng"
               value={showPost ? `${R4.post.output} đv` : `${R4.pre.output} đv`}
@@ -108,6 +117,19 @@ export function Round4Machine({ onSimulate, running }: Props) {
               note={
                 showNorm ? "Lợi nhuận siêu ngạch biến mất." : "Bạn tạm hưởng lợi nhuận siêu ngạch."
               }
+=======
+            <Stat label="Sản lượng" value={showPost ? `${R4.post.output} đv` : `${R4.pre.output} đv`} highlight={showPost} />
+            <Stat label="Giờ/đv" value={showPost ? `${R4.post.hoursPerUnit.toFixed(2)}h` : `${R4.pre.hoursPerUnit}h`} highlight={showPost} />
+            <Stat label="Giá trị mới do lao động sống" value={`$${R4.pre.newValue}`} note="Không đổi vì lao động sống không đổi." />
+          </Side>
+          <Side title="Chuẩn ngành" muted>
+            <Stat label="Thời gian xã hội / đv" value={showNorm ? `${R4.post.hoursPerUnit.toFixed(2)}h` : "1h"} highlight={showNorm} />
+            <Stat label="Lao động tất yếu" value={showNorm ? `${R4.socialNorm.after}h` : `${R4.socialNorm.before}h`} highlight={showNorm} />
+            <Stat
+              label="Trạng thái"
+              value={showNorm ? "Đối thủ đã bắt kịp" : "Bạn dẫn trước"}
+              note={showNorm ? "Lợi nhuận siêu ngạch biến mất." : "Bạn tạm hưởng lợi nhuận siêu ngạch."}
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
             />
           </Side>
         </div>
@@ -125,6 +147,7 @@ export function Round4Machine({ onSimulate, running }: Props) {
   );
 }
 
+<<<<<<< HEAD
 function Side({
   title,
   active,
@@ -136,6 +159,9 @@ function Side({
   muted?: boolean;
   children: React.ReactNode;
 }) {
+=======
+function Side({ title, active, muted, children }: { title: string; active?: boolean; muted?: boolean; children: React.ReactNode }) {
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
   return (
     <div
       className={cn(
@@ -152,6 +178,7 @@ function Side({
   );
 }
 
+<<<<<<< HEAD
 function Stat({
   label,
   value,
@@ -163,19 +190,27 @@ function Stat({
   note?: string;
   highlight?: boolean;
 }) {
+=======
+function Stat({ label, value, note, highlight }: { label: string; value: string; note?: string; highlight?: boolean }) {
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
   return (
     <div>
       <div className="flex items-baseline justify-between">
         <span className="text-xs text-muted-foreground">{label}</span>
+<<<<<<< HEAD
         <span className={cn("font-mono text-sm", highlight ? "text-gold" : "text-foreground")}>
           {value}
         </span>
+=======
+        <span className={cn("font-mono text-sm", highlight ? "text-gold" : "text-foreground")}>{value}</span>
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
       </div>
       {note && <div className="mt-0.5 text-[10px] text-muted-foreground/70">{note}</div>}
     </div>
   );
 }
 
+<<<<<<< HEAD
 function Cell({
   label,
   value,
@@ -191,6 +226,10 @@ function Cell({
     gold: "text-gold",
     danger: "text-danger",
   }[tone];
+=======
+function Cell({ label, value, tone }: { label: string; value: string; tone: "muted" | "info" | "gold" | "danger" }) {
+  const cls = { muted: "text-muted-foreground", info: "text-info", gold: "text-gold", danger: "text-danger" }[tone];
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
   return (
     <div className="rounded border border-border/40 bg-panel/50 p-2">
       <div className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{label}</div>

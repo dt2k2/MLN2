@@ -1,5 +1,6 @@
 import type { ApprenticeshipState, Phase, RoundId } from "./types";
 
+<<<<<<< HEAD
 export const PHASE_ORDER: Phase[] = [
   "brief",
   "interact",
@@ -8,6 +9,9 @@ export const PHASE_ORDER: Phase[] = [
   "check",
   "complete",
 ];
+=======
+export const PHASE_ORDER: Phase[] = ["brief", "interact", "simulate", "eureka", "check", "complete"];
+>>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
 
 export function initialState(): ApprenticeshipState {
   return {
