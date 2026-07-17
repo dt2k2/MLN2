@@ -46,7 +46,7 @@ export function EurekaPanel({ concepts, onContinue, focusKey }: Props) {
         onClick={onContinue}
         className="cursor-pointer rounded-md border border-primary bg-primary/20 px-4 py-2 font-mono text-xs uppercase tracking-widest text-gold transition hover:bg-primary/30"
       >
-        Tiếp tục — kiểm tra hiểu
+        Tiếp tục — kiểm tra nhanh
       </button>
     </aside>
   );

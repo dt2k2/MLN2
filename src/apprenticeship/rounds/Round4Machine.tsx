@@ -31,13 +31,13 @@ export function Round4Machine({ onSimulate, running }: Props) {
           <div className="grid grid-cols-4 gap-3 text-center font-mono">
             <Cell label="Sản lượng" value={`${R4.pre.output} → ${R4.post.output}`} tone="gold" />
             <Cell
-              label="Giờ/đv"
+              label="Giờ / đơn vị"
               value={`${R4.pre.hoursPerUnit} → ${R4.post.hoursPerUnit.toFixed(2)}`}
               tone="info"
             />
             <Cell label="Giá trị mới" value={`$${R4.post.newValue}`} tone="muted" />
             <Cell
-              label="Tất yếu"
+              label="Giờ tất yếu"
               value={
                 showNorm
                   ? `${R4.necessaryLabor.before}h → ${R4.necessaryLabor.after}h`
@@ -48,7 +48,7 @@ export function Round4Machine({ onSimulate, running }: Props) {
           </div>
         ) : (
           <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground/60">
-            Áp dụng máy để so sánh trước/sau.
+            Áp dụng máy mới để so sánh trước và sau.
           </p>
         )
       }
@@ -59,11 +59,11 @@ export function Round4Machine({ onSimulate, running }: Props) {
             <Stat label="Lao động sống" value={`${R4.pre.livingHours}h`} />
             <Stat
               label="Sản lượng"
-              value={showPost ? `${R4.post.output} đv` : `${R4.pre.output} đv`}
+              value={showPost ? `${R4.post.output} đơn vị` : `${R4.pre.output} đơn vị`}
               highlight={showPost}
             />
             <Stat
-              label="Giờ/đv"
+              label="Thời gian / đơn vị"
               value={showPost ? `${R4.post.hoursPerUnit.toFixed(2)}h` : `${R4.pre.hoursPerUnit}h`}
               highlight={showPost}
             />
@@ -75,7 +75,7 @@ export function Round4Machine({ onSimulate, running }: Props) {
           </Side>
           <Side title="Chuẩn ngành" muted>
             <Stat
-              label="Thời gian xã hội / đv"
+              label="Thời gian xã hội / đơn vị"
               value={
                 showNorm
                   ? `${R4.socialLaborTime.before}h → ${R4.socialLaborTime.after.toFixed(2)}h`
@@ -91,7 +91,11 @@ export function Round4Machine({ onSimulate, running }: Props) {
                   : `${R4.necessaryLabor.before}h`
               }
               highlight={showNorm}
-              note={showNorm ? "Vải rẻ hơn trong rổ sinh hoạt minh họa." : undefined}
+              note={
+                showNorm
+                  ? "Trong ví dụ này, vải là một phần hàng hóa công nhân tiêu dùng."
+                  : undefined
+              }
             />
             <Stat
               label="Lao động thặng dư"

@@ -36,7 +36,7 @@ export function Round3Absolute({ onSimulate, running }: Props) {
           </div>
         ) : (
           <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground/60">
-            Kéo thanh giờ để xem timeline biến đổi.
+            Kéo thanh giờ để xem ngày lao động thay đổi.
           </p>
         )
       }
@@ -67,7 +67,7 @@ export function Round3Absolute({ onSimulate, running }: Props) {
         </div>
         <div className="rounded-md border border-border/60 bg-panel/40 p-4">
           <div className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-            Timeline
+            Một ngày lao động
           </div>
           <div className="flex h-10 overflow-hidden rounded border border-border/60">
             <motion.div

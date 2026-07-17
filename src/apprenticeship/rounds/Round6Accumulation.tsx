@@ -27,10 +27,10 @@ export function Round6Accumulation({ onSimulate, running }: Props) {
     <Stage
       resultTray={
         <div className="grid grid-cols-4 gap-3 text-center font-mono">
-          <Cell label="Chủ tiêu dùng" value={`$${b.ownerConsumption}`} tone="muted" />
-          <Cell label="Giữ lại" value={`$${b.retained}`} tone="info" />
+          <Cell label="Chủ sở hữu rút" value={`$${b.ownerConsumption}`} tone="muted" />
+          <Cell label="Giữ trong xưởng" value={`$${b.retained}`} tone="info" />
           <Cell
-            label={bought ? "Quỹ còn lại" : "Quỹ tích lũy"}
+            label={bought ? "Quỹ còn lại" : "Quỹ giữ lại"}
             value={`$${availableFund}`}
             tone="gold"
           />
@@ -84,7 +84,7 @@ export function Round6Accumulation({ onSimulate, running }: Props) {
           />
           <FlowCard
             icon={<Wallet className="h-5 w-5" />}
-            label={bought ? "Quỹ còn lại" : "Quỹ tích lũy"}
+            label={bought ? "Quỹ còn lại" : "Quỹ giữ lại"}
             value={`$${availableFund}`}
             highlight
           />
@@ -112,7 +112,9 @@ export function Round6Accumulation({ onSimulate, running }: Props) {
                 : "cursor-not-allowed border-danger/40 bg-danger/10 text-danger",
             )}
           >
-            {b.canBuyMachine ? "Mua máy" : `Cần thêm $${R6.machinePrice - b.retained}`}
+            {b.canBuyMachine
+              ? "Dùng quỹ mua máy"
+              : `Quỹ còn thiếu $${R6.machinePrice - b.retained}`}
           </button>
         )}
       </div>

@@ -48,7 +48,7 @@ export function CheckQuestion({
     >
       <div>
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary/70">
-          Kiểm tra hiểu
+          Kiểm tra nhanh
         </div>
         <h2
           ref={ref}
@@ -92,7 +92,7 @@ export function CheckQuestion({
           onClick={onCorrect}
           className="mt-auto flex cursor-pointer items-center justify-center gap-2 rounded-md border border-success bg-success/15 px-4 py-2 font-mono text-xs uppercase tracking-widest text-success transition hover:bg-success/25"
         >
-          <Check className="h-4 w-4" /> Sang round tiếp theo
+          <Check className="h-4 w-4" /> Sang chặng tiếp theo
         </button>
       ) : (
         showWrong && (

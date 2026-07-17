@@ -14,6 +14,8 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
-    plugins: [mcpPlugin()],
+    // mcp-js 0.22 compares normalized Vite roots with native Windows paths.
+    // Generated MCP routes are committed, so Windows can safely skip emission.
+    plugins: process.platform === "win32" ? [] : [mcpPlugin()],
   },
 });

@@ -9,6 +9,7 @@ interface Item {
   id: string;
   label: string;
   amount: number;
+  amountNote?: string;
   correct: Exclude<Bucket, null>;
 }
 
@@ -16,7 +17,13 @@ const ITEMS: Item[] = [
   { id: "mat", label: "Nguyên liệu", amount: R2.materials, correct: "transfer" },
   { id: "dep", label: "Hao mòn máy", amount: R2.depreciation, correct: "transfer" },
   { id: "wage", label: "Tiền lương", amount: R2.wage, correct: "advanced" },
-  { id: "living", label: "Lao động sống", amount: R2.livingLaborValue, correct: "source" },
+  {
+    id: "living",
+    label: "Lao động sống",
+    amount: R2.livingLaborValue,
+    amountNote: "giá trị mới",
+    correct: "source",
+  },
 ];
 
 interface Props {
@@ -40,14 +47,16 @@ export function Round2Value({ onSimulate, running }: Props) {
       resultTray={
         running ? (
           <div className="grid grid-cols-4 gap-3 text-center font-mono">
-            <StatCell label="c" value={`$${R2.c}`} tone="muted" />
-            <StatCell label="v" value={`$${R2.v}`} tone="info" />
-            <StatCell label="m" value={`$${R2.m}`} tone="gold" />
-            <StatCell label="Tổng giá trị H" value={`$${R2.total}`} tone="success" />
+            <StatCell label="c · giá trị cũ" value={`$${R2.c}`} tone="muted" />
+            <StatCell label="v · tiền lương" value={`$${R2.v}`} tone="info" />
+            <StatCell label="m · phần dôi ra" value={`$${R2.m}`} tone="gold" />
+            <StatCell label="Tổng giá trị" value={`$${R2.total}`} tone="success" />
           </div>
         ) : (
           <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground/60">
-            {allPlaced ? "Bấm “Chạy dòng giá trị” để xem kết quả." : "Phân loại đủ 4 khoản trước."}
+            {allPlaced
+              ? "Bấm “Xem giá trị hình thành” để xem kết quả."
+              : "Hãy phân loại đủ bốn yếu tố trước."}
           </p>
         )
       }
@@ -66,7 +75,10 @@ export function Round2Value({ onSimulate, running }: Props) {
               >
                 <div>
                   <div className="text-sm text-foreground">{it.label}</div>
-                  <div className="font-mono text-xs text-muted-foreground">${it.amount}</div>
+                  <div className="font-mono text-xs text-muted-foreground">
+                    ${it.amount}
+                    {it.amountNote ? ` · ${it.amountNote}` : ""}
+                  </div>
                 </div>
                 <div className="flex gap-1">
                   <button
@@ -80,7 +92,7 @@ export function Round2Value({ onSimulate, running }: Props) {
                     )}
                     aria-label={`${it.label} — chuyển giá trị cũ`}
                   >
-                    Chuyển cũ
+                    Giá trị cũ
                   </button>
                   <button
                     type="button"
@@ -93,7 +105,7 @@ export function Round2Value({ onSimulate, running }: Props) {
                     )}
                     aria-label={`${it.label} — tư bản ứng mua sức lao động`}
                   >
-                    Ứng v
+                    Ứng tiền lương
                   </button>
                   <button
                     type="button"
@@ -106,7 +118,7 @@ export function Round2Value({ onSimulate, running }: Props) {
                     )}
                     aria-label={`${it.label} — nguồn tạo giá trị mới`}
                   >
-                    Tạo mới
+                    Tạo giá trị mới
                   </button>
                 </div>
               </div>
@@ -145,7 +157,7 @@ export function Round2Value({ onSimulate, running }: Props) {
                 : "cursor-not-allowed border-danger/40 bg-danger/10 text-danger",
             )}
           >
-            {allCorrect ? "Chạy dòng giá trị" : "Phân loại chưa đúng — chỉnh lại"}
+            {allCorrect ? "Xem giá trị hình thành" : "Chưa đúng — hãy thử phân loại lại"}
           </motion.button>
         )}
       </div>

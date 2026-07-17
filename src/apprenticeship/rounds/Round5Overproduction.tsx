@@ -31,16 +31,16 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
         result ? (
           <div className="grid grid-cols-6 gap-2 text-center font-mono">
             <Cell label="m đã sản xuất" value={`$${result.produced.m}`} tone="muted" />
-            <Cell label="Đã bán" value={`${result.sold} đv`} tone="info" />
+            <Cell label="Đã bán" value={`${result.sold} đơn vị`} tone="info" />
             <Cell label="Doanh thu" value={`$${result.revenue}`} tone="gold" />
             <Cell
-              label="Kết quả thực hiện"
+              label="Thu − chi phí lô"
               value={`$${result.realizedProfit}`}
               tone={result.realizedProfit >= 0 ? "success" : "danger"}
             />
             <Cell
               label="Tồn kho"
-              value={`${result.unsold} đv`}
+              value={`${result.unsold} đơn vị`}
               tone={result.unsold > 0 ? "danger" : "muted"}
             />
             <Cell label="Tổng giá trị" value={`$${result.produced.totalValue}`} tone="muted" />
@@ -57,10 +57,10 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
           <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             Cầu hiệu dụng dự kiến
           </div>
-          <div className="mt-1 font-mono text-2xl text-info">{R5.effectiveDemand} đv</div>
+          <div className="mt-1 font-mono text-2xl text-info">{R5.effectiveDemand} đơn vị</div>
           {result && (
             <div className="mt-2 font-mono text-xs text-danger">
-              → Thị trường bất ngờ giảm cầu còn {R5.demandShock} đv
+              Thị trường bất ngờ giảm cầu còn {R5.demandShock} đơn vị
             </div>
           )}
         </div>
@@ -109,7 +109,7 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
             onClick={runMarket}
             className="self-center cursor-pointer rounded-md border border-primary bg-primary/20 px-4 py-2 font-mono text-xs uppercase tracking-widest text-gold transition hover:bg-primary/30"
           >
-            Chạy thị trường
+            Cho thị trường vận động
           </button>
         )}
         {result && (

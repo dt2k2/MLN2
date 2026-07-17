@@ -25,7 +25,7 @@ export function RoundHeader({ state, onGoto }: Props) {
         <div className="flex items-center gap-4">
           <h1 className="font-display text-lg uppercase tracking-[0.3em] text-gold">Ca học việc</h1>
           <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            Round {state.currentRound}/6
+            Chặng {state.currentRound}/6
           </span>
         </div>
         <Link
@@ -36,7 +36,7 @@ export function RoundHeader({ state, onGoto }: Props) {
         </Link>
       </div>
       <nav
-        aria-label="Tiến trình sáu round"
+        aria-label="Tiến trình sáu chặng học việc"
         className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-6 pb-3"
       >
         {([1, 2, 3, 4, 5, 6] as RoundId[]).map((r, i) => {
@@ -50,7 +50,7 @@ export function RoundHeader({ state, onGoto }: Props) {
                 type="button"
                 onClick={() => clickable && onGoto(r, isDev && !unlocked)}
                 disabled={!clickable}
-                aria-label={`Round ${r}: ${ROUND_LABELS[r]}${round.completed ? " — hoàn thành" : unlocked ? "" : " — khóa"}`}
+                aria-label={`Chặng ${r}: ${ROUND_LABELS[r]}${round.completed ? " — hoàn thành" : unlocked ? "" : " — khóa"}`}
                 aria-current={isCurrent ? "step" : undefined}
                 className={cn(
                   "flex flex-1 items-center gap-2 rounded-md border px-3 py-2 text-left transition",

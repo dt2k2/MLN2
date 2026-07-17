@@ -117,9 +117,9 @@ function Apprenticeship() {
                 type="button"
                 onClick={resetRound}
                 className="absolute right-2 top-2 flex cursor-pointer items-center gap-1 rounded border border-border/50 bg-panel/70 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition hover:border-primary/40 hover:text-gold"
-                aria-label="Reset round hiện tại"
+                aria-label="Làm lại chặng hiện tại"
               >
-                <RotateCcw className="h-3 w-3" /> Reset
+                <RotateCcw className="h-3 w-3" /> Làm lại
               </button>
             </section>
             {/* Task / Eureka / Check panel — 30-35% */}
@@ -148,7 +148,7 @@ function Apprenticeship() {
                             onClick={() => dispatch({ type: "SET_PHASE", phase: "interact" })}
                             className="cursor-pointer rounded-md border border-primary bg-primary/20 px-4 py-2 font-mono text-xs uppercase tracking-widest text-gold transition hover:bg-primary/30"
                           >
-                            Bắt đầu round
+                            Bắt đầu chặng
                           </button>
                         ) : state.phase === "simulate" ? (
                           <button
@@ -189,7 +189,7 @@ function Apprenticeship() {
           </div>
           {import.meta.env.DEV && (
             <div className="fixed bottom-3 left-1/2 z-30 hidden -translate-x-1/2 rounded border border-border/50 bg-panel/95 px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground shadow-lg backdrop-blur min-[1440px]:block">
-              DEV · nhảy round:
+              DEV · chuyển chặng:
               {([1, 2, 3, 4, 5, 6] as RoundId[]).map((r) => (
                 <button
                   key={r}
@@ -226,8 +226,8 @@ function CompletionScreen({ onExit }: { onExit: () => void }) {
           </div>
           <h1 className="mt-2 font-display text-4xl text-gold">Bạn đã sẵn sàng bước vào xưởng</h1>
           <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-            Mười khái niệm nền tảng đã hiện diện trong trực giác của bạn. Những khái niệm nâng cao
-            sẽ mở khóa khi Heinrich thực sự đối diện chúng.
+            Bạn đã tự tay trải nghiệm mười khái niệm nền tảng. Năm khái niệm còn lại sẽ được khám
+            phá khi Heinrich thật sự chứng kiến chúng trong trò chơi chính.
           </p>
         </div>
         <div className="mt-8 grid grid-cols-3 gap-3">

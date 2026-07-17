@@ -35,9 +35,9 @@ export function Round1Commodity({ onSimulate, running }: Props) {
       resultTray={
         exchanged ? (
           <div className="grid grid-cols-3 gap-3 text-center font-mono text-xs">
-            <ResultCell label="Giá trị sử dụng" value="Vẫn còn" tone="muted" />
-            <ResultCell label="Giao dịch" value="Thành công" tone="success" />
-            <ResultCell label="Thu về" value="$38 / tấm" tone="gold" />
+            <ResultCell label="Công dụng" value="Giữ nguyên" tone="muted" />
+            <ResultCell label="Trao đổi" value="Đã bán" tone="success" />
+            <ResultCell label="Tiền thu về" value="$38 / tấm" tone="gold" />
           </div>
         ) : null
       }
