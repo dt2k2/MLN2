@@ -16,6 +16,7 @@ import { Route as HowToPlayRouteImport } from './routes/how-to-play'
 import { Route as GameRouteImport } from './routes/game'
 import { Route as EmptyRouteImport } from './routes/empty'
 import { Route as CreditsRouteImport } from './routes/credits'
+import { Route as ApprenticeshipRouteImport } from './routes/apprenticeship'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EndingRevolutionRouteImport } from './routes/ending.revolution'
 import { Route as EndingOutcomeRouteImport } from './routes/ending.outcome'
@@ -59,6 +60,11 @@ const CreditsRoute = CreditsRouteImport.update({
   path: '/credits',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApprenticeshipRoute = ApprenticeshipRouteImport.update({
+  id: '/apprenticeship',
+  path: '/apprenticeship',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -100,6 +106,7 @@ const Char91DotmcpChar93InvokeToolToolRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/apprenticeship': typeof ApprenticeshipRoute
   '/credits': typeof CreditsRoute
   '/empty': typeof EmptyRoute
   '/game': typeof GameRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/apprenticeship': typeof ApprenticeshipRoute
   '/credits': typeof CreditsRoute
   '/empty': typeof EmptyRoute
   '/game': typeof GameRoute
@@ -133,6 +141,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/apprenticeship': typeof ApprenticeshipRoute
   '/credits': typeof CreditsRoute
   '/empty': typeof EmptyRoute
   '/game': typeof GameRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/apprenticeship'
     | '/credits'
     | '/empty'
     | '/game'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/apprenticeship'
     | '/credits'
     | '/empty'
     | '/game'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/apprenticeship'
     | '/credits'
     | '/empty'
     | '/game'
@@ -200,6 +212,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApprenticeshipRoute: typeof ApprenticeshipRoute
   CreditsRoute: typeof CreditsRoute
   EmptyRoute: typeof EmptyRoute
   GameRoute: typeof GameRoute
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreditsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apprenticeship': {
+      id: '/apprenticeship'
+      path: '/apprenticeship'
+      fullPath: '/apprenticeship'
+      preLoaderRoute: typeof ApprenticeshipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -320,6 +340,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApprenticeshipRoute: ApprenticeshipRoute,
   CreditsRoute: CreditsRoute,
   EmptyRoute: EmptyRoute,
   GameRoute: GameRoute,
