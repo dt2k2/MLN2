@@ -1,108 +1,143 @@
-# Mở rộng tutorial: Đọc Dashboard + 2 sửa UI
+# Prototype "Ca học việc" — /apprenticeship
 
-Bổ sung hướng dẫn đọc dashboard theo 3 chapter A/B/C dưới dạng **sub-step trong 8 bước tutorial hiện có** (không thêm bước chính, không đụng engine/kinh tế/concept trigger). Thêm 2 sửa UI về hiển thị c/v/m rỗng và nhãn "Phần cầu của xưởng".
+Minigame khởi động dạy trực giác 10 khái niệm Marx nền tảng, hoàn toàn tách biệt khỏi engine/store chính. Giai đoạn này chỉ dựng UI + state cục bộ.
 
-## 1. Sub-step trong tutorial (giữ 8 bước chính)
+## Phạm vi
 
-Mở rộng `TutorialStep` để mỗi bước có thể chứa nhiều "trang" nội dung spotlight vào các target khác nhau, dùng cùng một panel + nút "Xem chỉ số tiếp theo / Tiếp tục". Sub-step không đếm vào "Bước n/8".
+**Sẽ làm**
 
-`src/tutorial/types.ts`:
+- Route mới `/apprenticeship` (file-based routing tạo route tự động).
+- 6 round tương tác theo state machine `brief → interact → simulate → eureka → check → complete`.
+- State cục bộ (`useReducer`) trong component, deterministic — không random.
+- Unit test số liệu round 2/3/4/6.
+- Dev-only round switch (chỉ hiện khi `import.meta.env.DEV`).
 
-- Thêm target mới: `market-demand-industry`, `market-supply-industry`, `market-firm-demand`, `market-output`, `market-price`, `market-share`, `cvm-chart`, `profit-chart`, `contradiction`, `header-fund`, `header-debt`, `header-next-interest`, `header-debt-ratio`, `historical-scale`, `historical-scale-capital`, `historical-scale-labor`, `historical-scale-market`.
-- Đổi `TutorialStep` sang: `pages: TutorialPage[]` với `TutorialPage = { target, title, body(state) | body, placement?, showIf?(state), nextLabel? }`. Trường `advance` đặt ở page cuối. Bước chỉ có 1 page giữ y hệt hiện tại.
+**KHÔNG làm**
 
-`src/tutorial/steps.ts` — chèn sub-step:
+- Không import `useGameStore`, `computeQuarter`, `laws.ts`, `pressures.ts`, `decisions.ts`.
+- Không sửa `intro.tsx`, `index.tsx`, `game.tsx`, `concepts.ts`, `tutorial/*`, `codex-panel.tsx`.
+- Không lưu localStorage, không routing vào `/game` từ đây.
+- Không sửa tay `routeTree.gen.ts` (plugin tự regen).
+- Không thêm asset ảnh mới — chỉ dùng ảnh đã có trong `src/assets/heinrich/` khi cần tín hiệu thị giác nhẹ.
 
-- **Bước 2 "Tiền mặt & khoản nợ"** (Chapter C.1–C.5): sub-page `header-cash` (tiền mặt), `header-fund` (quỹ tích lũy — nhấn "vẫn nằm trong cash, không cộng thêm"), `header-debt` (dư nợ), `header-next-interest` (lãi quý tới), `header-debt-ratio` (nợ/tài sản, dùng số thực từ state).
-- **Bước mới 2b "Đọc thị trường" (Chapter A)** — chèn giữa bước 2 và bước 3 hiện tại nhưng vẫn cùng 1 stepIndex; gán nó vào bước hiện có "indicators" ở dạng sub-page đầu: `market-demand-industry` → `market-supply-industry` → `market-firm-demand` → `market-output` (dùng câu "trước quý đầu") → `market-price` → `market-share` → câu tổng kết "thị phần → sản xuất → thị trường quyết định bán được bao nhiêu".
-- **Bước 3 "indicators"** giữ nguyên 4 KPI c/v/m/p′ (đã có), sau đó thêm sub-page `contradiction` (Chapter B.3 — dải trạng thái Yên/Căng/Bất ổn/Nguy hiểm/Đứt gãy), rồi `historical-scale` với 4 sub-page nhỏ: tổng quan cán cân + 3 trục (Chapter C.6), mỗi trục có body(state) đọc `readScale(state)` để chèn số thật (ví dụ "Tư bản 8, Lao động 19, Thị trường 5 — sức ép lao động nổi bật hơn ...").
-- **Bước 8 "summary"** sau khi quý đầu kết thúc: thêm sub-page `cvm-chart` (Chapter B.1) và `profit-chart` (Chapter B.2) dùng `state.history[last]` để chèn số thật ("Quý vừa rồi hiệu suất vốn thực tế là X%…"). Ẩn sub-page này khi `state.history.length === 0` (guard sẵn: bước 8 chỉ chạy sau quý đầu).
+## Cấu trúc file
 
-Body hai loại: `string` cho text tĩnh, hoặc `(state: GameState) => string` cho text có số thực. Loader kiểm tra `state.discoveredConcepts[key]` để dùng ngôn ngữ vận hành trước khi concept mở khóa (không gọi "quy luật tỷ suất lợi nhuận giảm dần", "giá trị thặng dư" khi chưa discover).
+```
+src/routes/apprenticeship.tsx           # route shell + header + progress + round switch
+src/apprenticeship/
+  types.ts                              # RoundId, Phase, RoundState, ConceptId (10 concept minigame)
+  state.ts                              # reducer + initial state + selectors
+  content.ts                            # copy Vietnamese: brief, câu hỏi check, tên khái niệm hiển thị sau eureka
+  numbers.ts                            # hằng số round 2/3/4/6 (nguồn cho test)
+  numbers.test.ts                       # unit test số liệu deterministic
+  components/
+    RoundHeader.tsx                     # 56–64px header + progress 6 nút tròn
+    TaskPanel.tsx                       # panel phải: tiêu đề + ≤3 câu hướng dẫn + control + nút hành động
+    EurekaPanel.tsx                     # crossfade cùng vị trí TaskPanel; aria-live polite
+    ResultTray.tsx                      # khay kết quả dưới sân khấu
+    CheckQuestion.tsx                   # câu kiểm tra ngắn; sai → giải thích + retry, không trừ điểm
+    Stage.tsx                           # khung cố định 65–70% width cho sân khấu round
+  rounds/
+    Round1Commodity.tsx                 # Xưởng → Tấm vải → Thị trường (drag + nút "Đưa ra trao đổi")
+    Round2Value.tsx                     # phân loại c/v vs giá trị mới → c=50 v=30 m=30 total=110
+    Round3Absolute.tsx                  # slider 8→10h; m 40→60; m′ 100→150%
+    Round4Machine.tsx                   # 8→12 đvsp; giờ/đv 1→0.67; đối thủ áp máy → tất yếu 4→3.5
+    Round5Overproduction.tsx            # chọn 80/100/140; cầu sụt còn 70; so sánh giá trị/bán/doanh thu/tồn
+    Round6Accumulation.tsx              # slider giữ lại + nút "Mua máy" khi ≥ $30
+  hooks/
+    useReducedMotion.ts                 # wrapper matchMedia prefers-reduced-motion
+    useFocusPhaseHeading.ts             # chuyển focus về tiêu đề phase mới
+```
 
-## 2. TutorialOverlay — hỗ trợ sub-step
+## Bố cục desktop
 
-`src/components/tutorial/TutorialOverlay.tsx`:
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ Header 56–64px: Ca học việc · Round n/6 · [Thoát]            │
+├──────────────────────────────────────────────────────────────┤
+│ Progress: (1)─(2)─(3)─(4)─(5)─(6)   khóa=mờ, xong=✓           │
+├─────────────────────────────────────┬────────────────────────┤
+│                                     │                        │
+│         Stage (65–70%)              │   TaskPanel (30–35%)   │
+│         Sân khấu round              │   ⇄ EurekaPanel        │
+│                                     │   (crossfade cùng slot)│
+│                                     │                        │
+├─────────────────────────────────────┤                        │
+│ ResultTray (chỉ hiện sau simulate)  │                        │
+└─────────────────────────────────────┴────────────────────────┘
+```
 
-- Store thêm `pageIndex` + actions `nextPage/prevPage`. `next()` hiện tại tăng `pageIndex`; nếu vượt số page trong step, tăng `stepIndex` và reset `pageIndex = 0`. `previous()` ngược lại.
-- Panel dùng `pages[pageIndex]` để render title/body/target/placement. Nút chính hiển thị "Xem chỉ số tiếp theo" nếu còn page trong step, "Tiếp tục" nếu là page cuối, "Chờ thao tác" nếu advance != manual.
-- Body có thể là function → gọi với `useGameStore.getState().state` (đọc reactive qua selector cho page hiện tại).
-- Thêm link "Tìm hiểu thêm" (footer nhỏ, chỉ hiện khi page có `learnMoreAnchor`) → mở `/how-to-play#<anchor>` ở tab mới.
-- Không dùng hover làm advance duy nhất (đã manual). Đảm bảo pointer/click/focus/touch đều nhận trên nút "Tiếp tục".
-- Ẩn/bỏ page tự động khi `showIf?(state) === false` (ví dụ profit-chart & cvm-chart khi `history.length === 0`).
+Kích thước Stage/TaskPanel cố định `min-h` để không nhảy layout giữa phase. Dưới breakpoint desktop → `<MobileWarning />` sẵn có.
 
-Store `src/tutorial/state.ts`:
+## State machine
 
-- Thêm `pageIndex: number`, reset khi `start/restart/next-step/previous-step`.
-- `currentPage()` trả `pages[pageIndex]`.
-- `onDecisionApplied/onQuarterEnded` chỉ advance khi ở page cuối và advance kind khớp.
+```ts
+type Phase = 'brief' | 'interact' | 'simulate' | 'eureka' | 'check' | 'complete';
+type RoundId = 1|2|3|4|5|6;
+interface AppState {
+  currentRound: RoundId;
+  phase: Phase;
+  unlockedUpTo: RoundId;         // gate progress
+  rounds: Record<RoundId, { completed: boolean; attempts: number }>;
+  // round-specific transient state được giữ trong component con qua useReducer riêng
+}
+```
 
-## 3. Đánh dấu target UI mới
+Action: `NEXT_PHASE`, `RESET_ROUND`, `COMPLETE_ROUND`, `GOTO_ROUND` (dev-only enforce `unlockedUpTo`).
 
-`src/routes/game.tsx`:
+## Số liệu deterministic (nguồn `numbers.ts` + test)
 
-- Thêm `data-tutorial="market-demand-industry|market-supply-industry|market-firm-demand|market-output|market-price|market-share"` trên từng `MarketCard` tương ứng.
-- Thêm `data-tutorial="cvm-chart"` trên `ChartCard` cấu thành giá trị, `data-tutorial="profit-chart"` trên container `<ProfitChart>`, `data-tutorial="contradiction"` trên container `<ContradictionCard>`, `data-tutorial="historical-scale"` trên `<HistoricalScale>` wrapper.
-- Trong `GameHeader` (`src/components/game/game-header.tsx`) đã có `header-cash`, thêm `header-fund`, `header-debt`, `header-next-interest`, `header-debt-ratio` trên các ô tương ứng.
-- Trong `HistoricalScale`, gắn `data-tutorial` trên 3 `PressureBar` (`historical-scale-capital/labor/market`) — chỉ dùng cho scroll spotlight.
+- Round 2: `mat=40, dep=10, wage=30, living=60 → c=50, v=30, m=30, total=110`.
+- Round 3: `h=8 → v=40,m=40,mRate=1.0`; `h=10 → v=40,m=60,mRate=1.5`.
+- Round 4: `pre: 8h, 8u, 1h/u`; `post: 8h, 12u, 0.667h/u`; social norm 4h → 3.5h.
+- Round 5: chọn output ∈ {80,100,140}, effectiveDemand=70 → `sold=min(output,70)`, `unsold=output-sold`, doanh thu và m tính theo bảng cố định.
+- Round 6: profit=$40, machinePrice=$30; unlock khi `retained ≥ 30` **và** đã bấm "Mua máy".
 
-Không thay layout/CSS, chỉ thêm attribute.
+## Giáo dục / accessibility
 
-## 4. Hai sửa UI (ngoài tutorial)
+- Mỗi round: brief chưa gọi tên khái niệm → interact → simulate animation dòng giá trị → EurekaPanel gọi tên → CheckQuestion; sai → giải thích + retry, không trừ điểm, không mở round tiếp.
+- Drag luôn có nút click + phím tương đương (Enter/Space).
+- `aria-live="polite"` trên ResultTray và EurekaPanel.
+- `prefers-reduced-motion` → bỏ animation, chuyển state tức thời.
+- Focus tự chuyển về `<h2>` của phase mới.
+- Card `rounded-lg` (≤8px), không gradient orb, không hero marketing, không SVG trang trí.
 
-**a) Ẩn c/v/m 0% và chart trống khi chưa có quý.** `src/routes/game.tsx`:
+## Màn kết thúc
 
-- Điều kiện `state.history.length === 0` (hoặc `last.commodityValue <= 0`) → thay body của `ChartCard` "Cấu thành giá trị" bằng placeholder: `<div className="flex h-[110px] items-center justify-center text-xs text-muted-foreground">Chưa có dữ liệu quý</div>`.
-- Tương tự `ProfitChart`: khi `data.length === 0` (đã `slice(-12)` của history), render placeholder tương tự trong chính component; giữ tiêu đề để tránh nhảy layout.
-- Sửa contrast: dòng legend "c/v/m" đang dùng `<span className="text-[color:var(--info)]">■</span>` v.v. Kiểm tra token và chuyển `text-muted-foreground` bao ngoài thành `text-foreground/80`; đảm bảo giá trị `%` không dùng màu đen trên nền đen (đổi class base thành `text-foreground/80`).
+Grid 15 ô: 10 concept minigame hiện tên + icon; 5 concept nâng cao của game chính hiện ô tối `?` (không tiết lộ tên, không import từ `concepts.ts`).
 
-**b) Đổi nhãn "Phần cầu của xưởng" → "Cầu dành cho xưởng"** trong `game.tsx` MarketCard. Chỉ đổi label hiển thị, không đổi biến/state/công thức. Cập nhật cùng chuỗi ở body tutorial page.
+## Kiểm thử & nghiệm thu
 
-## 5. Contextual hints bổ sung (Chapter C.6 khi cán cân lệch)
+- `numbers.test.ts`: assert số của round 2/3/4/6.
+- `state.test.ts`: sai CheckQuestion không tăng `unlockedUpTo`; Reset đưa round về `brief`.
+- Grep guard trong test: `apprenticeship/**` không được import `useGameStore` / `game/engine/*` / `game/state`.
+- `bun run` typecheck + vitest + eslint + build.
+- Screenshot Playwright 1280×720 và 1440×900 cho cả 6 round (dev round switch để nhảy nhanh).
 
-`src/tutorial/hints.ts` & `types.ts`: thêm 4 hint mới (chỉ trigger sau khi tutorial chính complete/skipped, đúng cơ chế observer sẵn có):
+## Bàn giao cho giai đoạn sau
 
-- `scale-capital-high`: khi `readScale(state).capital` vượt ngưỡng (>60) lần đầu.
-- `scale-labor-high`: `labor` > 60.
-- `scale-market-high`: `market` > 60.
-- `scale-multi-high`: ≥2 trục > 55 đồng thời.
-
-Predicate `detectHint` mở rộng: import `readScale` từ `@/game/pressures`, so sánh prev vs next. Mỗi hint chỉ 1 lần (đã có logic `seenHints`).
-
-## 6. Trang "Hướng dẫn" (deep-dive)
-
-`src/routes/how-to-play.tsx`: thêm các section với `id` khớp `learnMoreAnchor` — Thị trường, Cấu thành giá trị, Hiệu suất vốn, Áp lực xã hội, Tài chính, Cán cân lịch sử. Nội dung dài hơn 2–4 câu overlay. Không đổi nút "Chơi lại hướng dẫn" hiện có.
-
-## 7. Tests
-
-- `src/tutorial/steps.test.ts`: page cuối advance khớp; sub-step không tăng `stepIndex`; `showIf` ẩn page cvm/profit khi `history.length === 0`.
-- `src/tutorial/state.test.ts`: `next()` chuyển page trước khi chuyển step; `previous()` vượt page đầu về step trước.
-- `src/tutorial/hints.test.ts`: 4 hint scale mới chỉ trigger 1 lần và không trigger khi modal mở (đã cover ở observer).
-- Không đụng `simulation.test.ts`, `concepts.test.ts`, `engine/events.test.ts`.
-
-## 8. Production gate
-
-`bunx vitest run`, `bunx tsgo --noEmit`, ESLint, build. Playwright smoke 1440×900: bắt đầu game → xem toàn tutorial (bao gồm sub-step market + cán cân dùng số thật) → kết thúc quý đầu → sub-step cvm/profit hiện; smoke 360×800: panel là bottom sheet, spotlight scroll target vào giữa.
-
-## Ghi chú kỹ thuật
-
-- Số thực trong body dùng closure `(state) => string`; overlay đọc `useGameStore((s) => s.state)` một lần và truyền xuống.
-- Không cache label ẩn; chart placeholder giữ nguyên khung để tránh layout shift.
-- Không đụng `state.ts` engine, `decisions.ts`, `pressures.ts`, `concepts.ts`, `balance.ts`.
-- Nhãn dải trạng thái áp lực xã hội chỉ là text UI trong `ContradictionCard`; không đổi threshold trong engine.
+Ghi rõ trong closing message: chưa wire vào menu/intro, chưa persist, chưa gọi Codex chính, chưa gate `/game`. Tất cả điểm tích hợp để lại là `onExit` (hiện chỉ `navigate({to:'/'})`) và `onFinish` (hiện chỉ set `complete` cục bộ).
 
 &nbsp;
 
-```
-Điều chỉnh plan trước khi triển khai:
+Điều chỉnh bắt buộc trước khi triển khai:
 
-1. Giảm số sub-page: gom các KPI cùng chủ đề, không tạo hơn 10–12 lần bấm nội dung trước quyết định đầu tiên.
-2. Cán cân Lịch sử thể hiện mức áp lực, không phải sức mạnh. Không mô tả capital là sức mạnh tài chính.
-3. Các page header-debt/header-next-interest/header-debt-ratio phải có showIf debt > 0 và nội dung fallback khi không có nợ.
-4. Render body động bằng Zustand selector reactive, không dùng getState() làm nguồn render chính.
-5. Phân biệt “chưa có dữ liệu quý” với “quý có sản lượng/commodityValue bằng 0”.
-6. Kiểm tra scale-multi-high trước hint đơn lẻ và chỉ trigger khi giá trị vừa vượt ngưỡng.
-7. Không gọi ba trục là phần trăm hoặc thang 0–100 nếu readScale vẫn có capital/labor tối đa 120.
-8. PressureBar cần nhận tutorialId để gắn data-tutorial thực sự.
-9. Deep link Hướng dẫn phải dùng TanStack Router và giữ nguyên game state.
-```
+- Round 2 dùng ba nhóm: c chuyển dịch, v ứng mua sức lao động, lao động sống tạo newValue=v+m.
+
+- Round 4 tách socialLaborTime 1→0.67 giờ/đv khỏi necessaryLaborTime 4→3.5 giờ; newValue giữ $80 trước/sau máy.
+
+- Round 5 dùng bảng: unit c=4,v=3,m=3; output=100; demand shock=70; sold=70; inventory=30; revenue=700; produced m=300; accounting profit=0.
+
+- Round 6 hiển thị retained/ownerConsumption/fund cho đủ bốn tỷ lệ; concept chỉ mở sau khi mua máy.
+
+- Dev switch được bỏ khóa, production progress vẫn khóa.
+
+- Dùng useReducedMotion từ Framer Motion.
+
+- Reset phải reset cả transient state của round.
+
+- Cho phép dùng intro-3-desk.jpg và intro-4-workers.jpg.
+
+- Thêm unit test Round 5.
+
+- Production gate dùng npm test, npx tsc --noEmit, npm run lint, npm run build.
