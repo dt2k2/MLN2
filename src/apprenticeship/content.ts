@@ -28,23 +28,13 @@ export const ROUNDS: Record<RoundId, RoundContent> = {
       "Xưởng của bạn vừa hoàn thành một tấm vải.",
       "Tấm vải có ích, nhưng để có tiền, nó phải rời khỏi xưởng.",
     ],
-<<<<<<< HEAD
     interactHint: ["Bấm “Đưa ra trao đổi” để đưa tấm vải sang thị trường."],
-=======
-    interactHint: [
-      "Kéo tấm vải sang thị trường, hoặc bấm “Đưa ra trao đổi”.",
-    ],
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
     concepts: [
       {
         id: "commodity",
         title: "Hàng hóa",
         explanation:
-<<<<<<< HEAD
           "Tấm vải là hàng hóa vì vừa có công dụng cho người khác, vừa được sản xuất để trao đổi. Khi bán được, giá trị của nó mới được thực hiện thành tiền.",
-=======
-          "Sản phẩm của lao động vừa có công dụng (giá trị sử dụng) vừa được làm ra để trao đổi (giá trị). Chỉ khi nó rời xưởng và được người khác chấp nhận, nó mới thực sự là hàng hóa.",
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
       },
     ],
     check: {
@@ -64,21 +54,12 @@ export const ROUNDS: Record<RoundId, RoundContent> = {
     title: "Giá trị đi qua xưởng",
     subtitle: "Round 2 · c, v, m",
     brief: [
-<<<<<<< HEAD
       "Bốn dòng dưới đây giữ những vai trò khác nhau trong quá trình sản xuất.",
       "Hãy xác định giá trị cũ, vốn ứng cho sức lao động và nguồn tạo giá trị mới.",
     ],
     interactHint: [
       "Chọn một vai trò cho từng dòng giá trị.",
       "Lưu ý: tiền lương không tự tạo giá trị; lao động sống mới làm điều đó.",
-=======
-      "Mỗi tấm vải ra khỏi xưởng mang theo bốn khoản chi phí.",
-      "Chúng không cùng bản chất — hãy phân loại chúng.",
-    ],
-    interactHint: [
-      "Kéo hoặc bấm để đưa từng khoản vào đúng ô.",
-      "Chuyển giá trị cũ — hoặc Tạo giá trị mới.",
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
     ],
     concepts: [
       {
@@ -90,7 +71,6 @@ export const ROUNDS: Record<RoundId, RoundContent> = {
       {
         id: "variableCapital",
         title: "Tư bản khả biến (v)",
-<<<<<<< HEAD
         explanation:
           "Tiền lương là tư bản ứng ra để mua sức lao động. Trong sản xuất, lao động sống tạo ra một lượng giá trị mới đủ tái tạo v và còn có thể vượt quá v.",
       },
@@ -99,15 +79,6 @@ export const ROUNDS: Record<RoundId, RoundContent> = {
         title: "Giá trị thặng dư (m)",
         explanation:
           "Lao động sống tạo $60 giá trị mới: $30 tái tạo v và $30 còn lại là m. Máy và nguyên liệu chỉ chuyển giá trị đã có vào sản phẩm.",
-=======
-        explanation: "Tiền lương ứng ra để mua sức lao động — phần này biến thành giá trị mới.",
-      },
-      {
-        id: "livingLabor",
-        title: "Lao động sống tạo giá trị mới",
-        explanation:
-          "Chỉ lao động sống mới tạo ra giá trị mới (v + m). Máy không tự sinh ra giá trị — nó chỉ truyền giá trị cũ.",
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
       },
     ],
     check: {
@@ -123,11 +94,7 @@ export const ROUNDS: Record<RoundId, RoundContent> = {
     title: "Kéo dài ngày lao động",
     subtitle: "Round 3 · Thặng dư tuyệt đối",
     brief: [
-<<<<<<< HEAD
       "Ngày làm 8 giờ: 4 giờ tái tạo giá trị sức lao động, 4 giờ tạo thặng dư.",
-=======
-      "Ngày làm 8 giờ: 4 giờ trả lương, 4 giờ thặng dư.",
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
       "Nếu bạn kéo dài ngày làm mà giữ nguyên lương, chuyện gì xảy ra?",
     ],
     interactHint: ["Kéo thanh giờ từ 8 lên 10 để xem timeline thay đổi."],
@@ -142,11 +109,7 @@ export const ROUNDS: Record<RoundId, RoundContent> = {
         id: "surplusRate",
         title: "Tỷ suất thặng dư m′ = m / v",
         explanation:
-<<<<<<< HEAD
           "Đo tỷ lệ giữa phần giá trị thặng dư và tư bản khả biến. Khi m tăng mà v không đổi, m′ tăng — đồng thời áp lực lên sức khỏe công nhân cũng lớn hơn.",
-=======
-          "Đo mức bóc lột. Khi m tăng mà v không đổi, m′ leo dốc — sức khỏe công nhân cũng vậy.",
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
       },
     ],
     check: {
@@ -166,38 +129,20 @@ export const ROUNDS: Record<RoundId, RoundContent> = {
     ],
     interactHint: [
       "Bấm “Áp dụng máy mới” để chạy so sánh trước/sau.",
-<<<<<<< HEAD
       "Rồi bấm “Đối thủ cũng áp dụng máy” để xem chuẩn xã hội dịch chuyển.",
-=======
-      "Rồi bấm “Đối thủ áp dụng máy” để xem chuẩn xã hội dịch chuyển.",
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
     ],
     concepts: [
       {
         id: "socialLaborTime",
         title: "Lao động xã hội cần thiết",
         explanation:
-<<<<<<< HEAD
           "Đây là thời gian cần để làm ra một hàng hóa trong điều kiện sản xuất bình thường của xã hội, với kỹ năng và cường độ lao động phổ biến. Khi cải tiến lan rộng, mức này giảm.",
-=======
-          "Không phải thời gian bạn bỏ ra — mà là mức trung bình xã hội. Khi cả ngành áp máy, mức này giảm.",
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
       },
       {
         id: "relativeSurplus",
         title: "Thặng dư tương đối",
         explanation:
-<<<<<<< HEAD
           "Xưởng đi trước tạm hưởng lợi nhuận siêu ngạch. Khi năng suất mới phổ biến và làm rẻ các tư liệu sinh hoạt như vải, thời gian tất yếu có thể giảm từ 4 xuống 3,5 giờ; phần thặng dư tăng mà ngày làm không dài thêm.",
-=======
-          "Khi lao động tất yếu rút ngắn (từ 4 xuống 3.5 giờ), phần thặng dư nở ra mà không cần kéo dài ngày làm.",
-      },
-      {
-        id: "superProfit",
-        title: "Lợi nhuận siêu ngạch",
-        explanation:
-          "Khoản chênh lệch tạm thời khi bạn năng suất hơn chuẩn xã hội. Nó biến mất khi đối thủ bắt kịp.",
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
       },
     ],
     check: {
@@ -245,24 +190,13 @@ export const ROUNDS: Record<RoundId, RoundContent> = {
       "Bạn có $40 lợi nhuận. Tiêu thụ hay đầu tư?",
       "Máy mới giá $30 — chỉ đủ nếu bạn giữ lại đúng mức.",
     ],
-<<<<<<< HEAD
     interactHint: ["Chọn tỷ lệ giữ lại 25 / 50 / 75 / 100%.", "Bấm “Mua máy” khi quỹ đủ."],
-=======
-    interactHint: [
-      "Chọn tỷ lệ giữ lại 25 / 50 / 75 / 100%.",
-      "Bấm “Mua máy” khi quỹ đủ.",
-    ],
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
     concepts: [
       {
         id: "capitalAccumulation",
         title: "Tích lũy tư bản",
         explanation:
-<<<<<<< HEAD
           "Lợi nhuận giữ lại mới chỉ là quỹ tiền. Khi phần đó được dùng mua thêm máy móc, nguyên liệu hoặc sức lao động, giá trị thặng dư mới chuyển thành tư bản bổ sung.",
-=======
-          "Chỉ khi lợi nhuận giữ lại thực sự biến thành tư liệu sản xuất mới, tư bản mới lớn lên. Giữ tiền trong két không phải tích lũy.",
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
       },
     ],
     check: {
@@ -274,11 +208,7 @@ export const ROUNDS: Record<RoundId, RoundContent> = {
       ],
       correctIndex: 2,
       wrongExplanation:
-<<<<<<< HEAD
         "Lợi nhuận của chu chuyển trước phải được ứng trở lại để mua thêm tư liệu sản xuất hoặc sức lao động; lúc đó quy mô tư bản sản xuất mới thực sự mở rộng.",
-=======
-        "Chỉ khi vòng M–C–M′ đóng lại — tiền biến thành máy/nguyên liệu — tư bản mới thực sự mở rộng.",
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
     },
   },
 };

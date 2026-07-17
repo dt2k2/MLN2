@@ -15,7 +15,6 @@ export function Round1Commodity({ onSimulate, running }: Props) {
 
   useEffect(() => {
     if (running) {
-<<<<<<< HEAD
       const t = setTimeout(
         () => {
           setPos("market");
@@ -23,12 +22,6 @@ export function Round1Commodity({ onSimulate, running }: Props) {
         },
         reduce ? 0 : 700,
       );
-=======
-      const t = setTimeout(() => {
-        setPos("market");
-        setExchanged(true);
-      }, reduce ? 0 : 700);
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
       return () => clearTimeout(t);
     }
   }, [running, reduce]);
@@ -56,14 +49,10 @@ export function Round1Commodity({ onSimulate, running }: Props) {
           <motion.div
             className="absolute top-1/2 -translate-y-1/2"
             initial={{ left: "50%", x: "-50%" }}
-<<<<<<< HEAD
             animate={{
               left: pos === "market" ? "100%" : "50%",
               x: pos === "market" ? "-100%" : "-50%",
             }}
-=======
-            animate={{ left: pos === "market" ? "100%" : "50%", x: pos === "market" ? "-100%" : "-50%" }}
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
             transition={{ duration: reduce ? 0 : 1.2, ease: "easeInOut" }}
           >
             <div className="flex flex-col items-center gap-1">
@@ -102,7 +91,6 @@ function Station({ icon, label }: { icon: React.ReactNode; label: string }) {
   );
 }
 
-<<<<<<< HEAD
 function ResultCell({
   label,
   value,
@@ -114,10 +102,6 @@ function ResultCell({
 }) {
   const cls =
     tone === "success" ? "text-success" : tone === "gold" ? "text-gold" : "text-muted-foreground";
-=======
-function ResultCell({ label, value, tone }: { label: string; value: string; tone: "muted" | "success" | "gold" }) {
-  const cls = tone === "success" ? "text-success" : tone === "gold" ? "text-gold" : "text-muted-foreground";
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
   return (
     <div className="rounded border border-border/40 bg-panel/50 p-2">
       <div className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{label}</div>
