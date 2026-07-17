@@ -37,16 +37,11 @@ export const R4 = {
     necessary: 4,
     surplus: 4,
   },
-<<<<<<< HEAD
   // Khi cải tiến được xã hội hóa, thời gian xã hội/đơn vị giảm. Vải rẻ hơn
   // trong rổ tiêu dùng minh họa làm thời gian tất yếu của ngày lao động giảm.
   socialLaborTime: { before: 1, after: 8 / 12 },
   necessaryLabor: { before: 4, after: 3.5 },
   surplusLabor: { before: 4, after: 4.5 },
-=======
-  // Sau khi đối thủ cũng áp máy → chuẩn xã hội giảm
-  socialNorm: { before: 4, after: 3.5 },
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
 } as const;
 
 export const R5 = {
@@ -68,11 +63,7 @@ export interface R5Result {
   unsold: number;
   revenue: number;
   costs: number; // c + v cho toàn bộ output
-<<<<<<< HEAD
   realizedProfit: number;
-=======
-  accountingProfit: number;
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
 }
 
 export function computeR5(output: number): R5Result {
@@ -84,11 +75,7 @@ export function computeR5(output: number): R5Result {
   const unsold = output - sold;
   const revenue = sold * R5.unit.price;
   const costs = c + v;
-<<<<<<< HEAD
   const realizedProfit = revenue - costs;
-=======
-  const accountingProfit = revenue - costs;
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
   return {
     output,
     produced: { c, v, m, totalValue },
@@ -96,11 +83,7 @@ export function computeR5(output: number): R5Result {
     unsold,
     revenue,
     costs,
-<<<<<<< HEAD
     realizedProfit,
-=======
-    accountingProfit,
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
   };
 }
 
@@ -129,11 +112,8 @@ export function computeR6(ratioPct: number): R6Breakdown {
     canBuyMachine: retained >= R6.machinePrice,
   };
 }
-<<<<<<< HEAD
 
 export function accumulationFundAfterPurchase(ratioPct: number) {
   const breakdown = computeR6(ratioPct);
   return breakdown.canBuyMachine ? breakdown.fund - R6.machinePrice : breakdown.fund;
 }
-=======
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9

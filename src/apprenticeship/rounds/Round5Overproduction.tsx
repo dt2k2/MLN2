@@ -16,16 +16,12 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
 
   const pick = (o: number) => {
     setChoice(o);
-<<<<<<< HEAD
     setResult(null);
   };
 
   const runMarket = () => {
     if (choice !== R5.effectiveDemand) return;
     setResult(computeR5(choice));
-=======
-    setResult(computeR5(o));
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
     onSimulate();
   };
 
@@ -33,7 +29,6 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
     <Stage
       resultTray={
         result ? (
-<<<<<<< HEAD
           <div className="grid grid-cols-6 gap-2 text-center font-mono">
             <Cell label="m đã sản xuất" value={`$${result.produced.m}`} tone="muted" />
             <Cell label="Đã bán" value={`${result.sold} đv`} tone="info" />
@@ -49,18 +44,6 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
               tone={result.unsold > 0 ? "danger" : "muted"}
             />
             <Cell label="Tổng giá trị" value={`$${result.produced.totalValue}`} tone="muted" />
-=======
-          <div className="grid grid-cols-5 gap-2 text-center font-mono">
-            <Cell label="Giá trị SX" value={`$${result.produced.totalValue}`} tone="muted" />
-            <Cell label="Đã bán" value={`${result.sold} đv`} tone="info" />
-            <Cell label="Doanh thu" value={`$${result.revenue}`} tone="gold" />
-            <Cell
-              label="Lợi nhuận KT"
-              value={`$${result.accountingProfit}`}
-              tone={result.accountingProfit >= 0 ? "success" : "danger"}
-            />
-            <Cell label="Tồn kho" value={`${result.unsold} đv`} tone={result.unsold > 0 ? "danger" : "muted"} />
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
           </div>
         ) : (
           <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground/60">
@@ -86,25 +69,15 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
             <button
               key={o}
               type="button"
-<<<<<<< HEAD
               onClick={() => !running && pick(o)}
               disabled={running}
-=======
-              onClick={() => choice === null && pick(o)}
-              disabled={choice !== null}
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
               className={cn(
                 "rounded-md border p-4 text-center transition",
                 choice === o
                   ? "border-primary bg-primary/20 text-gold"
                   : "border-border/60 bg-panel/50 hover:border-primary/50",
-<<<<<<< HEAD
                 running ? "cursor-default" : "cursor-pointer",
                 running && choice !== o && "opacity-50",
-=======
-                choice === null ? "cursor-pointer" : "cursor-default",
-                choice !== null && choice !== o && "opacity-50",
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
               )}
             >
               <div className="font-mono text-2xl text-foreground">{o}</div>
@@ -114,7 +87,6 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
             </button>
           ))}
         </div>
-<<<<<<< HEAD
         {choice !== null && !result && (
           <div
             className={cn(
@@ -140,8 +112,6 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
             Chạy thị trường
           </button>
         )}
-=======
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
         {result && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -175,7 +145,6 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
   );
 }
 
-<<<<<<< HEAD
 function Cell({
   label,
   value,
@@ -192,10 +161,6 @@ function Cell({
     success: "text-success",
     danger: "text-danger",
   }[tone];
-=======
-function Cell({ label, value, tone }: { label: string; value: string; tone: "muted" | "info" | "gold" | "success" | "danger" }) {
-  const cls = { muted: "text-muted-foreground", info: "text-info", gold: "text-gold", success: "text-success", danger: "text-danger" }[tone];
->>>>>>> cf29a6e21fe6579c43145096c56e4595468aaab9
   return (
     <div className="rounded border border-border/40 bg-panel/50 p-2">
       <div className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{label}</div>
