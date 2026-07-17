@@ -42,7 +42,7 @@ const BEATS: Beat[] = [
     start: 21,
     end: 43,
     caption: "Heinrich Müller · 32 tuổi · Müller & Söhne Textilwerk",
-    text: `Bạn là Heinrich Müller, ba mươi hai tuổi, vừa thừa kế xưởng dệt bên sông Wupper: ${BAL.initialMachines} cổ máy dệt hơi nước, ${BAL.initialActiveWorkers} công nhân có ca, ${BAL.initialIdleWorkers} người chờ việc và khoản nợ ngân hàng $${BAL.initialDebt.toLocaleString("vi-VN")} vẫn sinh lãi. Cha bạn từng dạy: “Con ơi — tư bản không nghỉ ngơi.”`,
+    text: `Bạn là Heinrich Müller, ba mươi hai tuổi, vừa thừa kế xưởng dệt bên sông Wupper: ${BAL.initialMachines} cỗ máy dệt hơi nước, ${BAL.initialActiveWorkers} công nhân có ca, ${BAL.initialIdleWorkers} người chờ việc và khoản nợ ngân hàng $${BAL.initialDebt.toLocaleString("vi-VN")} vẫn sinh lãi. Cha bạn từng dạy: “Con ơi — tư bản không nghỉ ngơi.”`,
   },
   {
     img: desk,
