@@ -14,14 +14,32 @@ interface Item {
 }
 
 const ITEMS: Item[] = [
-  { id: "mat", label: "Nguyên liệu", amount: R2.materials, correct: "transfer" },
-  { id: "dep", label: "Hao mòn máy", amount: R2.depreciation, correct: "transfer" },
-  { id: "wage", label: "Tiền lương", amount: R2.wage, correct: "advanced" },
+  {
+    id: "mat",
+    label: "Bông và thuốc nhuộm",
+    amount: R2.materials,
+    amountNote: "giá trị đã có",
+    correct: "transfer",
+  },
+  {
+    id: "dep",
+    label: "Phần máy bị hao mòn",
+    amount: R2.depreciation,
+    amountNote: "giá trị đã có",
+    correct: "transfer",
+  },
+  {
+    id: "wage",
+    label: "Tiền ứng trả lương",
+    amount: R2.wage,
+    amountNote: "ứng trước sản xuất",
+    correct: "advanced",
+  },
   {
     id: "living",
-    label: "Lao động sống",
+    label: "Lao động sống trong quý",
     amount: R2.livingLaborValue,
-    amountNote: "giá trị mới",
+    amountNote: "giá trị mới tạo ra",
     correct: "source",
   },
 ];
@@ -59,12 +77,7 @@ export function Round2Value({ onSimulate, running }: Props) {
     <Stage
       resultTray={
         running ? (
-          <div className="grid grid-cols-4 gap-3 text-center font-mono">
-            <StatCell label="c · giá trị cũ" value={`$${R2.c}`} tone="muted" />
-            <StatCell label="v · tiền lương" value={`$${R2.v}`} tone="info" />
-            <StatCell label="m · phần dôi ra" value={`$${R2.m}`} tone="gold" />
-            <StatCell label="Tổng giá trị" value={`$${R2.total}`} tone="success" />
-          </div>
+          <ValueFormationResult />
         ) : (
           <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground/60">
             {checked && !allCorrect
@@ -77,6 +90,10 @@ export function Round2Value({ onSimulate, running }: Props) {
       }
     >
       <div className="flex w-full flex-col gap-4">
+        <div className="rounded-md border border-info/25 bg-info/5 px-3 py-2 text-xs leading-relaxed text-foreground/80">
+          <strong className="text-info">Câu hỏi:</strong> yếu tố này chuyển giá trị đã có, là khoản
+          tiền ứng để mua sức lao động, hay là hoạt động thực sự tạo ra giá trị mới?
+        </div>
         <div className="grid grid-cols-2 gap-3">
           {ITEMS.map((it) => {
             const b = placed[it.id];
@@ -107,7 +124,7 @@ export function Round2Value({ onSimulate, running }: Props) {
                     )}
                     aria-label={`${it.label} — chuyển giá trị cũ`}
                   >
-                    Giá trị cũ
+                    Chuyển giá trị
                   </button>
                   <button
                     type="button"
@@ -120,7 +137,7 @@ export function Round2Value({ onSimulate, running }: Props) {
                     )}
                     aria-label={`${it.label} — tư bản ứng mua sức lao động`}
                   >
-                    Ứng tiền lương
+                    Ứng mua sức LĐ
                   </button>
                   <button
                     type="button"
@@ -142,12 +159,12 @@ export function Round2Value({ onSimulate, running }: Props) {
         </div>
         <div className="grid grid-cols-3 gap-3">
           <BucketBox
-            title="Chuyển giá trị cũ (c)"
+            title="Giá trị cũ chuyển vào vải (c)"
             items={ITEMS.filter((it) => placed[it.id] === "transfer")}
             tone="muted"
           />
           <BucketBox
-            title="Ứng mua sức lao động (v)"
+            title="Tiền ứng mua sức lao động (v)"
             items={ITEMS.filter((it) => placed[it.id] === "advanced")}
             tone="info"
           />
@@ -236,25 +253,53 @@ function BucketBox({
   );
 }
 
-function StatCell({
+function ValueFormationResult() {
+  return (
+    <div className="flex items-center justify-center gap-2 text-center">
+      <ValueBlock label="Giá trị cũ chuyển dịch" value={`c = $${R2.c}`} tone="muted" />
+      <Operator>+</Operator>
+      <div className="min-w-0 flex-1 rounded border border-primary/40 bg-primary/5 px-3 py-2">
+        <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+          Giá trị mới do lao động sống tạo ra
+        </div>
+        <div className="mt-0.5 font-mono text-base text-gold">${R2.livingLaborValue}</div>
+        <div className="font-mono text-[10px] text-foreground/70">
+          gồm <span className="text-info">v ${R2.v}</span> +
+          <span className="text-gold"> m ${R2.m}</span>
+        </div>
+      </div>
+      <Operator>=</Operator>
+      <ValueBlock label="Tổng giá trị tấm vải" value={`$${R2.total}`} tone="success" />
+    </div>
+  );
+}
+
+function ValueBlock({
   label,
   value,
   tone,
 }: {
   label: string;
   value: string;
-  tone: "muted" | "info" | "gold" | "success";
+  tone: "muted" | "success";
 }) {
-  const cls = {
-    muted: "text-muted-foreground",
-    info: "text-info",
-    gold: "text-gold",
-    success: "text-success",
-  }[tone];
   return (
-    <div className="rounded border border-border/40 bg-panel/50 p-2">
-      <div className="text-[10px] uppercase tracking-widest text-muted-foreground/70">{label}</div>
-      <div className={`mt-1 font-mono text-base ${cls}`}>{value}</div>
+    <div className="min-w-0 flex-1 rounded border border-border/40 bg-panel/50 px-3 py-2">
+      <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+        {label}
+      </div>
+      <div
+        className={cn(
+          "mt-0.5 font-mono text-base",
+          tone === "success" ? "text-success" : "text-muted-foreground",
+        )}
+      >
+        {value}
+      </div>
     </div>
   );
+}
+
+function Operator({ children }: { children: string }) {
+  return <span className="shrink-0 font-mono text-lg text-foreground/50">{children}</span>;
 }

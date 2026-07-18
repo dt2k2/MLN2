@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { produce } from "immer";
-import { checkImmediateDiscoveries, checkQuarterDiscoveries, CONCEPT_KEYS } from "./concepts";
+import {
+  checkImmediateDiscoveries,
+  checkQuarterDiscoveries,
+  CONCEPT_INFO,
+  CONCEPT_KEYS,
+} from "./concepts";
 import { DECISIONS } from "./decisions";
 import { buyMachine } from "./economy";
 import { initialState } from "./state";
@@ -20,6 +25,14 @@ function record(overrides: Partial<QuarterRecord> = {}): QuarterRecord {
 }
 
 describe("concept discovery", () => {
+  it("provides a Vietnamese display name for every internal concept key", () => {
+    expect(CONCEPT_KEYS).toHaveLength(15);
+    for (const key of CONCEPT_KEYS) {
+      expect(CONCEPT_INFO[key].title).toBeTruthy();
+      expect(CONCEPT_INFO[key].title).not.toBe(key);
+    }
+  });
+
   it("buying machinery immediately unlocks c but not relative surplus value", () => {
     const previous = initialState(1);
     const next = produce(previous, (draft) => DECISIONS.BUY_MACHINE.apply(draft));

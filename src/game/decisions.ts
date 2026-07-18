@@ -38,6 +38,10 @@ export const DECISION_GROUPS: {
   },
 ];
 
+export function decisionGroupTitle(id: DecisionGroupId): string {
+  return DECISION_GROUPS.find((group) => group.id === id)?.title ?? "Quyết định";
+}
+
 function repaymentOption(
   id: "REPAY_5000" | "REPAY_15000" | "REPAY_ALL",
   amount: number | "all",

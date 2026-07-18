@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { SkipForward, Volume2, VolumeX, Play } from "lucide-react";
+import { Factory, GraduationCap, Play, SkipForward, Volume2, VolumeX } from "lucide-react";
 import city from "@/assets/intro-1-city.jpg";
 import heinrich from "@/assets/intro-2-heinrich.jpg";
 import desk from "@/assets/intro-3-desk.jpg";
@@ -70,11 +70,11 @@ function IntroScene() {
   const [audioAvailable, setAudioAvailable] = useState(true);
   const [started, setStarted] = useState(false);
 
-  const finish = () => {
+  const finish = (destination: "/game" | "/apprenticeship") => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("dk_intro_seen", "1");
     }
-    navigate({ to: "/game" });
+    navigate({ to: destination });
   };
 
   // Preload all images
@@ -92,11 +92,11 @@ function IntroScene() {
     let raf = 0;
     const tick = () => {
       const now = (performance.now() - t0) / 1000;
-      setElapsed(now);
       if (now >= TOTAL) {
-        finish();
+        setElapsed(TOTAL);
         return;
       }
+      setElapsed(now);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -183,7 +183,7 @@ function IntroScene() {
           ) : null}
           <button
             type="button"
-            onClick={finish}
+            onClick={() => finish("/game")}
             className="flex cursor-pointer items-center gap-2 rounded-md border border-white/20 bg-white/5 px-3 py-1.5 font-mono text-xs uppercase tracking-widest backdrop-blur hover:border-white/60 hover:bg-white/10"
           >
             Bỏ qua <SkipForward className="h-3.5 w-3.5" />
@@ -239,16 +239,33 @@ function IntroScene() {
 
         {/* Continue button on final beat */}
         {started && isLastBeat && beatProgress > 0.5 ? (
-          <motion.button
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            type="button"
-            onClick={finish}
-            className="mt-8 flex cursor-pointer items-center gap-3 rounded-md border border-[oklch(0.6_0.13_60)] bg-[oklch(0.35_0.08_60)]/50 px-8 py-3 font-display text-sm uppercase tracking-[0.4em] text-[oklch(0.85_0.13_75)] backdrop-blur transition hover:bg-[oklch(0.4_0.1_60)]/70 hover:shadow-[0_0_40px_oklch(0.55_0.13_60/0.5)]"
+            className="mt-8 flex w-full max-w-2xl flex-col items-stretch justify-center gap-3 sm:flex-row"
           >
-            Vào xưởng →
-          </motion.button>
+            <button
+              type="button"
+              onClick={() => finish("/apprenticeship")}
+              className="group flex min-h-14 flex-1 cursor-pointer items-center justify-center gap-3 rounded-md border border-[oklch(0.68_0.14_72)] bg-[oklch(0.38_0.09_62)]/80 px-6 py-3 font-display text-sm uppercase tracking-[0.22em] text-[oklch(0.9_0.12_78)] shadow-[0_0_30px_oklch(0.55_0.13_60/0.28)] backdrop-blur transition hover:bg-[oklch(0.43_0.1_62)]/90 hover:shadow-[0_0_40px_oklch(0.55_0.13_60/0.45)]"
+            >
+              <GraduationCap className="h-5 w-5 shrink-0" />
+              <span className="flex flex-col items-start gap-0.5 text-left">
+                <span>Vào ca học việc</span>
+                <span className="font-mono text-[8px] tracking-[0.14em] text-white/55">
+                  Khuyên dùng lần đầu
+                </span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => finish("/game")}
+              className="flex min-h-14 flex-1 cursor-pointer items-center justify-center gap-3 rounded-md border border-white/25 bg-black/45 px-6 py-3 font-display text-sm uppercase tracking-[0.22em] text-white/80 backdrop-blur transition hover:border-white/55 hover:bg-white/10 hover:text-white"
+            >
+              <Factory className="h-5 w-5 shrink-0" /> Vào xưởng ngay
+            </button>
+          </motion.div>
         ) : null}
       </div>
 

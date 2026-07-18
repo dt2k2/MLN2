@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { produce } from "immer";
 import { BAL } from "./balance";
-import { checkImmediateDiscoveries, checkQuarterDiscoveries } from "./concepts";
-import { DECISIONS } from "./decisions";
+import { CONCEPT_INFO, checkImmediateDiscoveries, checkQuarterDiscoveries } from "./concepts";
+import { DECISIONS, decisionGroupTitle } from "./decisions";
 import { createInitialCompetitors } from "./engine/competitors";
 import { checkEnding } from "./engine/endings";
 import { advanceQuarter } from "./engine/tick";
@@ -174,16 +174,19 @@ function registerDiscoveries(
   const next = produce(state, (draft) => {
     for (const item of fresh) {
       draft.discoveredConcepts[item.key] = item;
-      draft.log.unshift({
-        turn: item.turn,
-        type: "concept",
-        text: `Khám phá: ${item.key}`,
-      });
       const achievementId = ACHIEVEMENT_BY_CONCEPT[item.key];
       if (achievementId && !draft.achievements[achievementId]) {
         draft.achievements[achievementId] = true;
         achievements.push({ id: achievementId, conceptKey: item.key });
       }
+    }
+    for (let index = fresh.length - 1; index >= 0; index -= 1) {
+      const item = fresh[index];
+      draft.log.unshift({
+        turn: item.turn,
+        type: "concept",
+        text: `Khám phá: ${CONCEPT_INFO[item.key].title}`,
+      });
     }
   });
 
@@ -300,7 +303,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       draft.log.unshift({
         turn: draft.turn,
         type: "decision",
-        text: `${decision.label} (${decision.groupId})`,
+        text: `${decision.label} (${decisionGroupTitle(decision.groupId)})`,
       });
     });
     const layoffs =

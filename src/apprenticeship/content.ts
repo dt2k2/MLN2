@@ -52,14 +52,14 @@ export const ROUNDS: Record<RoundId, RoundContent> = {
   2: {
     id: 2,
     title: "Giá trị đi qua xưởng",
-    subtitle: "Chặng 2 · Giá trị đi đâu?",
+    subtitle: "Chặng 2 · Giá trị cũ và giá trị mới",
     brief: [
-      "Bốn yếu tố dưới đây giữ những vai trò khác nhau trong quá trình sản xuất.",
-      "Hãy phân biệt phần giá trị cũ được chuyển vào vải, tiền ứng trả lương và nguồn tạo ra giá trị mới.",
+      "Một tấm vải nhận giá trị cũ từ nguyên liệu và máy móc, đồng thời nhận giá trị mới từ lao động đang diễn ra.",
+      "Tiền lương là khoản ứng trước để mua sức lao động. Nó sẽ được lao động sống tái tạo trong phần giá trị mới, nên không được cộng hai lần.",
     ],
     interactHint: [
-      "Chọn một vai trò cho từng dòng giá trị.",
-      "Gợi ý: tiền lương là khoản tư bản được ứng trước; chính lao động đang diễn ra mới tạo giá trị mới.",
+      "Xác định vai trò của từng yếu tố: chuyển giá trị cũ, ứng mua sức lao động, hay tạo giá trị mới.",
+      "Sau khi phân loại đúng, hãy theo dõi $60 giá trị mới được tách thành v và m như thế nào.",
     ],
     concepts: [
       {
@@ -82,11 +82,15 @@ export const ROUNDS: Record<RoundId, RoundContent> = {
       },
     ],
     check: {
-      question: "Cái gì thực sự tạo ra $60 giá trị mới trong tấm vải?",
-      options: ["Máy dệt", "Nguyên liệu bông", "Lao động sống của công nhân"],
-      correctIndex: 2,
+      question: "Vì sao tổng giá trị là $110, không phải $140?",
+      options: [
+        "$30 tiền lương đã được tái tạo bên trong $60 giá trị mới, nên không cộng thêm lần nữa.",
+        "$30 tiền lương không có liên quan đến giá trị của sản phẩm.",
+        "$30 giá trị thặng dư chỉ được tính sau khi hàng đã bán.",
+      ],
+      correctIndex: 0,
       wrongExplanation:
-        "Máy và nguyên liệu chỉ chuyển giá trị cũ. Giá trị mới chỉ có thể đến từ lao động sống.",
+        "Giá trị hàng hóa = c $50 + giá trị mới $60 = $110. Bên trong $60 giá trị mới, $30 tái tạo v và $30 là m; cộng thêm v một lần nữa sẽ bị trùng.",
     },
   },
   3: {

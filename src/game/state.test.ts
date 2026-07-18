@@ -102,7 +102,8 @@ describe("decision store", () => {
   it("records successful decisions with their historical context", () => {
     useGameStore.getState().applyDecision("RAISE_WAGE");
 
-    expect(useGameStore.getState().state.decisionHistory).toEqual([
+    const state = useGameStore.getState().state;
+    expect(state.decisionHistory).toEqual([
       expect.objectContaining({
         turn: 1,
         year: BAL.startYear,
@@ -113,6 +114,7 @@ describe("decision store", () => {
         ownerStance: "reformist",
       }),
     ]);
+    expect(state.log[0].text).toBe("Tăng lương 10% (Tiền lương)");
   });
 
   it("presents only the three-step first production series without auto-accumulation", () => {
@@ -125,6 +127,9 @@ describe("decision store", () => {
       "surplusValue",
     ]);
     expect(eureka.map((item) => item.series?.step)).toEqual([1, 2, 3]);
+    expect(
+      store.state.log.filter((entry) => entry.type === "concept").map((entry) => entry.text),
+    ).toEqual(["Khám phá: Hàng hóa", "Khám phá: Tư bản khả biến", "Khám phá: Giá trị thặng dư"]);
     expect(store.state.discoveredConcepts.capitalAccumulation).toBeUndefined();
   });
 
