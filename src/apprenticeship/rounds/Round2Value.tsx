@@ -34,12 +34,25 @@ interface Props {
 export function Round2Value({ onSimulate, running }: Props) {
   const reduce = useReducedMotion();
   const [placed, setPlaced] = useState<Record<string, Bucket>>({});
+  const [checked, setChecked] = useState(false);
 
   const allPlaced = ITEMS.every((it) => placed[it.id]);
-  const allCorrect = ITEMS.every((it) => placed[it.id] === it.correct);
+  const correctCount = ITEMS.filter((it) => placed[it.id] === it.correct).length;
+  const allCorrect = correctCount === ITEMS.length;
 
   const place = (id: string, bucket: Exclude<Bucket, null>) => {
     setPlaced((p) => ({ ...p, [id]: bucket }));
+    // Reset checked state when player changes an answer
+    if (checked) setChecked(false);
+  };
+
+  const checkPlacement = () => {
+    setChecked(true);
+  };
+
+  const itemBorderClass = (it: Item): string => {
+    if (!checked) return placed[it.id] ? "border-primary/40" : "border-border/60";
+    return placed[it.id] === it.correct ? "border-success" : "border-danger";
   };
 
   return (
@@ -54,9 +67,11 @@ export function Round2Value({ onSimulate, running }: Props) {
           </div>
         ) : (
           <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground/60">
-            {allPlaced
-              ? "Bấm “Xem giá trị hình thành” để xem kết quả."
-              : "Hãy phân loại đủ bốn yếu tố trước."}
+            {checked && !allCorrect
+              ? `${correctCount}/4 đúng — sửa các dòng đỏ rồi kiểm tra lại.`
+              : allPlaced
+                ? "Bấm “Kiểm tra phân loại” khi đã sẵn sàng."
+                : "Hãy phân loại đủ bốn yếu tố trước."}
           </p>
         )
       }
@@ -70,7 +85,7 @@ export function Round2Value({ onSimulate, running }: Props) {
                 key={it.id}
                 className={cn(
                   "flex items-center justify-between rounded-md border bg-panel/60 px-3 py-2",
-                  b ? "border-primary/40" : "border-border/60",
+                  itemBorderClass(it),
                 )}
               >
                 <div>
@@ -126,46 +141,61 @@ export function Round2Value({ onSimulate, running }: Props) {
           })}
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Bucket
+          <BucketBox
             title="Chuyển giá trị cũ (c)"
             items={ITEMS.filter((it) => placed[it.id] === "transfer")}
             tone="muted"
           />
-          <Bucket
+          <BucketBox
             title="Ứng mua sức lao động (v)"
             items={ITEMS.filter((it) => placed[it.id] === "advanced")}
             tone="info"
           />
-          <Bucket
+          <BucketBox
             title="Nguồn tạo giá trị mới"
             items={ITEMS.filter((it) => placed[it.id] === "source")}
             tone="gold"
           />
         </div>
         {allPlaced && !running && (
-          <motion.button
-            type="button"
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: reduce ? 0 : 0.3 }}
-            onClick={onSimulate}
-            disabled={!allCorrect}
-            className={cn(
-              "self-center rounded-md border px-4 py-2 font-mono text-xs uppercase tracking-widest transition",
-              allCorrect
-                ? "cursor-pointer border-primary bg-primary/20 text-gold hover:bg-primary/30"
-                : "cursor-not-allowed border-danger/40 bg-danger/10 text-danger",
-            )}
+            className="flex justify-center"
           >
-            {allCorrect ? "Xem giá trị hình thành" : "Chưa đúng — hãy thử phân loại lại"}
-          </motion.button>
+            {checked && allCorrect ? (
+              <button
+                type="button"
+                onClick={onSimulate}
+                className="cursor-pointer rounded-md border border-primary bg-primary/20 px-4 py-2 font-mono text-xs uppercase tracking-widest text-gold transition hover:bg-primary/30"
+              >
+                Xem giá trị hình thành
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={checkPlacement}
+                className={cn(
+                  "cursor-pointer rounded-md border px-4 py-2 font-mono text-xs uppercase tracking-widest transition",
+                  checked && !allCorrect
+                    ? "border-danger/40 bg-danger/10 text-danger hover:bg-danger/15"
+                    : "border-primary bg-primary/20 text-gold hover:bg-primary/30",
+                )}
+              >
+                {checked && !allCorrect
+                  ? `${correctCount}/4 đúng — kiểm tra lại`
+                  : "Kiểm tra phân loại"}
+              </button>
+            )}
+          </motion.div>
         )}
       </div>
     </Stage>
   );
 }
 
-function Bucket({
+function BucketBox({
   title,
   items,
   tone,

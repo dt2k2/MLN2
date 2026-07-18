@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Check, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFocusPhaseHeading } from "../hooks/useFocusPhaseHeading";
+import { PhaseIndicator } from "./PhaseIndicator";
+import type { Phase } from "../types";
 
 interface Props {
   question: string;
@@ -11,6 +13,7 @@ interface Props {
   onCorrect: () => void;
   onWrong: () => void;
   focusKey: string;
+  currentPhase: Phase;
 }
 
 export function CheckQuestion({
@@ -21,6 +24,7 @@ export function CheckQuestion({
   onCorrect,
   onWrong,
   focusKey,
+  currentPhase,
 }: Props) {
   const [selected, setSelected] = useState<number | null>(null);
   const [showWrong, setShowWrong] = useState(false);
@@ -46,6 +50,7 @@ export function CheckQuestion({
       aria-live="polite"
       className="flex h-full flex-col gap-4 rounded-lg border border-border/60 bg-panel/70 p-5"
     >
+      <PhaseIndicator currentPhase={currentPhase} />
       <div>
         <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary/70">
           Kiểm tra nhanh

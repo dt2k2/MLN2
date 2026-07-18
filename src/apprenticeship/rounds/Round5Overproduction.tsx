@@ -9,18 +9,25 @@ interface Props {
   running: boolean;
 }
 
+const INSIGHTS: Record<number, string> = {
+  80: "Chính sách thận trọng giảm thiệt hại nhưng không tránh hoàn toàn tồn kho.",
+  100: "Kế hoạch khớp cầu dự kiến vẫn bị cầu thay đổi phá vỡ.",
+  140: "Sản xuất quá mức khuếch đại tồn kho và thua lỗ.",
+};
+
 export function Round5Overproduction({ onSimulate, running }: Props) {
   const reduce = useReducedMotion();
   const [choice, setChoice] = useState<number | null>(null);
   const [result, setResult] = useState<R5Result | null>(null);
 
   const pick = (o: number) => {
+    if (running) return;
     setChoice(o);
     setResult(null);
   };
 
   const runMarket = () => {
-    if (choice !== R5.effectiveDemand) return;
+    if (choice === null || running) return;
     setResult(computeR5(choice));
     onSimulate();
   };
@@ -69,7 +76,7 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
             <button
               key={o}
               type="button"
-              onClick={() => !running && pick(o)}
+              onClick={() => pick(o)}
               disabled={running}
               className={cn(
                 "rounded-md border p-4 text-center transition",
@@ -87,27 +94,11 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
             </button>
           ))}
         </div>
-        {choice !== null && !result && (
-          <div
-            className={cn(
-              "rounded-md border p-3 text-center text-xs leading-relaxed",
-              choice === R5.effectiveDemand
-                ? "border-success/40 bg-success/10 text-success"
-                : "border-primary/40 bg-primary/5 text-foreground/80",
-            )}
-          >
-            {choice === R5.effectiveDemand
-              ? "Kế hoạch khớp với cầu dự kiến 100 đơn vị. Bây giờ hãy để thị trường vận động."
-              : choice < R5.effectiveDemand
-                ? "Mức này thận trọng nhưng bỏ lại một phần cầu dự kiến. Hãy thử lập kế hoạch đúng 100 đơn vị để cô lập tác động của cú sốc thị trường."
-                : "Mức này đã vượt cầu dự kiến ngay từ đầu. Hãy thử lập kế hoạch 100 đơn vị để thấy khủng hoảng vẫn có thể xuất hiện dù kế hoạch ban đầu hợp lý."}
-          </div>
-        )}
-        {choice === R5.effectiveDemand && !result && !running && (
+        {choice !== null && !result && !running && (
           <button
             type="button"
             onClick={runMarket}
-            className="self-center cursor-pointer rounded-md border border-primary bg-primary/20 px-4 py-2 font-mono text-xs uppercase tracking-widest text-gold transition hover:bg-primary/30"
+            className="cursor-pointer self-center rounded-md border border-primary bg-primary/20 px-4 py-2 font-mono text-xs uppercase tracking-widest text-gold transition hover:bg-primary/30"
           >
             Cho thị trường vận động
           </button>
@@ -117,27 +108,34 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: reduce ? 0 : 0.4 }}
-            className="rounded-md border border-border/60 bg-panel/40 p-3"
+            className="space-y-3"
           >
-            <div className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-              Dòng chảy sản phẩm
-            </div>
-            <div className="flex h-8 overflow-hidden rounded border border-border/60">
-              <div
-                className="flex items-center justify-center bg-success/40 font-mono text-xs text-success"
-                style={{ width: `${(result.sold / result.output) * 100}%` }}
-              >
-                bán {result.sold}
+            <div className="rounded-md border border-border/60 bg-panel/40 p-3">
+              <div className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                Dòng chảy sản phẩm
               </div>
-              {result.unsold > 0 && (
+              <div className="flex h-8 overflow-hidden rounded border border-border/60">
                 <div
-                  className="flex items-center justify-center bg-danger/40 font-mono text-xs text-danger"
-                  style={{ width: `${(result.unsold / result.output) * 100}%` }}
+                  className="flex items-center justify-center bg-success/40 font-mono text-xs text-success"
+                  style={{ width: `${(result.sold / result.output) * 100}%` }}
                 >
-                  tồn {result.unsold}
+                  bán {result.sold}
                 </div>
-              )}
+                {result.unsold > 0 && (
+                  <div
+                    className="flex items-center justify-center bg-danger/40 font-mono text-xs text-danger"
+                    style={{ width: `${(result.unsold / result.output) * 100}%` }}
+                  >
+                    tồn {result.unsold}
+                  </div>
+                )}
+              </div>
             </div>
+            {choice !== null && INSIGHTS[choice] && (
+              <div className="rounded-md border border-primary/40 bg-primary/5 p-3 text-center text-xs leading-relaxed text-foreground/85">
+                {INSIGHTS[choice]}
+              </div>
+            )}
           </motion.div>
         )}
       </div>

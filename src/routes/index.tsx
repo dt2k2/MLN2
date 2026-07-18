@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Play, Trophy, BookOpen, Users, Film } from "lucide-react";
+import { Play, Trophy, BookOpen, Users, Film, GraduationCap } from "lucide-react";
 import { Gear, Smoke, Embers } from "@/components/game/particles";
 import { MobileWarning } from "@/components/game/mobile-warning";
 import { useGameStore } from "@/game/state";
@@ -93,6 +93,18 @@ function MenuScreen() {
             }}
             className="mt-14 grid w-full max-w-md gap-3"
           >
+            <motion.div variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }}>
+              <Link
+                to="/apprenticeship"
+                className="group flex items-center justify-between rounded-md border border-border/60 bg-panel/60 px-5 py-3 font-display text-base uppercase tracking-[0.25em] text-foreground transition-all hover:border-primary/50 hover:text-gold"
+              >
+                <span className="flex items-center gap-3">
+                  <GraduationCap className="h-5 w-5" />
+                  Ca học việc
+                </span>
+                <span className="font-mono text-[9px] normal-case tracking-widest text-muted-foreground opacity-70">Khuyên dùng nếu chơi lần đầu</span>
+              </Link>
+            </motion.div>
             <MenuButton
               to="/game"
               icon={<Play className="h-5 w-5" />}

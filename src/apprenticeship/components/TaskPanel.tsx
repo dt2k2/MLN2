@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { useFocusPhaseHeading } from "../hooks/useFocusPhaseHeading";
+import { PhaseIndicator } from "./PhaseIndicator";
+import type { Phase } from "../types";
 
 interface Props {
   title: string;
@@ -8,12 +10,14 @@ interface Props {
   children?: ReactNode;
   action?: ReactNode;
   focusKey: string;
+  currentPhase: Phase;
 }
 
-export function TaskPanel({ title, subtitle, hints, children, action, focusKey }: Props) {
+export function TaskPanel({ title, subtitle, hints, children, action, focusKey, currentPhase }: Props) {
   const ref = useFocusPhaseHeading<HTMLHeadingElement>(focusKey);
   return (
     <aside className="flex h-full flex-col gap-4 rounded-lg border border-border/60 bg-panel/70 p-5">
+      <PhaseIndicator currentPhase={currentPhase} />
       <div>
         {subtitle && (
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary/70">

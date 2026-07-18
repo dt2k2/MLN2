@@ -42,14 +42,18 @@ describe("Round 5 — khủng hoảng thừa", () => {
     expect(r.costs).toBe(700);
     expect(r.realizedProfit).toBe(0);
   });
-  it("output 80 bán được 70, tồn 10", () => {
+  it("output 80 bán được 70, tồn 10, lãi $140", () => {
     const r = computeR5(80);
     expect(r.sold).toBe(70);
     expect(r.unsold).toBe(10);
+    expect(r.costs).toBe(80 * (R5.unit.c + R5.unit.v)); // 560
+    expect(r.realizedProfit).toBe(700 - 560); // +140
   });
-  it("output 140 tồn 70", () => {
+  it("output 140 tồn 70, lỗ $280", () => {
     const r = computeR5(140);
     expect(r.unsold).toBe(70);
+    expect(r.costs).toBe(140 * (R5.unit.c + R5.unit.v)); // 980
+    expect(r.realizedProfit).toBe(700 - 980); // -280
   });
   it("chỉ có 3 lựa chọn", () => {
     expect(R5.options).toEqual([80, 100, 140]);

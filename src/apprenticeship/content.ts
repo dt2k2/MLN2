@@ -161,13 +161,13 @@ export const ROUNDS: Record<RoundId, RoundContent> = {
       "Cầu hiệu dụng dự kiến là 100 đơn vị: lượng hàng người mua vừa muốn vừa có khả năng thanh toán.",
       "Nhưng dự báo không phải bảo đảm. Cầu có thể giảm trước khi hàng được bán.",
     ],
-    interactHint: ["Chọn một trong ba mức sản lượng: 80, 100, 140."],
+    interactHint: ["Chọn một mức sản lượng và quan sát điều gì xảy ra khi cầu thay đổi."],
     concepts: [
       {
         id: "overproduction",
         title: "Khủng hoảng thừa",
         explanation:
-          "Hàng hóa có thể dư thừa so với sức mua có khả năng thanh toán, dù nhu cầu xã hội vẫn còn. Khi nhiều hàng không bán được ở mức giá đủ bù chi phí, giá trị đã sản xuất không được thực hiện đầy đủ thành tiền.",
+          "Hàng hóa có thể dư thừa so với sức mua có khả năng thanh toán, dù nhu cầu xã hội vẫn còn. Quyết định cá biệt — sản xuất thận trọng hay mạnh tay — có thể giảm hoặc khuếch đại thiệt hại, nhưng không xóa được mâu thuẫn giữa xu hướng mở rộng sản xuất và giới hạn của khả năng thực hiện giá trị trên thị trường.",
       },
     ],
     check: {

@@ -67,7 +67,15 @@ function Apprenticeship() {
       <>
         <MobileWarning />
         <main className="hidden min-h-screen bg-background lg:block">
-          <CompletionScreen onExit={() => navigate({ to: "/" })} />
+          <CompletionScreen
+            onExit={() => navigate({ to: "/" })}
+            onEnterGame={() => {
+              const seen =
+                typeof window !== "undefined" &&
+                window.localStorage.getItem("dk_intro_seen") === "1";
+              navigate({ to: seen ? "/game" : "/intro" });
+            }}
+          />
         </main>
       </>
     );
@@ -141,6 +149,7 @@ function Apprenticeship() {
                       subtitle={round.subtitle}
                       title={round.title}
                       hints={state.phase === "brief" ? round.brief : round.interactHint}
+                      currentPhase={state.phase}
                       action={
                         state.phase === "brief" ? (
                           <button
@@ -169,6 +178,7 @@ function Apprenticeship() {
                     <EurekaPanel
                       focusKey={phaseKey}
                       concepts={round.concepts}
+                      currentPhase={state.phase}
                       onContinue={() => dispatch({ type: "SET_PHASE", phase: "check" })}
                     />
                   )}
@@ -179,6 +189,7 @@ function Apprenticeship() {
                       options={round.check.options}
                       correctIndex={round.check.correctIndex}
                       wrongExplanation={round.check.wrongExplanation}
+                      currentPhase={state.phase}
                       onCorrect={() => dispatch({ type: "COMPLETE_ROUND" })}
                       onWrong={() => dispatch({ type: "WRONG_ANSWER" })}
                     />
@@ -208,7 +219,13 @@ function Apprenticeship() {
   );
 }
 
-function CompletionScreen({ onExit }: { onExit: () => void }) {
+function CompletionScreen({
+  onExit,
+  onEnterGame,
+}: {
+  onExit: () => void;
+  onEnterGame: () => void;
+}) {
   const learned = Object.values(ROUNDS).flatMap((r) => r.concepts);
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -251,11 +268,18 @@ function CompletionScreen({ onExit }: { onExit: () => void }) {
             </div>
           ))}
         </div>
-        <div className="mt-8 flex justify-center gap-3">
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <button
+            type="button"
+            onClick={onEnterGame}
+            className="cursor-pointer rounded-md border border-primary bg-primary/20 px-8 py-3 font-display text-base uppercase tracking-[0.25em] text-gold shadow-[0_0_30px_oklch(0.5_0.1_60/0.25)] transition hover:bg-primary/25 hover:shadow-[0_0_45px_oklch(0.55_0.13_60/0.4)]"
+          >
+            Bước vào xưởng →
+          </button>
           <button
             type="button"
             onClick={onExit}
-            className="cursor-pointer rounded-md border border-primary bg-primary/20 px-6 py-2 font-mono text-xs uppercase tracking-widest text-gold transition hover:bg-primary/30"
+            className="cursor-pointer rounded border border-border/40 bg-transparent px-4 py-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground transition hover:border-primary/40 hover:text-gold"
           >
             Về màn hình chính
           </button>
