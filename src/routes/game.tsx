@@ -431,12 +431,16 @@ function GameScreen() {
                           margin={{ top: 4, right: 8, bottom: 4, left: 8 }}
                         >
                           <ReTooltip
+                            cursor={{ fill: "oklch(1 0 0 / 0.04)" }}
                             contentStyle={{
                               background: "oklch(0.18 0.006 60)",
                               border: "1px solid oklch(0.32 0.008 60)",
                               borderRadius: 6,
                               fontSize: 11,
+                              color: "oklch(0.95 0 0)",
                             }}
+                            labelStyle={{ color: "oklch(0.85 0 0)" }}
+                            itemStyle={{ color: "oklch(0.95 0 0)" }}
                           />
                           <Bar dataKey="v" radius={4}>
                             {capitalRatio.map((c) => (
