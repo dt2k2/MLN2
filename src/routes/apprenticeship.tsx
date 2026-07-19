@@ -18,6 +18,7 @@ import { ROUNDS, ADVANCED_LOCKED_COUNT } from "@/apprenticeship/content";
 import type { RoundId } from "@/apprenticeship/types";
 import desk from "@/assets/intro-3-desk.jpg";
 import workers from "@/assets/intro-4-workers.jpg";
+import { playSfx } from "@/components/audio/sfx-player";
 
 export const Route = createFileRoute("/apprenticeship")({
   head: () => ({
@@ -163,7 +164,10 @@ function Apprenticeship() {
                           <button
                             type="button"
                             disabled={!simulationReady}
-                            onClick={() => dispatch({ type: "SET_PHASE", phase: "eureka" })}
+                            onClick={() => {
+                              playSfx("concept-unlock");
+                              dispatch({ type: "SET_PHASE", phase: "eureka" });
+                            }}
                             className="rounded-md border border-primary bg-primary/20 px-4 py-2 font-mono text-xs uppercase tracking-widest text-gold transition enabled:cursor-pointer enabled:hover:bg-primary/30 disabled:cursor-wait disabled:opacity-50"
                           >
                             {simulationReady

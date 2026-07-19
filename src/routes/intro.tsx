@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Factory, GraduationCap, Play, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { isMusicMuted, setMusicMuted } from "@/components/audio/audio-preferences";
 import city from "@/assets/intro-1-city.jpg";
 import heinrich from "@/assets/intro-2-heinrich.jpg";
 import desk from "@/assets/intro-3-desk.jpg";
@@ -69,6 +70,8 @@ function IntroScene() {
   const [muted, setMuted] = useState(false);
   const [audioAvailable, setAudioAvailable] = useState(true);
   const [started, setStarted] = useState(false);
+
+  useEffect(() => setMuted(isMusicMuted()), []);
 
   const finish = (destination: "/game" | "/apprenticeship") => {
     if (typeof window !== "undefined") {
@@ -174,9 +177,15 @@ function IntroScene() {
           {audioAvailable ? (
             <button
               type="button"
-              onClick={() => setMuted((m) => !m)}
+              onClick={() =>
+                setMuted((current) => {
+                  const next = !current;
+                  setMusicMuted(next);
+                  return next;
+                })
+              }
               className="flex cursor-pointer items-center gap-2 rounded-md border border-white/20 bg-white/5 px-3 py-1.5 text-xs backdrop-blur hover:border-white/60 hover:bg-white/10"
-              title={muted ? "Bật âm thanh" : "Tắt âm thanh"}
+              title={muted ? "Bật âm thanh Prologue" : "Tắt âm thanh Prologue"}
             >
               {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
             </button>

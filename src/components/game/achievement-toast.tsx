@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { Award } from "lucide-react";
 import type { AchievementId } from "@/game/types";
+import { playSfx } from "@/components/audio/sfx-player";
 
 const ACHIEVEMENT_COPY: Record<AchievementId, { title: string; description: string }> = {
   "surplus-rate": {
@@ -18,6 +19,7 @@ const ACHIEVEMENT_COPY: Record<AchievementId, { title: string; description: stri
 };
 
 export function showAchievement(id: AchievementId, conceptName: string) {
+  playSfx("achievement");
   const copy = ACHIEVEMENT_COPY[id];
   toast.custom(
     () => (

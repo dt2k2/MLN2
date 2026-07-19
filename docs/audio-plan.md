@@ -69,7 +69,15 @@ Ambience để thấp hơn nhạc, crossfade khoảng một giây. Không phát 
 
 ## Thứ tự triển khai
 
-1. Sửa và nén ba track hiện có; thêm track Ca học việc.
-2. Thêm `decision-select`, `decision-undo`, `quarter-complete`, `round-success`, `round-retry`, `concept-unlock`.
-3. Tách thanh âm lượng thành Music và SFX, đồng thời hỗ trợ mute toàn bộ.
-4. Sau khi gameplay ổn định mới thêm ambience phản ứng, phase music và ending stinger.
+### Đã hoàn thành
+
+- Đã tích hợp `decision-select`, `decision-undo`, `quarter-complete`, `round-success`, `round-retry`, `concept-unlock`, `event-alert` và `achievement`.
+- Đã tích hợp ba ambience phản ứng: `factory-steady`, `factory-strained` và `crowd-distant`; chuyển trạng thái bằng crossfade một giây.
+- Nhạc nền và SFX có nút tắt riêng; lựa chọn được lưu trên trình duyệt.
+- SFX chỉ phát khi hành động hợp lệ hoặc presentation thực sự xuất hiện.
+
+### Tiếp theo
+
+1. Nén ba track hiện có; thêm track Ca học việc.
+2. Bổ sung thanh chỉnh âm lượng Music và SFX thay vì chỉ bật/tắt.
+3. Sau khi gameplay ổn định mới thêm phase music và ending stinger.

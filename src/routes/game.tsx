@@ -53,6 +53,9 @@ import type { ConceptKey, DecisionGroupId } from "@/game/types";
 import { TutorialOverlay } from "@/components/tutorial/TutorialOverlay";
 import { TutorialObserver } from "@/tutorial/observer";
 import { useTutorialStore } from "@/tutorial/state";
+import { playSfx } from "@/components/audio/sfx-player";
+import { AmbiencePlayer } from "@/components/audio/ambience-player";
+import { deriveHeroCondition } from "@/game/heinrich";
 
 export const Route = createFileRoute("/game")({
   head: () => ({
@@ -98,6 +101,8 @@ function GameScreen() {
   const tutorialSkipped = useTutorialStore((s) => s.skipped);
   const tutorialActive = useTutorialStore((s) => s.active);
   const prevQueueLenRef = useRef(presentationQueue.length);
+  const soundedPresentationRef = useRef<string | null>(null);
+  const quarterCompletedAtRef = useRef(0);
   useEffect(() => {
     const prev = prevQueueLenRef.current;
     prevQueueLenRef.current = presentationQueue.length;
@@ -119,6 +124,18 @@ function GameScreen() {
     tutorialSkipped,
     tutorialStart,
   ]);
+
+  useEffect(() => {
+    if (!activePresentation || soundedPresentationRef.current === activePresentation.id) return;
+    soundedPresentationRef.current = activePresentation.id;
+    if (activePresentation.kind === "eureka") {
+      const elapsed = performance.now() - quarterCompletedAtRef.current;
+      const delay = Math.max(0, 550 - elapsed);
+      const timer = window.setTimeout(() => playSfx("concept-unlock"), delay);
+      return () => window.clearTimeout(timer);
+    }
+    if (activePresentation.kind === "event") playSfx("event-alert");
+  }, [activePresentation]);
 
   useEffect(() => {
     if (presentationQueue.length > 0 || state.pendingEvent || !state.ending) return;
@@ -185,9 +202,48 @@ function GameScreen() {
   const quarterLabel = `Quý ${roman(state.quarter)} · ${state.year}`;
 
   const discoveredCount = Object.keys(state.discoveredConcepts).length;
+  const heroCondition = useMemo(() => deriveHeroCondition(state), [state]);
+
+  const handleDecision = (optionId: Parameters<typeof applyDecision>[0]) => {
+    const before = useGameStore.getState().decisionUndoStack.length;
+    applyDecision(optionId);
+    const after = useGameStore.getState();
+    if (after.decisionUndoStack.length > before && after.presentationQueue[0]?.kind !== "eureka") {
+      playSfx("decision-select");
+    }
+  };
+
+  const handleUndoDecision = () => {
+    const before = useGameStore.getState().decisionUndoStack.length;
+    undoLastDecision();
+    if (useGameStore.getState().decisionUndoStack.length < before) playSfx("decision-undo");
+  };
+
+  const handleResolveEvent = (choiceIndex: number) => {
+    const pendingEventId = useGameStore.getState().state.pendingEvent?.id;
+    resolveEvent(choiceIndex);
+    const after = useGameStore.getState();
+    if (
+      pendingEventId &&
+      after.state.pendingEvent?.id !== pendingEventId &&
+      after.presentationQueue[0]?.kind !== "eureka"
+    ) {
+      playSfx("decision-select");
+    }
+  };
+
+  const handleEndQuarter = () => {
+    const completedBefore = useGameStore.getState().state.history.length;
+    endQuarter();
+    if (useGameStore.getState().state.history.length > completedBefore) {
+      quarterCompletedAtRef.current = performance.now();
+      playSfx("quarter-complete");
+    }
+  };
 
   return (
     <div className="min-h-screen min-w-0 overflow-x-hidden p-3">
+      <AmbiencePlayer condition={heroCondition} />
       <div className="flex min-w-0 flex-col gap-3">
         <GameHeader
           turn={state.turn}
@@ -542,7 +598,7 @@ function GameScreen() {
                   </div>
                   <button
                     type="button"
-                    onClick={undoLastDecision}
+                    onClick={handleUndoDecision}
                     disabled={
                       presentationQueue.length > 0 || !!state.pendingEvent || !!state.ending
                     }
@@ -609,7 +665,7 @@ function GameScreen() {
                           canReselect ? (
                             <button
                               type="button"
-                              onClick={undoLastDecision}
+                              onClick={handleUndoDecision}
                               className="flex cursor-pointer items-center gap-1 font-mono text-[10px] text-gold transition hover:text-primary"
                               title="Bỏ phương án vừa chọn để chọn lại trong nhóm này"
                             >
@@ -642,7 +698,7 @@ function GameScreen() {
                             <button
                               type="button"
                               disabled={disabled}
-                              onClick={() => applyDecision(optionId)}
+                              onClick={() => handleDecision(optionId)}
                               className="w-full cursor-pointer rounded bg-panel px-3 py-2 text-left text-sm font-semibold text-foreground transition hover:border-primary/60 hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               {option.label}
@@ -664,7 +720,7 @@ function GameScreen() {
               </Tabs>
             </div>
             <div data-tutorial="end-quarter">
-              <EndTurnButton onEnd={endQuarter} />
+              <EndTurnButton onEnd={handleEndQuarter} />
             </div>
           </section>
         </div>
@@ -716,7 +772,7 @@ function GameScreen() {
               disabledReason: c.disabledReason,
             })) ?? []
           }
-          onChoose={(i) => resolveEvent(i)}
+          onChoose={handleResolveEvent}
         />
         <ConceptModal
           open={activePresentation?.kind === "eureka"}

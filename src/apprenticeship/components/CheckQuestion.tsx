@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useFocusPhaseHeading } from "../hooks/useFocusPhaseHeading";
 import { PhaseIndicator } from "./PhaseIndicator";
 import type { Phase } from "../types";
+import { playSfx } from "@/components/audio/sfx-player";
 
 interface Props {
   question: string;
@@ -36,6 +37,7 @@ export function CheckQuestion({
       setShowWrong(false);
     } else {
       setShowWrong(true);
+      playSfx("round-retry");
       onWrong();
     }
   };
@@ -94,7 +96,10 @@ export function CheckQuestion({
       {selected === correctIndex ? (
         <button
           type="button"
-          onClick={onCorrect}
+          onClick={() => {
+            playSfx("round-success");
+            onCorrect();
+          }}
           className="mt-auto flex cursor-pointer items-center justify-center gap-2 rounded-md border border-success bg-success/15 px-4 py-2 font-mono text-xs uppercase tracking-widest text-success transition hover:bg-success/25"
         >
           <Check className="h-4 w-4" /> Sang chặng tiếp theo
