@@ -43,6 +43,43 @@ describe("decision store", () => {
     expect(useGameStore.getState().state.workHours).toBe(before + 2);
   });
 
+  it("undoes the latest decision so another option in the same group can be chosen", () => {
+    const before = useGameStore.getState().state.workHours;
+
+    useGameStore.getState().applyDecision("REDUCE_HOURS");
+    useGameStore.getState().undoLastDecision();
+    useGameStore.getState().applyDecision("EXTEND_HOURS");
+    while (useGameStore.getState().presentationQueue.length) {
+      useGameStore.getState().dismissPresentation();
+    }
+
+    const store = useGameStore.getState();
+    expect(store.state.workHours).toBe(before + 2);
+    expect(store.usedDecisionGroups).toEqual(new Set(["WORKDAY"]));
+    expect(store.state.decisionHistory.map((item) => item.id)).toEqual(["EXTEND_HOURS"]);
+  });
+
+  it("undoes dependent decisions in reverse order without corrupting cash or debt", () => {
+    const initial = useGameStore.getState().state;
+
+    useGameStore.getState().applyDecision("BORROW");
+    const afterBorrow = useGameStore.getState().state;
+    useGameStore.getState().applyDecision("BUY_MACHINE");
+    while (useGameStore.getState().presentationQueue.length) {
+      useGameStore.getState().dismissPresentation();
+    }
+
+    useGameStore.getState().undoLastDecision();
+    expect(useGameStore.getState().state.cash).toBe(afterBorrow.cash);
+    expect(useGameStore.getState().state.debt).toBe(afterBorrow.debt);
+    expect(useGameStore.getState().state.machines).toBe(afterBorrow.machines);
+
+    useGameStore.getState().undoLastDecision();
+    expect(useGameStore.getState().state.cash).toBe(initial.cash);
+    expect(useGameStore.getState().state.debt).toBe(initial.debt);
+    expect(useGameStore.getState().usedDecisionGroups.size).toBe(0);
+  });
+
   it("does not spend a decision on the retention rate already in force", () => {
     useGameStore.getState().applyDecision("REINVEST_25");
     expect(useGameStore.getState().usedDecisionGroups.size).toBe(0);
@@ -90,6 +127,7 @@ describe("decision store", () => {
     useGameStore.getState().reset();
     const store = useGameStore.getState();
     expect(store.usedDecisionGroups.size).toBe(0);
+    expect(store.decisionUndoStack).toEqual([]);
     expect(store.state.eventHistory).toEqual({});
     expect(store.state.activeEffects).toEqual([]);
     expect(store.state.accumulationFund).toBe(0);

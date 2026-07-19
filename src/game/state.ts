@@ -247,12 +247,23 @@ export interface GameStore {
   layoffsThisTurn: number;
   workersAtTurnStart: number;
   presentationQueue: PresentationItem[];
+  decisionUndoStack: DecisionUndoSnapshot[];
   applyDecision: (optionId: DecisionOptionId) => void;
+  undoLastDecision: () => void;
   endQuarter: () => void;
   resolveEvent: (choiceIndex: number) => void;
   dismissPresentation: () => void;
   showCurrentSummary: () => void;
   reset: () => void;
+}
+
+export interface DecisionUndoSnapshot {
+  optionId: DecisionOptionId;
+  state: GameState;
+  usedDecisionGroups: Set<DecisionGroupId>;
+  layoffsThisTurn: number;
+  workersAtTurnStart: number;
+  presentationQueue: PresentationItem[];
 }
 
 const opening = withOpening(BAL.initialSeed);
@@ -263,6 +274,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   layoffsThisTurn: 0,
   workersAtTurnStart: opening.state.workersActive,
   presentationQueue: opening.queue,
+  decisionUndoStack: [],
 
   applyDecision: (optionId) => {
     const store = get();
@@ -324,6 +336,39 @@ export const useGameStore = create<GameStore>((set, get) => ({
       usedDecisionGroups,
       layoffsThisTurn: layoffs,
       presentationQueue: [...store.presentationQueue, ...registered.presentations],
+      decisionUndoStack: [
+        ...store.decisionUndoStack,
+        {
+          optionId,
+          state: previous,
+          usedDecisionGroups: new Set(store.usedDecisionGroups),
+          layoffsThisTurn: store.layoffsThisTurn,
+          workersAtTurnStart: store.workersAtTurnStart,
+          presentationQueue: [...store.presentationQueue],
+        },
+      ],
+    });
+  },
+
+  undoLastDecision: () => {
+    const store = get();
+    const snapshot = store.decisionUndoStack.at(-1);
+    if (
+      !snapshot ||
+      store.presentationQueue.length > 0 ||
+      store.state.pendingEvent ||
+      store.state.ending
+    ) {
+      return;
+    }
+
+    set({
+      state: snapshot.state,
+      usedDecisionGroups: new Set(snapshot.usedDecisionGroups),
+      layoffsThisTurn: snapshot.layoffsThisTurn,
+      workersAtTurnStart: snapshot.workersAtTurnStart,
+      presentationQueue: [...snapshot.presentationQueue],
+      decisionUndoStack: store.decisionUndoStack.slice(0, -1),
     });
   },
 
@@ -375,6 +420,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       usedDecisionGroups: new Set(),
       layoffsThisTurn: 0,
       workersAtTurnStart: marked.workersActive,
+      decisionUndoStack: [],
       presentationQueue: [
         ...registered.presentations,
         periodPresentation,
@@ -477,6 +523,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       layoffsThisTurn: 0,
       workersAtTurnStart: fresh.state.workersActive,
       presentationQueue: fresh.queue,
+      decisionUndoStack: [],
     });
   },
 }));

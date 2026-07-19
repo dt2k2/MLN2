@@ -5,9 +5,9 @@ import { Volume2, VolumeX } from "lucide-react";
 type Track = "menu" | "prologue" | "ingame" | null;
 
 const TRACK_SRC: Record<Exclude<Track, null>, string> = {
-  menu: "/audio/music/main-menu.mp3",
-  prologue: "/audio/music/prologue.mp3",
-  ingame: "/audio/music/ingame.mp3",
+  menu: "/audio/main-menu.mp3",
+  prologue: "/audio/prologue.mp3",
+  ingame: "/audio/ingame.mp3",
 };
 
 const STORAGE_KEY = "dk.music.muted";
@@ -124,12 +124,7 @@ export function MusicPlayer() {
     });
   };
 
-  function fadeTo(
-    audio: HTMLAudioElement,
-    target: number,
-    duration: number,
-    done?: () => void,
-  ) {
+  function fadeTo(audio: HTMLAudioElement, target: number, duration: number, done?: () => void) {
     if (fadeRef.current) {
       window.clearInterval(fadeRef.current);
       fadeRef.current = null;

@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   ChevronRight,
   Flag,
+  Undo2,
 } from "lucide-react";
 import { GameHeader } from "@/components/game/game-header";
 import { DashboardCard } from "@/components/game/dashboard-card";
@@ -80,6 +81,8 @@ function GameScreen() {
   const state = useGameStore((s) => s.state);
   const usedDecisionGroups = useGameStore((s) => s.usedDecisionGroups);
   const applyDecision = useGameStore((s) => s.applyDecision);
+  const undoLastDecision = useGameStore((s) => s.undoLastDecision);
+  const decisionUndoStack = useGameStore((s) => s.decisionUndoStack);
   const endQuarter = useGameStore((s) => s.endQuarter);
   const resolveEvent = useGameStore((s) => s.resolveEvent);
   const presentationQueue = useGameStore((s) => s.presentationQueue);
@@ -527,10 +530,34 @@ function GameScreen() {
                   </span>
                 }
               />
+              {decisionUndoStack.length > 0 ? (
+                <div className="mt-2 flex min-h-9 items-center gap-2 rounded border border-gold/25 bg-primary/5 px-2.5 py-1.5">
+                  <div className="min-w-0 flex-1">
+                    <span className="block font-mono text-[9px] uppercase text-muted-foreground">
+                      Quyết định gần nhất
+                    </span>
+                    <span className="block truncate text-[11px] font-medium text-foreground">
+                      {DECISIONS[decisionUndoStack.at(-1)!.optionId].label}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={undoLastDecision}
+                    disabled={
+                      presentationQueue.length > 0 || !!state.pendingEvent || !!state.ending
+                    }
+                    aria-label="Hoàn tác quyết định gần nhất"
+                    title="Hoàn tác quyết định gần nhất"
+                    className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded border border-border bg-panel text-muted-foreground transition hover:border-gold/50 hover:text-gold disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Undo2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : null}
               <Tabs
                 value={activeGroup}
                 onValueChange={(v) => setActiveGroup(v as DecisionGroupId)}
-                className="mt-3 flex min-h-0 flex-1 flex-col"
+                className="mt-2 flex min-h-0 flex-1 flex-col"
               >
                 <TabsList
                   data-tutorial="decision-tabs"
@@ -557,6 +584,9 @@ function GameScreen() {
 
                 {DECISION_GROUPS.map((group) => {
                   const groupUsed = usedDecisionGroups.has(group.id);
+                  const latestDecision = decisionUndoStack.at(-1);
+                  const canReselect =
+                    !!latestDecision && DECISIONS[latestDecision.optionId].groupId === group.id;
                   const capReached =
                     usedDecisionGroups.size >= MAX_DECISION_GROUPS_PER_TURN && !groupUsed;
                   const groupLocked =
@@ -576,7 +606,24 @@ function GameScreen() {
                           {group.title}
                         </span>
                         {groupUsed ? (
-                          <span className="font-mono text-[10px] text-gold">Đã dùng quý này</span>
+                          canReselect ? (
+                            <button
+                              type="button"
+                              onClick={undoLastDecision}
+                              className="flex cursor-pointer items-center gap-1 font-mono text-[10px] text-gold transition hover:text-primary"
+                              title="Bỏ phương án vừa chọn để chọn lại trong nhóm này"
+                            >
+                              <Undo2 className="h-3 w-3" />
+                              Chọn lại
+                            </button>
+                          ) : (
+                            <span
+                              className="font-mono text-[10px] text-muted-foreground"
+                              title="Hoàn tác các quyết định mới hơn trước khi chọn lại nhóm này"
+                            >
+                              Đã chọn
+                            </span>
+                          )
                         ) : capReached ? (
                           <span className="font-mono text-[10px] text-muted-foreground">
                             Đã đạt trần
