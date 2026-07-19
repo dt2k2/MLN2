@@ -10,9 +10,9 @@ interface Props {
 }
 
 const INSIGHTS: Record<number, string> = {
-  80: "Chính sách thận trọng giảm thiệt hại nhưng không tránh hoàn toàn tồn kho.",
-  100: "Kế hoạch khớp cầu dự kiến vẫn bị cầu thay đổi phá vỡ.",
-  140: "Sản xuất quá mức khuếch đại tồn kho và thua lỗ.",
+  80: "Sản xuất thận trọng làm ít tiền bị giam trong kho hơn, nhưng cú giảm cầu vẫn để lại hàng chưa bán.",
+  100: "Kế hoạch từng khớp cầu dự kiến vẫn có thể bị phá vỡ khi khả năng thanh toán của thị trường thay đổi.",
+  140: "Sản xuất quá mức không làm giá trị biến mất ngay, nhưng giam nhiều vốn trong tồn kho và tạo thiếu hụt dòng tiền.",
 };
 
 export function Round5Overproduction({ onSimulate, running }: Props) {
@@ -36,21 +36,30 @@ export function Round5Overproduction({ onSimulate, running }: Props) {
     <Stage
       resultTray={
         result ? (
-          <div className="grid grid-cols-6 gap-2 text-center font-mono">
+          <div className="grid grid-cols-7 gap-2 text-center font-mono">
             <Cell label="m đã sản xuất" value={`$${result.produced.m}`} tone="muted" />
             <Cell label="Đã bán" value={`${result.sold} đơn vị`} tone="info" />
             <Cell label="Doanh thu" value={`$${result.revenue}`} tone="gold" />
             <Cell
-              label="Thu − chi phí lô"
-              value={`$${result.realizedProfit}`}
-              tone={result.realizedProfit >= 0 ? "success" : "danger"}
+              label="Lợi nhuận đã thực hiện"
+              value={`$${result.accountingProfit}`}
+              tone={result.accountingProfit >= 0 ? "success" : "danger"}
+            />
+            <Cell
+              label="Dòng tiền của lô"
+              value={`$${result.cashResult}`}
+              tone={result.cashResult >= 0 ? "success" : "danger"}
             />
             <Cell
               label="Tồn kho"
               value={`${result.unsold} đơn vị`}
               tone={result.unsold > 0 ? "danger" : "muted"}
             />
-            <Cell label="Tổng giá trị" value={`$${result.produced.totalValue}`} tone="muted" />
+            <Cell
+              label="Vốn nằm trong kho"
+              value={`$${result.inventoryBookValue}`}
+              tone={result.inventoryBookValue > 0 ? "danger" : "muted"}
+            />
           </div>
         ) : (
           <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground/60">

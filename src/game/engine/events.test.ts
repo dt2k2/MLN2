@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BAL } from "../balance";
 import { initialState } from "../state";
 import { EVENTS, eligibleEvents, getGamePhase } from "./events";
+import { computeQuarter } from "./laws";
 
 describe("event engine", () => {
   it("contains the fourteen phased events", () => {
@@ -62,6 +63,34 @@ describe("event engine", () => {
     });
   });
 
+  it("makes matching a price war reduce both price and demand", () => {
+    const definition = EVENTS.find((event) => event.id === "krupp-price-war");
+    const state = initialState(1);
+    state.turn = 13;
+    const baseline = computeQuarter(state);
+
+    definition!.build(state).choices[0].apply(state);
+    const pressured = computeQuarter(state);
+
+    expect(pressured.sellPrice).toBeCloseTo(baseline.sellPrice * 0.88);
+    expect(pressured.demand).toBeCloseTo(baseline.demand * 0.92);
+    expect(state.activeEffects).toHaveLength(2);
+  });
+
+  it("makes dismissing union organizers affect employment and unrest together", () => {
+    const definition = EVENTS.find((event) => event.id === "union-founded");
+    const state = initialState(1);
+    const workersBefore = state.workersActive;
+    const idleBefore = state.workersIdle;
+    const unrestBefore = state.unrest;
+
+    definition!.build(state).choices[1].apply(state);
+
+    expect(state.workersActive).toBe(workersBefore - 4);
+    expect(state.workersIdle).toBe(idleBefore + 4);
+    expect(state.unrest).toBe(unrestBefore + 4 * BAL.unrestFromLayoff);
+  });
+
   it("respects unique history and every eligible event has a valid choice", () => {
     for (const turn of [1, 7, 13, 19]) {
       const state = initialState(turn);
@@ -85,7 +114,7 @@ describe("event engine", () => {
     expect(eligibleEvents(state).some((event) => event.id === "defective-cloth")).toBe(false);
   });
 
-  it("treats accepting Krupp's offer as a takeover rather than a monopoly victory", () => {
+  it("treats accepting the Ruhr combine's offer as a takeover rather than a monopoly victory", () => {
     const definition = EVENTS.find((event) => event.id === "krupp-merger");
     const state = initialState(1);
     state.turn = 19;

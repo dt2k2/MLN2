@@ -10,7 +10,7 @@ const ACHIEVEMENT_COPY: Record<AchievementId, { title: string; description: stri
   },
   "organic-composition": {
     title: "Cấu tạo hữu cơ cao",
-    description: "Tỷ lệ c/v đã vượt mức 3.",
+    description: "Tỷ lệ c/v đã vượt mức 10 sau cơ giới hóa.",
   },
   "reserve-army": {
     title: "Đội quân công nghiệp dự bị",

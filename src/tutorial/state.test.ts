@@ -4,12 +4,24 @@ import { TUTORIAL_STEPS } from "./steps";
 
 class MemoryStorage {
   store = new Map<string, string>();
-  getItem(k: string) { return this.store.get(k) ?? null; }
-  setItem(k: string, v: string) { this.store.set(k, v); }
-  removeItem(k: string) { this.store.delete(k); }
-  clear() { this.store.clear(); }
-  key(i: number) { return Array.from(this.store.keys())[i] ?? null; }
-  get length() { return this.store.size; }
+  getItem(k: string) {
+    return this.store.get(k) ?? null;
+  }
+  setItem(k: string, v: string) {
+    this.store.set(k, v);
+  }
+  removeItem(k: string) {
+    this.store.delete(k);
+  }
+  clear() {
+    this.store.clear();
+  }
+  key(i: number) {
+    return Array.from(this.store.keys())[i] ?? null;
+  }
+  get length() {
+    return this.store.size;
+  }
 }
 const memStorage = new MemoryStorage();
 

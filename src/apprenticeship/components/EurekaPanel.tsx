@@ -20,9 +20,7 @@ interface Props {
 export function EurekaPanel({ concepts, onContinue, focusKey, currentPhase }: Props) {
   const ref = useFocusPhaseHeading<HTMLHeadingElement>(focusKey);
   const heading =
-    concepts.length === 1
-      ? concepts[0].title
-      : `${concepts.length} khái niệm vừa được khám phá`;
+    concepts.length === 1 ? concepts[0].title : `${concepts.length} khái niệm vừa được khám phá`;
   return (
     <aside
       aria-live="polite"

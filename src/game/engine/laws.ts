@@ -15,6 +15,7 @@ export function computeQuarter(s: GameState): QuarterRecord {
   const hours = s.workHours;
   const outputEffect = effectMultiplier(s, "outputMultiplier");
   const demandEffect = effectMultiplier(s, "demandMultiplier");
+  const sellPriceEffect = effectMultiplier(s, "sellPriceMultiplier");
   const materialEffect = effectMultiplier(s, "materialPriceMultiplier");
   const interestEffect = effectMultiplier(s, "interestRateMultiplier");
 
@@ -49,24 +50,34 @@ export function computeQuarter(s: GameState): QuarterRecord {
   const effectiveDemand = s.effectiveDemand * demandEffect;
   const salable = output + s.inventory;
   const sold = Math.min(salable, quarterDemand);
-  const revenue = sold * s.sellPrice;
+  const effectiveSellPrice = s.sellPrice * sellPriceEffect;
+  const revenue = sold * effectiveSellPrice;
   const inventoryNext = Math.max(0, salable - sold);
+  const productionCost = materialCost + v + depreciation;
+  const goodsAvailableCost = s.inventoryBookValue + productionCost;
+  const averageUnitCost = salable > 0 ? goodsAvailableCost / salable : 0;
+  const costOfGoodsSold = Math.min(goodsAvailableCost, sold * averageUnitCost);
+  const endingInventoryBookValue = Math.max(0, goodsAvailableCost - costOfGoodsSold);
+  const currentOutputSold = Math.max(0, sold - s.inventory);
   const extraProfit =
-    sold * Math.max(0, socialLaborTime - individualLaborTime) * BAL.valuePerLaborHour;
+    currentOutputSold * Math.max(0, socialLaborTime - individualLaborTime) * BAL.valuePerLaborHour;
   const interestPaid = s.debt * BAL.quarterlyLoanRate * interestEffect;
   const operatingCashFlow = revenue - materialCost - v - interestPaid;
-  const accountingProfit = operatingCashFlow - depreciation;
+  const accountingProfit =
+    revenue - costOfGoodsSold - interestPaid + s.machineDisposalGainLossThisTurn;
   const retainedProfit = accountingProfit > 0 ? accountingProfit * s.reinvestmentRate : 0;
   const ownerConsumption = accountingProfit > 0 ? accountingProfit - retainedProfit : 0;
 
   const constantCapitalAdvanced = s.machineBookValue + materialCost;
-  const totalCapitalAdvanced = constantCapitalAdvanced + v;
+  const totalCapitalAdvanced = constantCapitalAdvanced + v + s.inventoryBookValue;
   const organic = v > 0 ? constantCapitalAdvanced / v : 0;
   const exploitation = v > 0 ? m / v : 0;
   const profitRate = totalCapitalAdvanced > 0 ? m / totalCapitalAdvanced : 0;
   const profitRateReal = totalCapitalAdvanced > 0 ? accountingProfit / totalCapitalAdvanced : 0;
+  const closingCash = s.cash + operatingCashFlow - ownerConsumption;
+  const closingMachineBookValue = Math.max(0, s.machineBookValue - depreciation);
   const productiveAssets =
-    Math.max(0, s.cash) + s.machineBookValue + s.inventory * BAL.unitMaterial * s.materialPrice;
+    Math.max(0, closingCash) + closingMachineBookValue + endingInventoryBookValue;
 
   return {
     turn: s.turn,
@@ -85,8 +96,13 @@ export function computeQuarter(s: GameState): QuarterRecord {
     extraProfit,
     commodityValue,
     revenue,
+    openingInventoryBookValue: s.inventoryBookValue,
+    productionCost,
+    costOfGoodsSold,
+    endingInventoryBookValue,
     materialCost,
     depreciation,
+    machineDisposalGainLoss: s.machineDisposalGainLossThisTurn,
     machineBookValue: s.machineBookValue,
     constantCapitalAdvanced,
     totalCapitalAdvanced,
@@ -108,7 +124,7 @@ export function computeQuarter(s: GameState): QuarterRecord {
     effectiveDemand,
     industrySupply: s.industrySupply,
     inventory: inventoryNext,
-    sellPrice: s.sellPrice,
+    sellPrice: effectiveSellPrice,
     materialPrice: s.materialPrice * materialEffect,
     laborProductivity,
     individualLaborTime,

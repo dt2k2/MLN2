@@ -147,8 +147,8 @@ export const EVENTS: EventDef[] = [
     weight: 1,
     build: () => ({
       id: "steam-sewing-machine",
-      title: "Máy may dẫn động hơi nước",
-      description: "Một kỹ sư chào bán máy cải tiến tương thích với dây chuyền hiện có.",
+      title: "Máy dệt cải tiến dẫn động hơi nước",
+      description: "Một kỹ sư chào bán khung dệt cải tiến tương thích với dây chuyền hiện có.",
       choices: [
         {
           label: "Mua máy với giá $12.000",
@@ -185,7 +185,7 @@ export const EVENTS: EventDef[] = [
           label: "Cho phép thanh tra",
           ownerStance: "reformist",
           tone: "accept",
-          previewLabel: "Chi $2.500 · sức khỏe +5 · mâu thuẫn −3",
+          previewLabel: "Chi $2.500 · sức khỏe +5 · áp lực −3",
           canChoose: (state) => state.cash >= 2_500,
           disabledReason: "Không đủ tiền mặt.",
           apply: (state) => {
@@ -198,7 +198,7 @@ export const EVENTS: EventDef[] = [
           label: "Đóng cổng xưởng",
           ownerStance: "coercive",
           tone: "refuse",
-          previewLabel: "Bất ổn +8 · mâu thuẫn +4",
+          previewLabel: "Bất ổn +8 · áp lực +4",
           apply: (state) => {
             state.unrest = clamp(state.unrest + 8);
             state.contradiction = clamp(state.contradiction + 4);
@@ -264,9 +264,10 @@ export const EVENTS: EventDef[] = [
           label: "Sa thải ban tổ chức",
           ownerStance: "coercive",
           tone: "refuse",
-          previewLabel: "4 người mất việc · mâu thuẫn +9",
+          previewLabel: "Tối đa 4 người mất việc · bất ổn +4 · áp lực +9",
           apply: (state) => {
-            layoffWorkers(state, 4);
+            const laidOff = layoffWorkers(state, 4);
+            state.unrest = clamp(state.unrest + laidOff * BAL.unrestFromLayoff);
             state.contradiction = clamp(state.contradiction + 9);
           },
         },
@@ -299,7 +300,7 @@ export const EVENTS: EventDef[] = [
           label: "Đối đầu",
           ownerStance: "coercive",
           tone: "refuse",
-          previewLabel: "Sản lượng quý sau −55% · mâu thuẫn +10",
+          previewLabel: "Sản lượng quý sau −55% · áp lực +10",
           apply: (state) => {
             state.contradiction = clamp(state.contradiction + 10);
             effect(state, "factory-strike", "Đình công", "outputMultiplier", 0.45, 1);
@@ -315,8 +316,9 @@ export const EVENTS: EventDef[] = [
     weight: 1,
     build: () => ({
       id: "factory-act",
-      title: "Luật Xưởng máy",
-      description: "Nghị viện áp trần ngày lao động 12 giờ; tranh luận chỉ còn về cách thi hành.",
+      title: "Đợt thanh tra xưởng máy",
+      description:
+        "Tình huống tổng hợp từ các quy định lao động Phổ thế kỷ XIX: thanh tra yêu cầu xưởng áp trần 12 giờ và cải thiện điều kiện an toàn.",
       choices: [
         {
           label: "Thi hành và cải thiện an toàn",
@@ -353,16 +355,26 @@ export const EVENTS: EventDef[] = [
     weight: 1,
     build: () => ({
       id: "krupp-price-war",
-      title: "Krupp phát động chiến tranh giá",
-      description: "Quy mô lớn cho phép Krupp hạ giá để giành đơn hàng trong hai quý.",
+      title: "Liên hiệp Dệt Ruhr phát động chiến tranh giá",
+      description:
+        "Liên hiệp hư cấu đại diện cho tư bản quy mô lớn hạ giá để giành đơn hàng trong hai quý.",
       choices: [
         {
           label: "Hạ giá cạnh tranh",
           ownerStance: "speculative",
           tone: "accept",
-          previewLabel: "Cầu của xưởng −10% trong 2 quý",
-          apply: (state) =>
-            effect(state, "price-war-match", "Chiến tranh giá", "demandMultiplier", 0.9, 2),
+          previewLabel: "Giá bán −12% · cầu −8% trong 2 quý",
+          apply: (state) => {
+            effect(state, "price-war-match-demand", "Chiến tranh giá", "demandMultiplier", 0.92, 2);
+            effect(
+              state,
+              "price-war-match-price",
+              "Chiến tranh giá",
+              "sellPriceMultiplier",
+              0.88,
+              2,
+            );
+          },
         },
         {
           label: "Giữ biên lợi nhuận",
@@ -431,7 +443,7 @@ export const EVENTS: EventDef[] = [
     prerequisite: (state) => state.marketShare < 0.28,
     build: () => ({
       id: "krupp-merger",
-      title: "Krupp đề nghị sáp nhập",
+      title: "Liên hiệp Dệt Ruhr đề nghị thâu tóm",
       description: "Đối thủ muốn mua quyền kiểm soát xưởng và hợp nhất đơn hàng.",
       choices: [
         {
@@ -449,7 +461,14 @@ export const EVENTS: EventDef[] = [
           tone: "refuse",
           previewLabel: "Cầu −15% trong 2 quý",
           apply: (state) =>
-            effect(state, "merger-refusal", "Từ chối Krupp", "demandMultiplier", 0.85, 2),
+            effect(
+              state,
+              "merger-refusal",
+              "Từ chối Liên hiệp Dệt Ruhr",
+              "demandMultiplier",
+              0.85,
+              2,
+            ),
         },
       ],
     }),
@@ -471,7 +490,7 @@ export const EVENTS: EventDef[] = [
           label: "Cắt sản xuất có kế hoạch",
           ownerStance: "pragmatic",
           tone: "accept",
-          previewLabel: "Sản lượng −30% trong 2 quý · cầu ổn định hơn",
+          previewLabel: "Sản lượng −30% trong 2 quý",
           apply: (state) =>
             effect(
               state,
@@ -486,7 +505,7 @@ export const EVENTS: EventDef[] = [
           label: "Tiếp tục tranh thị phần",
           ownerStance: "expansionist",
           tone: "refuse",
-          previewLabel: "Cầu −25% trong 2 quý · mâu thuẫn +6",
+          previewLabel: "Cầu −25% trong 2 quý · áp lực +6",
           apply: (state) => {
             effect(state, "panic-demand", "Hoảng loạn sản xuất thừa", "demandMultiplier", 0.75, 2);
             state.contradiction = clamp(state.contradiction + 6);
@@ -522,7 +541,7 @@ export const EVENTS: EventDef[] = [
           label: "Yêu cầu trấn áp",
           ownerStance: "coercive",
           tone: "refuse",
-          previewLabel: "Bất ổn +10 · mâu thuẫn +12",
+          previewLabel: "Bất ổn +10 · áp lực +12",
           apply: (state) => {
             state.unrest = clamp(state.unrest + 10);
             state.contradiction = clamp(state.contradiction + 12);

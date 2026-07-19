@@ -63,7 +63,10 @@ export interface R5Result {
   unsold: number;
   revenue: number;
   costs: number; // c + v cho toàn bộ output
-  realizedProfit: number;
+  costOfGoodsSold: number;
+  inventoryBookValue: number;
+  accountingProfit: number;
+  cashResult: number;
 }
 
 export function computeR5(output: number): R5Result {
@@ -75,7 +78,11 @@ export function computeR5(output: number): R5Result {
   const unsold = output - sold;
   const revenue = sold * R5.unit.price;
   const costs = c + v;
-  const realizedProfit = revenue - costs;
+  const unitCost = R5.unit.c + R5.unit.v;
+  const costOfGoodsSold = sold * unitCost;
+  const inventoryBookValue = unsold * unitCost;
+  const accountingProfit = revenue - costOfGoodsSold;
+  const cashResult = revenue - costs;
   return {
     output,
     produced: { c, v, m, totalValue },
@@ -83,7 +90,10 @@ export function computeR5(output: number): R5Result {
     unsold,
     revenue,
     costs,
-    realizedProfit,
+    costOfGoodsSold,
+    inventoryBookValue,
+    accountingProfit,
+    cashResult,
   };
 }
 

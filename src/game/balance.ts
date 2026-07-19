@@ -12,6 +12,7 @@ export const BAL = {
   initialActiveWorkers: 32,
   initialIdleWorkers: 8,
   initialInventory: 200,
+  initialInventoryUnitCost: 22,
 
   // Lao động
   baseWagePerWorker: 220, // $/quý ở 8h
@@ -61,7 +62,8 @@ export const BAL = {
   contradictionRevolution: 100,
   unrestRiot: 90,
   bankruptcyDebtRatio: 3,
-  monopolyShare: 0.6,
+  accumulationEndingShare: 0.15,
+  accumulationEndingMachines: 8,
   reformContradictionMax: 40,
   reformHealthMin: 70,
 } as const;

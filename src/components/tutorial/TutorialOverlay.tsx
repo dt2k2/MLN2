@@ -30,10 +30,7 @@ function panelPosition(
     else p = "bottom";
   }
 
-  const centerY = Math.max(
-    12,
-    Math.min(viewport.h - 280, rect.top + rect.height / 2 - 120),
-  );
+  const centerY = Math.max(12, Math.min(viewport.h - 280, rect.top + rect.height / 2 - 120));
   switch (p) {
     case "right":
       return {
@@ -132,7 +129,9 @@ export function TutorialOverlay({
         />
       ) : null}
 
-      {pendingHint ? <HintOverlay id={pendingHint} viewport={viewport} onClose={dismissHint} /> : null}
+      {pendingHint ? (
+        <HintOverlay id={pendingHint} viewport={viewport} onClose={dismissHint} />
+      ) : null}
 
       <SkipConfirm open={askSkip} onCancel={cancelSkip} onConfirm={confirmSkip} />
     </>

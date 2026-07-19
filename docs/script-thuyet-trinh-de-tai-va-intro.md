@@ -166,19 +166,13 @@ Các yếu tố sau là **hư cấu có kiểm soát**, không phải dữ kiệ
 - Đúng ba máy, 32 công nhân có ca, 8 người chờ việc và khoản nợ chính xác $15.000.
 - Bauer và Schmidt là đối thủ tổng hợp dùng để mô phỏng các chiến lược cạnh tranh.
 - Nhịp tăng công nghệ, giá bán, cầu và các công thức theo quý là mô hình giáo dục giản lược.
-- Câu “Krupp mua máy mới mỗi tháng” là hình ảnh kịch tính hóa sức ép của tư bản công nghiệp lớn.
+- Liên hiệp Dệt Ruhr trong game là đối thủ tổng hợp hư cấu, đại diện cho sức ép của tư bản công nghiệp quy mô lớn.
 
-### Lưu ý đặc biệt về Krupp
+### Lưu ý về Liên hiệp Dệt Ruhr
 
-Krupp lịch sử là doanh nghiệp thép đúc tại Essen, phát triển mạnh từ khoảng năm 1850; không nên giới thiệu Krupp như một **xưởng dệt đối thủ có thật** của Müller. Trong bản demo hiện tại, tên Krupp nên được giải thích là một tham chiếu hư cấu hóa đại diện cho tư bản công nghiệp quy mô lớn và sức ép tập trung.
+Liên hiệp Dệt Ruhr là đối thủ tổng hợp hư cấu, không phải một doanh nghiệp lịch sử cụ thể. Tên này cho phép game mô phỏng cơ giới hóa, chiến tranh giá và thâu tóm mà không biến Krupp lịch sử, một doanh nghiệp thép đúc tại Essen, thành công ty dệt có thật.
 
-**Nên nói:**
-
-> “Game dùng tên Krupp như biểu tượng lịch sử của tư bản công nghiệp lớn đang vươn lên trong khu vực rộng hơn.”
-
-**Không nên nói:**
-
-> “Krupp là công ty dệt cạnh tranh trực tiếp với Müller tại Wupper.”
+> “Liên hiệp Dệt Ruhr đại diện cho sức ép của tư bản công nghiệp quy mô lớn; các con số và hành vi của tổ chức này thuộc mô hình giáo dục.”
 
 ### Lưu ý về địa danh
 

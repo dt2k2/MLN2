@@ -162,9 +162,9 @@ Thời điểm có thể dao động theo event và thị trường.
 | Công đoàn được thành lập        | **Công nhận đại diện**            | Luôn chọn được.                                                       | “Công nhân xuất hiện như một chủ thể tập thể, không chỉ là một khoản quỹ lương.”          |
 | Đình công toàn xưởng            | **Thương lượng**                  | Luôn chọn được.                                                       | “Đình công giảm sản lượng quý sau; nó không làm hàng tồn kho biến mất.”                   |
 | Luật Xưởng máy                  | **Thi hành và cải thiện an toàn** | Thiếu $3.000 thì **Chỉ tuân thủ tối thiểu**.                          | “Giới hạn pháp lý thay đổi phạm vi lựa chọn của từng nhà tư bản.”                         |
-| Krupp phát động chiến tranh giá | **Hạ giá cạnh tranh**             | Nếu tồn kho đã cao, vẫn chọn phương án này vì mức giảm cầu chỉ 10%.   | “Quy mô của đối thủ ép xưởng phải hy sinh một phần biên lợi nhuận.”                       |
+| Liên hiệp Dệt Ruhr phát động chiến tranh giá | **Hạ giá cạnh tranh** | Chấp nhận giá bán giảm 12% để hạn chế mức mất cầu. | “Quy mô của đối thủ ép xưởng phải hy sinh một phần biên lợi nhuận.” |
 | Khủng hoảng tín dụng 1857       | **Bán máy và trả nợ**             | Nếu chỉ còn 1 máy hoặc không đủ tiền, **Tái cơ cấu khoản vay**.       | “Tín dụng từng mở rộng chu chuyển giờ truyền khủng hoảng vào bảng cân đối.”               |
-| Krupp đề nghị sáp nhập          | **Giữ độc lập**                   | Không chọn sáp nhập nếu muốn chơi đủ 24 quý.                          | “Từ chối giúp ta tiếp tục ván, nhưng phải chịu thêm sức ép cầu trong hai quý.”            |
+| Liên hiệp Dệt Ruhr đề nghị thâu tóm | **Giữ độc lập** | Không chấp nhận nếu muốn chơi đủ 24 quý. | “Từ chối giúp ta tiếp tục ván, nhưng phải chịu thêm sức ép cầu trong hai quý.” |
 | Hoảng loạn sản xuất thừa        | **Cắt sản xuất có kế hoạch**      | Luôn chọn được.                                                       | “Giảm cung là phản ứng phòng thủ; nó không tự giải quyết nguyên nhân toàn ngành.”         |
 | Bạo loạn khu công nhân          | **Mở quỹ cứu trợ**                | Thiếu $6.000 thì mới chọn trấn áp; sau đó ưu tiên giảm bất ổn.        | “Xung đột đã vượt khỏi cổng xưởng và trở thành vấn đề xã hội.”                            |
 
@@ -200,7 +200,7 @@ Nếu nhận ending khác:
 - **Phá sản:** phân biệt thiếu thanh khoản, lỗ kế toán và căng thẳng nợ.
 - **Cách mạng:** đọc lại chuỗi giờ dài, lương, sa thải, bất ổn và mâu thuẫn; không quy kết vào một nút bấm duy nhất.
 - **Độc quyền:** giải thích cạnh tranh dẫn đến tập trung tư bản, không phải thị trường ngừng gây sức ép.
-- **Sáp nhập:** chỉ xảy ra nếu chấp nhận đề nghị Krupp và sẽ kết thúc trước lượt 24.
+- **Thâu tóm:** chỉ xảy ra nếu chấp nhận đề nghị của Liên hiệp Dệt Ruhr và sẽ kết thúc trước lượt 24.
 
 ## 9. Lời kết đề xuất
 

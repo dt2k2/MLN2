@@ -1,5 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, BookOpen, Clock, Users, TrendingUp, AlertTriangle, Lightbulb } from "lucide-react";
+import {
+  ArrowLeft,
+  BookOpen,
+  Clock,
+  Users,
+  TrendingUp,
+  AlertTriangle,
+  Lightbulb,
+} from "lucide-react";
 import { Gear } from "@/components/game/particles";
 import { useTutorialStore } from "@/tutorial/state";
 
@@ -111,7 +119,7 @@ function HowToPlay() {
               "Chọn tối đa 3 quyết định từ Bảng điều khiển bên phải.",
               "Đọc kỹ sự kiện bất ngờ — chúng phản ánh khủng hoảng khách quan của thị trường và giai cấp.",
               "Bấm KẾT THÚC QUÝ để hệ mô phỏng tính toán và chuyển sang quý kế tiếp.",
-              "Sau 24 quý — hoặc khi Mâu thuẫn ≥ 100, hoặc khi Tiền mặt < 0 — ván chơi kết thúc.",
+              "Sau 24 quý, hoặc khi áp lực đối kháng chạm 100 hay khủng hoảng thanh khoản kéo dài, ván chơi kết thúc.",
             ].map((s, i) => (
               <li
                 key={i}
@@ -129,45 +137,67 @@ function HowToPlay() {
         <section id="thi-truong" className="mt-12 panel-industrial rounded-lg p-5">
           <h2 className="font-display text-xl text-gold">Thị trường</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Cầu hiệu dụng ngành là tổng lượng hàng thị trường có khả năng thanh toán — không phải mọi nhu cầu xã hội. Tổng cung ngành là sản lượng dự kiến của toàn bộ đối thủ cộng xưởng của bạn. Cầu dành cho xưởng là phần bạn có thể giành được theo thị phần. Sản xuất vượt con số này thường rơi vào tồn kho. Giá bán chịu tác động của giá trị xã hội, cung–cầu và cạnh tranh; giá cao chưa chắc thành lợi nhuận nếu hàng không bán được.
+            Cầu hiệu dụng ngành là tổng lượng hàng thị trường có khả năng thanh toán — không phải
+            mọi nhu cầu xã hội. Tổng cung ngành là sản lượng dự kiến của toàn bộ đối thủ cộng xưởng
+            của bạn. Cầu dành cho xưởng là phần bạn có thể giành được theo thị phần. Sản xuất vượt
+            con số này thường rơi vào tồn kho. Giá bán chịu tác động của giá trị xã hội, cung–cầu và
+            cạnh tranh; giá cao chưa chắc thành lợi nhuận nếu hàng không bán được.
           </p>
         </section>
 
         <section id="cau-thanh-gia-tri" className="mt-6 panel-industrial rounded-lg p-5">
           <h2 className="font-display text-xl text-gold">Cấu thành giá trị (c, v, m)</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            c là giá trị tư liệu sản xuất được chuyển vào hàng hóa (nguyên liệu và khấu hao máy), không phải toàn bộ tiền mặt đã chi. v là phần vốn ứng ra để mua sức lao động. m là phần giá trị mới do lao động tạo ra vượt quá v — không đồng nhất với lợi nhuận kế toán, vì lợi nhuận còn phụ thuộc vào việc hàng bán được không. Tỷ lệ % là cơ cấu giá trị sản phẩm quý, không phải tỷ suất lợi nhuận.
+            c là giá trị tư liệu sản xuất được chuyển vào hàng hóa (nguyên liệu và khấu hao máy),
+            không phải toàn bộ tiền mặt đã chi. v là phần vốn ứng ra để mua sức lao động. m là phần
+            giá trị mới do lao động tạo ra vượt quá v — không đồng nhất với lợi nhuận kế toán, vì
+            lợi nhuận còn phụ thuộc vào việc hàng bán được không. Tỷ lệ % là cơ cấu giá trị sản phẩm
+            quý, không phải tỷ suất lợi nhuận.
           </p>
         </section>
 
         <section id="hieu-suat-von" className="mt-6 panel-industrial rounded-lg p-5">
-          <h2 className="font-display text-xl text-gold">Xu hướng hiệu suất tổng vốn</h2>
+          <h2 className="font-display text-xl text-gold">Xu hướng dôi ra trên tổng vốn</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Biểu đồ theo dõi lợi nhuận kế toán so với vốn xưởng đã ứng, tính theo từng quý (không phải tỷ suất năm). Xu hướng đi xuống có thể do chi phí tăng, hàng không bán được, lãi vay hoặc vốn máy tăng nhanh hơn lợi nhuận. Một quý riêng lẻ không tạo thành xu hướng; cần vài quý liên tiếp mới nói được điều gì.
+            Biểu đồ theo dõi giá trị dôi ra so với tổng tư bản đang ứng, tính theo từng quý (không
+            phải tỷ suất năm). Nó khác tỷ suất lợi nhuận thực hiện trên dashboard, vốn còn chịu tác
+            động của việc bán hàng, giá vốn tồn kho và lãi vay. Một quý riêng lẻ chưa tạo thành xu
+            hướng; cần nhiều quý liên tiếp mới có thể kết luận.
           </p>
         </section>
 
         <section id="ap-luc-xa-hoi" className="mt-6 panel-industrial rounded-lg p-5">
           <h2 className="font-display text-xl text-gold">Áp lực xã hội</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Áp lực xã hội tổng hợp sức khỏe, bất ổn, giờ làm, lương, thất nghiệp và các xung đột đang mở — không chỉ cộng thêm chỉ số bất ổn. Các dải: 0–29 Yên · 30–49 Căng nhẹ · 50–69 Bất ổn · 70–84 Nguy hiểm · 85–100 Đứt gãy. Vượt ngưỡng cao dễ dẫn tới đình công, bạo loạn hoặc kết cục xã hội nghiêm trọng.
+            Áp lực xã hội tổng hợp sức khỏe, bất ổn, giờ làm, lương, thất nghiệp và các xung đột
+            đang mở — không chỉ cộng thêm chỉ số bất ổn. Các dải: 0–29 Yên · 30–49 Căng nhẹ · 50–69
+            Bất ổn · 70–84 Nguy hiểm · 85–100 Đứt gãy. Vượt ngưỡng cao dễ dẫn tới đình công, bạo
+            loạn hoặc kết cục xã hội nghiêm trọng.
           </p>
         </section>
 
         <section id="tai-chinh" className="mt-6 panel-industrial rounded-lg p-5">
           <h2 className="font-display text-xl text-gold">Tài chính: tiền mặt, quỹ tích lũy, nợ</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Tiền mặt là toàn bộ số bạn có để mua máy, trả nợ và duy trì vận hành. Quỹ tích lũy là phần lợi nhuận giữ lại nằm chính trong tiền mặt — đừng cộng cash + quỹ tích lũy vì như vậy tính hai lần. Vay tín dụng làm tăng tiền mặt và dư nợ đồng thời; đó không phải lợi nhuận. Lãi quý tới ước tính chi phí tín dụng dựa trên dư nợ hiện hành. Tỷ lệ Nợ / Tài sản càng cao, xưởng càng dễ tổn thương khi lợi nhuận giảm.
+            Tiền mặt là toàn bộ số bạn có để mua máy, trả nợ và duy trì vận hành. Quỹ tích lũy là
+            phần lợi nhuận giữ lại nằm chính trong tiền mặt — đừng cộng cash + quỹ tích lũy vì như
+            vậy tính hai lần. Vay tín dụng làm tăng tiền mặt và dư nợ đồng thời; đó không phải lợi
+            nhuận. Lãi quý tới ước tính chi phí tín dụng dựa trên dư nợ hiện hành. Tỷ lệ Nợ / Tài
+            sản càng cao, xưởng càng dễ tổn thương khi lợi nhuận giảm.
           </p>
         </section>
 
         <section id="can-can-lich-su" className="mt-6 panel-industrial rounded-lg p-5">
           <h2 className="font-display text-xl text-gold">Cán cân Lịch sử</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Cán cân đo ba <em>nguồn sức ép</em> đang định hình xưởng — không phải bảng điểm thắng/thua và không phải sức mạnh. Tư bản: sức ép từ tích lũy, máy móc, dư nợ, lỗ. Lao động: sức ép từ giờ làm, lương, sức khỏe, thất nghiệp, bất ổn. Thị trường: sức ép từ tồn kho, cạnh tranh và khả năng bán hàng. Trạng thái "Ổn định" chỉ nghĩa là chưa trục nào đủ lớn để chi phối; hai hoặc ba trục cùng cao báo hiệu một giải pháp đơn lẻ khó ổn định xưởng.
+            Cán cân đo ba <em>nguồn sức ép</em> đang định hình xưởng — không phải bảng điểm
+            thắng/thua và không phải sức mạnh. Tư bản: sức ép từ tích lũy, máy móc, dư nợ, lỗ. Lao
+            động: sức ép từ giờ làm, lương, sức khỏe, thất nghiệp, bất ổn. Thị trường: sức ép từ tồn
+            kho, cạnh tranh và khả năng bán hàng. Trạng thái "Ổn định" chỉ nghĩa là chưa trục nào đủ
+            lớn để chi phối; hai hoặc ba trục cùng cao báo hiệu một giải pháp đơn lẻ khó ổn định
+            xưởng.
           </p>
         </section>
-
 
         <div className="mt-12 flex flex-wrap justify-center gap-3">
           <Link

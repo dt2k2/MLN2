@@ -162,7 +162,8 @@ export const CONCEPT_INFO: Record<ConceptKey, ConceptInfo> = {
     short: "K",
     definition:
       "Mâu thuẫn giữa tính chất xã hội hóa ngày càng cao của sản xuất và chế độ chiếm hữu tư nhân tư bản chủ nghĩa đối với tư liệu sản xuất.",
-    context: (state) => `Chỉ số mâu thuẫn hiện ở mức ${Math.round(state.contradiction)}/100.`,
+    context: (state) =>
+      `Quý gần nhất, ${state.workersActive} công nhân cùng tạo ra ${money(state.last.m)} giá trị thặng dư; ${money(state.last.retainedProfit)} được giữ lại và ${money(state.last.ownerConsumption)} được chủ sở hữu rút ra.`,
   },
   fallingProfitRate: {
     key: "fallingProfitRate",
@@ -232,11 +233,18 @@ export function checkImmediateDiscoveries(input: ImmediateDiscoveryInput): Conce
 
   const bookValueAdded = Math.max(0, next.machineBookValue - prev.machineBookValue);
   const capitalized = next.capitalizedAccumulationThisTurn - prev.capitalizedAccumulationThisTurn;
-  if (bookValueAdded > 0 && capitalized >= bookValueAdded * 0.5) {
+  const workersAdded = Math.max(0, next.workersActive - prev.workersActive);
+  const additionalWageAdvance = workersAdded * next.wagePerWorker;
+  const machineAccumulation = bookValueAdded > 0 && capitalized >= bookValueAdded * 0.5;
+  const laborAccumulation = additionalWageAdvance > 0 && capitalized >= additionalWageAdvance * 0.5;
+  if (machineAccumulation || laborAccumulation) {
+    const capitalForm = machineAccumulation
+      ? `${money(capitalized)} từ quỹ tích lũy đã tài trợ ${percent(capitalized / bookValueAdded)} giá trị máy mua thêm.`
+      : `${money(capitalized)} từ quỹ tích lũy đã được ứng thêm để huy động ${workersAdded} sức lao động.`;
     add(
       "capitalAccumulation",
-      `${subject} biến lợi nhuận giữ lại thành máy móc mới.`,
-      `${money(capitalized)} từ quỹ tích lũy đã tài trợ ${percent(capitalized / bookValueAdded)} giá trị máy mua thêm.`,
+      `${subject} biến lợi nhuận giữ lại thành tư bản sản xuất phụ thêm.`,
+      capitalForm,
     );
   }
 
@@ -317,16 +325,13 @@ export function checkQuarterDiscoveries(state: GameState): ConceptDiscovery[] {
     );
   }
 
-  if (
-    previous &&
-    previous.organic <= BAL.organicDiscoveryThreshold &&
-    record.organic > BAL.organicDiscoveryThreshold &&
-    record.machines > 3
-  ) {
+  if (record.organic > BAL.organicDiscoveryThreshold && record.machines > BAL.initialMachines) {
     add(
       "organicComposition",
       "Bạn vừa chứng kiến tư liệu sản xuất tăng nhanh hơn quỹ lương.",
-      `c/v tăng từ ${previous.organic.toFixed(2)} lên ${record.organic.toFixed(2)}.`,
+      previous && previous.organic <= BAL.organicDiscoveryThreshold
+        ? `c/v tăng từ ${previous.organic.toFixed(2)} lên ${record.organic.toFixed(2)} sau cơ giới hóa.`
+        : `Sau khi số máy vượt cấu hình ban đầu, c/v đạt ${record.organic.toFixed(2)}, cao hơn ngưỡng ${BAL.organicDiscoveryThreshold}.`,
     );
   }
 
@@ -349,11 +354,14 @@ export function checkQuarterDiscoveries(state: GameState): ConceptDiscovery[] {
     );
   }
 
-  if (state.contradiction > 75) {
+  const collectiveProduction = state.workersActive >= 24 && record.industrySupply > record.output;
+  const privateAppropriation =
+    record.ownerConsumption > 0 || record.retainedProfit > 0 || state.ownerConsumption > 0;
+  if (record.turn >= 7 && record.m > 0 && collectiveProduction && privateAppropriation) {
     add(
       "capitalistContradiction",
-      "Bạn vừa chứng kiến xung đột giữa sản xuất xã hội hóa và chiếm hữu tư nhân vượt ngưỡng nguy hiểm.",
-      `Chỉ số mâu thuẫn đạt ${Math.round(state.contradiction)}/100.`,
+      "Bạn vừa chứng kiến sản xuất mang tính tập thể nhưng quyền phân phối kết quả vẫn thuộc chủ sở hữu tư nhân.",
+      `${state.workersActive} công nhân cùng tạo ra ${money(record.m)} giá trị thặng dư; ${money(record.retainedProfit)} được giữ lại và ${money(record.ownerConsumption)} được chủ sở hữu rút ra.`,
     );
   }
 
@@ -362,7 +370,9 @@ export function checkQuarterDiscoveries(state: GameState): ConceptDiscovery[] {
     lastFour.length === 4 &&
     lastFour[0].profitRate > lastFour[1].profitRate &&
     lastFour[1].profitRate > lastFour[2].profitRate &&
-    lastFour[2].profitRate > lastFour[3].profitRate
+    lastFour[2].profitRate > lastFour[3].profitRate &&
+    lastFour[3].organic > lastFour[0].organic &&
+    lastFour[3].machines >= lastFour[0].machines
   ) {
     add(
       "fallingProfitRate",

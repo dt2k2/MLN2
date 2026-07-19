@@ -12,15 +12,15 @@ const resultSchema = z.object({
 
 const OUTCOMES = {
   monopoly: {
-    eyebrow: "Kết cục: Độc quyền",
-    title: "Tư bản tập trung vào một bàn tay",
+    eyebrow: "Kết cục: Tích tụ quy mô lớn",
+    title: "Tư bản cá biệt đã mở rộng",
     description:
-      "Xưởng của bạn đã thâu tóm phần lớn thị trường. Cạnh tranh sinh ra tập trung tư bản; thành công của một nhà tư bản đồng thời thu hẹp không gian tồn tại của những nhà tư bản khác.",
+      "Xưởng đã tái đầu tư để mở rộng mạnh tư bản máy móc và vẫn giữ được một phần đáng kể của thị trường. Đây là tích tụ tư bản trong một doanh nghiệp cá biệt, chưa phải tập trung bằng thâu tóm, chưa phải độc quyền và cũng không làm cạnh tranh biến mất.",
     Icon: Trophy,
   },
   merger: {
     eyebrow: "Kết cục: Bị thâu tóm",
-    title: "Quyền kiểm soát chuyển sang Krupp",
+    title: "Quyền kiểm soát chuyển sang Liên hiệp Dệt Ruhr",
     description:
       "Bạn đã chấp nhận đề nghị sáp nhập. Xưởng tiếp tục tồn tại như một bộ phận của tư bản lớn hơn, nhưng Heinrich không còn là chủ thể độc lập. Đây là tập trung tư bản qua thâu tóm, không phải chiến thắng độc quyền của Müller.",
     Icon: GitMerge,
@@ -29,14 +29,14 @@ const OUTCOMES = {
     eyebrow: "Kết cục: Cải cách",
     title: "Một thế cân bằng tạm thời",
     description:
-      "Lợi nhuận vẫn dương trong khi sức khỏe công nhân và mâu thuẫn xã hội được giữ trong giới hạn. Những nhượng bộ đã kéo dài sự ổn định, nhưng không xóa bỏ động lực tích lũy của hệ thống.",
+      "Lợi nhuận vẫn dương trong khi sức khỏe công nhân và áp lực đối kháng được giữ trong giới hạn. Những nhượng bộ đã kéo dài sự ổn định, nhưng không xóa bỏ mâu thuẫn cấu trúc hay động lực tích lũy của hệ thống.",
     Icon: Scale,
   },
   timeout: {
     eyebrow: "Kết cục: Hết thời kỳ",
     title: "Xưởng còn đứng, câu hỏi vẫn mở",
     description:
-      "Sau 24 lượt, doanh nghiệp không sụp đổ cũng chưa đạt thế độc quyền hay cải cách bền vững. Các xu hướng kinh tế vẫn tiếp tục vận động ngoài khung thời gian của ván chơi.",
+      "Sau 24 lượt, doanh nghiệp không sụp đổ, chưa tích tụ đủ quy mô để tạo một bước ngoặt mới và cũng chưa đạt thế cân bằng cải cách. Các xu hướng kinh tế vẫn tiếp tục vận động ngoài khung thời gian của ván chơi.",
     Icon: Clock3,
   },
 } as const;

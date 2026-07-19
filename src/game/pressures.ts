@@ -26,12 +26,11 @@ const PHASE_META: Record<ScalePhase, { label: string; hint: string }> = {
   accumulation: { label: "Tích lũy căng", hint: "Tư bản dồn về máy móc và nợ." },
   exploitation: { label: "Bóc lột nóng", hint: "Lao động bị kéo căng." },
   crisis: { label: "Khủng hoảng thừa", hint: "Hàng làm ra không bán được." },
-  rupture: { label: "Rạn vỡ", hint: "Mâu thuẫn cơ bản đang bung." },
+  rupture: { label: "Rạn vỡ", hint: "Áp lực đối kháng đã vượt khả năng điều tiết." },
 };
 
 export function readScale(s: GameState): ScaleReading {
-  const productiveAssets =
-    Math.max(0, s.cash) + s.machineBookValue + s.inventory * BAL.unitMaterial * s.materialPrice;
+  const productiveAssets = Math.max(0, s.cash) + s.machineBookValue + s.inventoryBookValue;
   const debtRatioClamped = clamp(s.debt / Math.max(1, productiveAssets), 0, 3);
   const inventoryRatio = clamp(s.inventory / Math.max(1, s.demand), 0, 2);
   const wageIndex = s.wagePerWorker / BAL.baseWagePerWorker;

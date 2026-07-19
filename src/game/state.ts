@@ -8,6 +8,7 @@ import { checkEnding } from "./engine/endings";
 import { advanceQuarter } from "./engine/tick";
 import { collectStories } from "./story";
 import { clearEndingReportSnapshot } from "./ending-report";
+import { reconcileAccumulationFund } from "./economy";
 import type {
   AchievementId,
   ConceptDiscovery,
@@ -60,8 +61,13 @@ function emptyRecord(): QuarterRecord {
     extraProfit: 0,
     commodityValue: 0,
     revenue: 0,
+    openingInventoryBookValue: 0,
+    productionCost: 0,
+    costOfGoodsSold: 0,
+    endingInventoryBookValue: 0,
     materialCost: 0,
     depreciation: 0,
+    machineDisposalGainLoss: 0,
     machineBookValue: BAL.machinePrice * BAL.initialMachines,
     constantCapitalAdvanced: 0,
     totalCapitalAdvanced: 0,
@@ -112,8 +118,10 @@ export function initialState(seed: number = BAL.initialSeed): GameState {
     capitalizedAccumulationThisTurn: 0,
     machines: BAL.initialMachines,
     machineBookValue: BAL.machinePrice * BAL.initialMachines,
+    machineDisposalGainLossThisTurn: 0,
     machinesAtTurnStart: BAL.initialMachines,
     inventory: BAL.initialInventory,
+    inventoryBookValue: BAL.initialInventory * BAL.initialInventoryUnitCost,
     workersActive: BAL.initialActiveWorkers,
     workersIdle: BAL.initialIdleWorkers,
     wagePerWorker: BAL.baseWagePerWorker,
@@ -294,6 +302,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const previous = store.state;
     const next = produce(previous, (draft) => {
       decision.apply(draft);
+      reconcileAccumulationFund(draft);
       const stance =
         typeof decision.ownerStance === "function"
           ? decision.ownerStance(previous, draft as GameState)
@@ -442,6 +451,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const eventTitle = draft.pendingEvent.title;
       const eventId = draft.pendingEvent.id;
       choice.apply(draft);
+      reconcileAccumulationFund(draft);
       appendOwnerSignal(
         draft,
         choice.ownerStance

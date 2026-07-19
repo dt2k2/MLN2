@@ -41,9 +41,7 @@ export type TutorialTargetId =
   | "log-panel";
 
 export type TutorialAdvance =
-  | { kind: "manual" }
-  | { kind: "decision-applied" }
-  | { kind: "quarter-ended" };
+  { kind: "manual" } | { kind: "decision-applied" } | { kind: "quarter-ended" };
 
 export type TutorialBody = string | ((state: GameState) => string);
 

@@ -50,7 +50,7 @@ const BEATS: Beat[] = [
     start: 43,
     end: 65,
     caption: "24 quý · 6 năm · Sổ cái đang mở",
-    text: "Trước mặt bạn là hai mươi bốn quý — sáu năm — để biến xưởng này thành một đế chế, hay chứng kiến nó sụp đổ. Bauer ở phía nam vẫn dựa vào lao động rẻ. Krupp ở phía bắc đang mua máy mới mỗi tháng. Giá trị xã hội của mỗi thước vải đang giảm từng ngày, và bạn phải chạy — chỉ để đứng yên.",
+    text: "Trước mặt bạn là hai mươi bốn quý — sáu năm — để giữ xưởng đứng vững giữa tích lũy và khủng hoảng. Bauer ở phía nam vẫn dựa vào lao động rẻ. Một liên hiệp dệt quy mô lớn ở vùng Ruhr đang liên tục cơ giới hóa. Giá trị xã hội của mỗi thước vải đang giảm từng ngày, và bạn phải chạy — chỉ để đứng yên.",
   },
   {
     img: workers,
@@ -129,7 +129,7 @@ function IntroScene() {
       <audio
         ref={audioRef}
         src="/audio/intro-narration.mp3"
-        preload="auto"
+        preload="metadata"
         muted={muted}
         onError={() => setAudioAvailable(false)}
       />

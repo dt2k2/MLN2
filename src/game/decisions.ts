@@ -138,7 +138,8 @@ export const DECISIONS: Record<DecisionOptionId, DecisionOption> = {
     id: "CUT_WAGE",
     groupId: "WAGES",
     label: "Giảm lương 10%",
-    description: "Giảm chi phí tiền lương nhưng làm suy yếu sức mua và kỷ luật lao động.",
+    description:
+      "Giảm quỹ lương nhưng làm suy yếu khả năng tái sản xuất sức lao động, sức mua và tinh thần công nhân.",
     canApply: (state) => state.wagePerWorker * 0.9 >= 120,
     disabledReason: () => "Tiền lương đã chạm mức sinh tồn tối thiểu.",
     apply: (state) => {

@@ -257,12 +257,7 @@ function GameScreen() {
           }
           debtRatio={
             state.debt /
-            Math.max(
-              1,
-              Math.max(0, state.cash) +
-                state.machineBookValue +
-                state.inventory * BAL.unitMaterial * state.materialPrice,
-            )
+            Math.max(1, Math.max(0, state.cash) + state.machineBookValue + state.inventoryBookValue)
           }
           onPause={showCurrentSummary}
         />
@@ -319,8 +314,10 @@ function GameScreen() {
                   <span className="font-mono text-foreground">{state.workHours}h / ngày</span>
                 </div>
                 <div className="mt-1 flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Lương</span>
-                  <span className="font-mono text-foreground">${state.wagePerWorker}/quý</span>
+                  <span className="text-muted-foreground">Lương/người</span>
+                  <span className="font-mono text-foreground">
+                    ${Math.round(state.wagePerWorker).toLocaleString("vi-VN")} / quý
+                  </span>
                 </div>
               </div>
             </div>
@@ -377,10 +374,10 @@ function GameScreen() {
                 <DashboardCard
                   label={
                     state.discoveredConcepts.profitRate
-                      ? "Tỷ suất lợi nhuận thực quý"
-                      : "Hiệu suất vốn quý"
+                      ? "Tỷ suất lợi nhuận thực hiện"
+                      : "Lợi nhuận / tổng vốn"
                   }
-                  symbol={state.discoveredConcepts.profitRate ? "p′ thực" : undefined}
+                  symbol={state.discoveredConcepts.profitRate ? "p′ thực hiện" : undefined}
                   value={+(dashboardRecord.profitRateReal * 100).toFixed(1)}
                   suffix="%"
                   decimals={1}
@@ -431,12 +428,12 @@ function GameScreen() {
                           margin={{ top: 4, right: 8, bottom: 4, left: 8 }}
                         >
                           <ReTooltip
-                            contentStyle={{
-                              background: "oklch(0.18 0.006 60)",
-                              border: "1px solid oklch(0.32 0.008 60)",
-                              borderRadius: 6,
-                              fontSize: 11,
-                            }}
+                            cursor={{ fill: "oklch(0.8 0.04 75 / 0.08)" }}
+                            content={
+                              <CapitalRatioTooltip
+                                unlocked={!!state.discoveredConcepts.surplusValue}
+                              />
+                            }
                           />
                           <Bar dataKey="v" radius={4}>
                             {capitalRatio.map((c) => (
@@ -797,17 +794,29 @@ function GameScreen() {
               tone: "up",
             },
             {
-              label: "Nguyên liệu đã dùng",
+              label: "Giá vốn hàng đã bán (kế toán)",
+              value: `− $${Math.round(displayRecord.costOfGoodsSold).toLocaleString("vi-VN")}`,
+              tone: "down",
+            },
+            {
+              label: "Giá vốn còn trong kho (tài sản)",
+              value: `$${Math.round(displayRecord.endingInventoryBookValue).toLocaleString("vi-VN")}`,
+              tone: "warn",
+            },
+            {
+              label: "Tiền chi nguyên liệu trong quý",
               value: `− $${Math.round(displayRecord.materialCost).toLocaleString("vi-VN")}`,
               tone: "down",
             },
             {
-              label: state.discoveredConcepts.variableCapital ? "Khả biến v" : "Quỹ lương",
+              label: state.discoveredConcepts.variableCapital
+                ? "Tiền chi tư bản khả biến v"
+                : "Tiền chi quỹ lương",
               value: `− $${Math.round(displayRecord.v).toLocaleString("vi-VN")}`,
               tone: "down",
             },
             {
-              label: "Khấu hao chuyển dịch",
+              label: "Khấu hao (không chi tiền quý này)",
               value: `− $${Math.round(displayRecord.depreciation).toLocaleString("vi-VN")}`,
               tone: "warn",
             },
@@ -815,6 +824,11 @@ function GameScreen() {
               label: "Lãi tín dụng đã trả",
               value: `− $${Math.round(displayRecord.interestPaid).toLocaleString("vi-VN")}`,
               tone: "down",
+            },
+            {
+              label: "Lãi/lỗ thanh lý máy",
+              value: `${displayRecord.machineDisposalGainLoss >= 0 ? "+" : "−"} $${Math.abs(Math.round(displayRecord.machineDisposalGainLoss)).toLocaleString("vi-VN")}`,
+              tone: displayRecord.machineDisposalGainLoss >= 0 ? "up" : "down",
             },
             {
               label: "Lợi nhuận kế toán",
@@ -837,12 +851,14 @@ function GameScreen() {
               tone: "warn",
             },
             {
-              label: state.discoveredConcepts.profitRate ? "p′ lý thuyết quý" : "Hiệu suất vốn quý",
+              label: state.discoveredConcepts.profitRate ? "p′ lý thuyết quý" : "Dôi ra / tổng vốn",
               value: `${(displayRecord.profitRate * 100).toFixed(1)}%`,
               tone: "warn",
             },
             {
-              label: "p′ thực tế quý",
+              label: state.discoveredConcepts.profitRate
+                ? "p′ thực hiện quý"
+                : "Lợi nhuận / tổng vốn",
               value: `${(displayRecord.profitRateReal * 100).toFixed(1)}%`,
               tone: displayRecord.profitRateReal >= 0 ? "up" : "down",
             },
@@ -857,9 +873,7 @@ function GameScreen() {
               tone: state.health >= 60 ? "up" : "down",
             },
             {
-              label: state.discoveredConcepts.capitalistContradiction
-                ? "Mâu thuẫn"
-                : "Áp lực xã hội",
+              label: "Áp lực đối kháng",
               value: `${Math.round(state.contradiction)}/100`,
               tone: "warn",
             },
@@ -986,6 +1000,47 @@ function ChartCard({
         <div className="font-mono text-[10px] text-muted-foreground/70">{hint}</div>
       </div>
       <div className="mt-2">{children}</div>
+    </div>
+  );
+}
+
+function CapitalRatioTooltip({
+  active,
+  payload,
+  unlocked,
+}: {
+  active?: boolean;
+  payload?: Array<{
+    payload?: { name: "c" | "v" | "m"; v: number; color: string };
+  }>;
+  unlocked: boolean;
+}) {
+  const point = payload?.[0]?.payload;
+  if (!active || !point) return null;
+
+  const operationalLabel = {
+    c: "Tư liệu chuyển dịch",
+    v: "Lương tái tạo",
+    m: "Dôi ra",
+  }[point.name];
+  const academicLabel = {
+    c: "Giá trị tư liệu chuyển dịch (c)",
+    v: "Tư bản khả biến tái tạo (v)",
+    m: "Giá trị thặng dư (m)",
+  }[point.name];
+
+  return (
+    <div className="min-w-36 rounded-md border border-border bg-panel-elevated px-3 py-2 shadow-xl">
+      <div className="flex items-center gap-2 text-[11px] text-foreground">
+        <span aria-hidden style={{ color: point.color }}>
+          ■
+        </span>
+        <span>{unlocked ? academicLabel : operationalLabel}</span>
+      </div>
+      <div className="mt-1 font-mono text-base font-semibold" style={{ color: point.color }}>
+        {point.v}%
+      </div>
+      <div className="text-[9px] text-muted-foreground">trong giá trị sản phẩm quý</div>
     </div>
   );
 }

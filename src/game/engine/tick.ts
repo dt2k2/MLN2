@@ -6,6 +6,7 @@ import { applySocialUpdate, computeQuarter } from "./laws";
 import { tickMarket } from "./market";
 import { makeRng } from "./rng";
 import { quarterNews } from "../story";
+import { reconcileAccumulationFund } from "../economy";
 
 export function advanceQuarter(state: GameState) {
   const rng = makeRng(state.seed + state.turn * 9973);
@@ -16,6 +17,9 @@ export function advanceQuarter(state: GameState) {
   state.ownerConsumption += record.ownerConsumption;
   state.machineBookValue = Math.max(0, state.machineBookValue - record.depreciation);
   state.inventory = record.inventory;
+  state.inventoryBookValue = record.endingInventoryBookValue;
+  state.machineDisposalGainLossThisTurn = 0;
+  reconcileAccumulationFund(state);
 
   applySocialUpdate(state, record);
   state.riotStreak = state.unrest >= 80 ? state.riotStreak + 1 : 0;

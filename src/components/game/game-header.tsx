@@ -62,19 +62,20 @@ export function GameHeader({
           />
         </div>
         <HeaderStat icon={<Calendar className="h-3.5 w-3.5" />} label="Quý" value={quarter} />
-        <div data-tutorial="header-cash" className="contents">
-          <HeaderStat
-            icon={<Coins className="h-3.5 w-3.5 text-gold" />}
-            label="Tiền mặt"
-            value={<AnimatedNumber value={money} prefix="$" className="text-gold" />}
-          />
-        </div>
-        <div data-tutorial="header-fund" className="contents">
-          <HeaderStat
-            icon={<Coins className="h-3.5 w-3.5 text-primary" />}
-            label="Quỹ tích lũy"
-            value={<AnimatedNumber value={accumulationFund} prefix="$" className="text-primary" />}
-          />
+        <div data-tutorial="header-cash" className="flex min-w-0 flex-col">
+          <span className="flex items-center gap-1 whitespace-nowrap text-[10px] uppercase tracking-widest text-muted-foreground">
+            <Coins className="h-3.5 w-3.5 text-gold" /> Tiền mặt doanh nghiệp
+          </span>
+          <span className="mt-0.5 truncate font-display text-sm text-foreground">
+            <AnimatedNumber value={money} prefix="$" className="text-gold" />
+          </span>
+          <div
+            data-tutorial="header-fund"
+            className="ml-1 mt-1 flex min-w-0 items-center justify-between gap-2 border-l border-primary/30 pl-2 font-mono text-[10px]"
+          >
+            <span className="truncate text-muted-foreground">Trong đó dành tích lũy</span>
+            <AnimatedNumber value={accumulationFund} prefix="$" className="shrink-0 text-primary" />
+          </div>
         </div>
         {hasDebt ? (
           <>

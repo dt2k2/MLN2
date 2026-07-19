@@ -13,7 +13,15 @@ interface Props {
   currentPhase: Phase;
 }
 
-export function TaskPanel({ title, subtitle, hints, children, action, focusKey, currentPhase }: Props) {
+export function TaskPanel({
+  title,
+  subtitle,
+  hints,
+  children,
+  action,
+  focusKey,
+  currentPhase,
+}: Props) {
   const ref = useFocusPhaseHeading<HTMLHeadingElement>(focusKey);
   return (
     <aside className="flex h-full flex-col gap-4 rounded-lg border border-border/60 bg-panel/70 p-5">

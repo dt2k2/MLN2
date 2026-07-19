@@ -141,7 +141,7 @@ function productionMetrics(state: GameState, next: GameState): Metric[] {
     },
     {
       key: "m-rate",
-      label: "m′",
+      label: state.discoveredConcepts.surplusRate ? "m′" : "Dôi ra / lương",
       before: before.exploitation,
       after: after.exploitation,
       kind: "pct",
@@ -149,7 +149,7 @@ function productionMetrics(state: GameState, next: GameState): Metric[] {
     },
     {
       key: "p-real",
-      label: "p′ thực",
+      label: state.discoveredConcepts.profitRate ? "p′ thực hiện" : "Lợi nhuận / vốn",
       before: before.profitRateReal,
       after: after.profitRateReal,
       kind: "pct",

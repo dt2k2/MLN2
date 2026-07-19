@@ -3,12 +3,21 @@ import type { GameState } from "./types";
 
 const clamp = (value: number) => Math.max(0, Math.min(100, value));
 
+export function reconcileAccumulationFund(state: GameState) {
+  state.accumulationFund = Math.max(0, Math.min(state.accumulationFund, Math.max(0, state.cash)));
+}
+
 export function adjustWage(state: GameState, multiplier: number) {
   state.wagePerWorker *= multiplier;
 }
 
 export function hireWorkers(state: GameState, amount: number) {
+  reconcileAccumulationFund(state);
   const recalled = Math.min(amount, state.workersIdle);
+  const wageAdvance = amount * state.wagePerWorker;
+  const fromAccumulation = Math.min(state.accumulationFund, wageAdvance);
+  state.accumulationFund -= fromAccumulation;
+  state.capitalizedAccumulationThisTurn += fromAccumulation;
   state.workersIdle -= recalled;
   state.workersActive += amount;
   state.socialUnemployment = Math.max(
@@ -26,6 +35,7 @@ export function layoffWorkers(state: GameState, amount: number) {
 }
 
 export function buyMachine(state: GameState, price: number = BAL.machinePrice) {
+  reconcileAccumulationFund(state);
   if (state.cash < price) return false;
   const fromAccumulation = Math.min(state.accumulationFund, price);
   state.cash -= price;
@@ -42,5 +52,6 @@ export function sellMachine(state: GameState, proceeds: number = BAL.machineLiqu
   state.machines -= 1;
   state.machineBookValue = Math.max(0, state.machineBookValue - averageBookValue);
   state.cash += proceeds;
+  state.machineDisposalGainLossThisTurn += proceeds - averageBookValue;
   return true;
 }

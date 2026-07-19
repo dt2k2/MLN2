@@ -82,7 +82,7 @@ function evidenceFor(
   state: GameState,
 ) {
   if (!record) {
-    return `Sau lựa chọn này, xưởng kết thúc với tiền mặt ${money(state.cash)}, dư nợ ${money(state.debt)} và mâu thuẫn ${Math.round(state.contradiction)}/100.`;
+    return `Sau lựa chọn này, xưởng kết thúc với tiền mặt ${money(state.cash)}, dư nợ ${money(state.debt)} và áp lực đối kháng ${Math.round(state.contradiction)}/100.`;
   }
 
   const id = entry.id as DecisionOptionId;
@@ -101,7 +101,7 @@ function evidenceFor(
   if (entry.groupId === "STAFFING") {
     return `Cuối quý: quỹ lương ${money(record.v)}, m ${money(record.m)} và bất ổn ${Math.round(record.unrest)}/100.`;
   }
-  return `Sau giai đoạn này: lợi nhuận ${money(record.accountingProfit)}, tồn kho ${Math.round(record.inventory).toLocaleString("vi-VN")} và mâu thuẫn ${Math.round(record.contradiction)}/100.`;
+  return `Sau giai đoạn này: lợi nhuận ${money(record.accountingProfit)}, tồn kho ${Math.round(record.inventory).toLocaleString("vi-VN")} và áp lực đối kháng ${Math.round(record.contradiction)}/100.`;
 }
 
 function decisionScore(entry: DecisionHistoryEntry, ending: EndingId, count: number) {
@@ -184,9 +184,9 @@ function structuralPivots(state: GameState): EndingPivot[] {
       id: "structural-conflict",
       turn: highestConflict.turn,
       period: period(highestConflict.turn),
-      title: "Mâu thuẫn xã hội tích tụ",
+      title: "Áp lực đối kháng tích tụ",
       mechanism: "Quan hệ lao động và áp lực thị trường cùng tích tụ thành xung đột xã hội.",
-      evidence: `Mâu thuẫn đạt ${Math.round(highestConflict.contradiction)}/100; bất ổn đạt ${Math.round(highestConflict.unrest)}/100.`,
+      evidence: `Áp lực đối kháng đạt ${Math.round(highestConflict.contradiction)}/100; bất ổn đạt ${Math.round(highestConflict.unrest)}/100.`,
     },
   ].sort((a, b) => a.turn - b.turn);
 }
@@ -208,7 +208,11 @@ function hasEndingEvidence(state: GameState, ending: EndingId) {
     return state.decisionHistory.some((entry) => entry.id === "krupp-merger:0");
   }
   if (ending === "monopoly") {
-    return state.history.length >= BAL.maxTurns && state.marketShare >= BAL.monopolyShare;
+    return (
+      state.history.length >= BAL.maxTurns &&
+      state.marketShare >= BAL.accumulationEndingShare &&
+      state.machines >= BAL.accumulationEndingMachines
+    );
   }
   if (ending === "reform") {
     return (
@@ -224,7 +228,7 @@ function hasEndingEvidence(state: GameState, ending: EndingId) {
 function thesisFor(state: GameState, ending: EndingId) {
   if (ending === "revolution") {
     if (state.contradiction >= BAL.contradictionRevolution) {
-      return `Mâu thuẫn đạt ${Math.round(state.contradiction)}/100. Xung đột không còn được điều tiết trong khuôn khổ quản trị xưởng.`;
+      return `Áp lực đối kháng đạt ${Math.round(state.contradiction)}/100. Xung đột không còn được điều tiết trong khuôn khổ quản trị xưởng.`;
     }
     if (state.unrest >= BAL.unrestRiot && state.riotStreak >= 3) {
       return `Bất ổn duy trì ở ${Math.round(state.unrest)}/100 qua ${state.riotStreak} quý, biến phản kháng thành khủng hoảng chính trị.`;
@@ -241,13 +245,13 @@ function thesisFor(state: GameState, ending: EndingId) {
     return "Dữ liệu của ván phá sản không còn trong bộ nhớ phiên này; hồ sơ không gán nguyên nhân thanh khoản hay tín dụng khi chưa có bằng chứng.";
   }
   if (ending === "monopoly") {
-    return `Thị phần đạt ${(state.marketShare * 100).toFixed(1)}%. Lợi thế cá biệt đã chuyển thành tập trung tư bản, nhưng không xóa bỏ sức ép tích lũy.`;
+    return `Xưởng kết thúc với ${state.machines} máy và ${(state.marketShare * 100).toFixed(1)}% thị phần. Tích lũy đã mở rộng quy mô tư bản cá biệt, nhưng chưa tạo thành độc quyền tuyệt đối.`;
   }
   if (ending === "merger") {
-    return "Müller chấp nhận chuyển quyền kiểm soát cho Krupp. Đây là tập trung tư bản thông qua thâu tóm, không phải chiến thắng độc quyền của xưởng.";
+    return "Müller chấp nhận chuyển quyền kiểm soát cho Liên hiệp Dệt Ruhr. Đây là tập trung tư bản thông qua thâu tóm, không phải chiến thắng độc quyền của xưởng.";
   }
   if (ending === "reform") {
-    return `Xưởng kết thúc với sức khỏe ${Math.round(state.health)}/100, mâu thuẫn ${Math.round(state.contradiction)}/100 và lợi nhuận quý cuối ${money(state.last.accountingProfit)}.`;
+    return `Xưởng kết thúc với sức khỏe ${Math.round(state.health)}/100, áp lực đối kháng ${Math.round(state.contradiction)}/100 và lợi nhuận quý cuối ${money(state.last.accountingProfit)}.`;
   }
   return "Sau 24 quý, các xu hướng tích lũy, cạnh tranh và xung đột vẫn vận động nhưng chưa kết tinh thành một kết cục cực điểm.";
 }
@@ -285,7 +289,7 @@ function causalChain(state: GameState, ending: EndingId) {
   else if (ending === "bankruptcy") chain.push("Chu chuyển bị gián đoạn");
   else if (ending === "monopoly") chain.push("Tập trung thị trường");
   else if (ending === "reform") chain.push("Cân bằng tạm thời");
-  else chain.push("Mâu thuẫn còn mở");
+  else chain.push("Áp lực đối kháng còn hiện hữu");
   return chain.slice(0, 7);
 }
 

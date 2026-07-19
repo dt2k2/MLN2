@@ -62,8 +62,8 @@ export function collectStories(state: GameState): StoryPresentation[] {
       id: "beat-krupp-leads",
       kind: "beat",
       eyebrow: "Neue Fabrik Gazette",
-      title: "Krupp vượt lên",
-      body: `Chỉ số kỹ thuật của Krupp đã lên ${(krupp?.techLevel ?? 1).toFixed(2)}, cao hơn mức ${state.industryProductivity.toFixed(2)} của ngành. Giá trị xã hội đang dịch chuyển ngoài ý muốn của riêng Heinrich.`,
+      title: "Liên hiệp Dệt Ruhr vượt lên",
+      body: `Liên hiệp Dệt Ruhr là đối thủ tổng hợp hư cấu đại diện cho tư bản quy mô lớn. Chỉ số kỹ thuật của họ đã lên ${(krupp?.techLevel ?? 1).toFixed(2)}, cao hơn mức ${state.industryProductivity.toFixed(2)} của ngành. Giá trị xã hội đang dịch chuyển ngoài ý muốn của riêng Heinrich.`,
       condition: state.turn >= 8 && (krupp?.techLevel ?? 0) > state.industryProductivity * 1.04,
     },
     {
@@ -97,7 +97,7 @@ export function collectStories(state: GameState): StoryPresentation[] {
       kind: "beat",
       eyebrow: "Tin từ khu lao động",
       title: "Một hội nghị được triệu tập",
-      body: `Chỉ số mâu thuẫn đã đạt ${Math.round(state.contradiction)}/100. Đại biểu công nhân bàn về giờ làm, tiền lương và quyền tổ chức; kết cục vẫn tùy thuộc những lựa chọn tiếp theo.`,
+      body: `Áp lực đối kháng đã đạt ${Math.round(state.contradiction)}/100. Đại biểu công nhân bàn về giờ làm, tiền lương và quyền tổ chức; kết cục vẫn tùy thuộc những lựa chọn tiếp theo.`,
       condition: state.contradiction > 80,
     },
   ];

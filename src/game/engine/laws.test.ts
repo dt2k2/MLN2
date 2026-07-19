@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { produce } from "immer";
 import { BAL } from "../balance";
 import { DECISIONS } from "../decisions";
+import { reconcileAccumulationFund, sellMachine } from "../economy";
 import { advanceQuarter } from "./tick";
 import { initialState } from "../state";
 import { computeQuarter } from "./laws";
@@ -83,6 +84,53 @@ describe("quarterly value and finance laws", () => {
     expect(state.cash).toBeCloseTo(cashBefore + record.operatingCashFlow - record.ownerConsumption);
     expect(state.accumulationFund).toBeCloseTo(record.retainedProfit);
     expect(state.machineBookValue).toBeCloseTo(bookBefore - record.depreciation);
+  });
+
+  it("carries unsold production cost into inventory and releases it when goods are sold", () => {
+    const state = initialState(1);
+    state.demand = 100;
+    const first = computeQuarter(state);
+
+    expect(first.inventory).toBeGreaterThan(0);
+    expect(first.endingInventoryBookValue).toBeGreaterThan(0);
+    expect(first.openingInventoryBookValue + first.productionCost).toBeCloseTo(
+      first.costOfGoodsSold + first.endingInventoryBookValue,
+    );
+    expect(first.accountingProfit).toBeCloseTo(
+      first.revenue - first.costOfGoodsSold - first.interestPaid + first.machineDisposalGainLoss,
+    );
+
+    advanceQuarter(state);
+    expect(state.inventoryBookValue).toBeCloseTo(first.endingInventoryBookValue);
+    state.demand = 10_000;
+    const second = computeQuarter(state);
+    expect(second.openingInventoryBookValue).toBeCloseTo(first.endingInventoryBookValue);
+    expect(second.costOfGoodsSold).toBeGreaterThan(second.productionCost);
+  });
+
+  it("records the gain or loss when a machine is liquidated", () => {
+    const state = initialState(1);
+    const averageBookValue = state.machineBookValue / state.machines;
+    expect(sellMachine(state)).toBe(true);
+
+    const record = computeQuarter(state);
+    expect(record.machineDisposalGainLoss).toBeCloseTo(
+      BAL.machineLiquidationValue - averageBookValue,
+    );
+    expect(record.accountingProfit).toBeCloseTo(
+      record.revenue -
+        record.costOfGoodsSold -
+        record.interestPaid +
+        record.machineDisposalGainLoss,
+    );
+  });
+
+  it("never reports a liquid accumulation fund larger than cash", () => {
+    const state = initialState(1);
+    state.cash = 5_000;
+    state.accumulationFund = 20_000;
+    reconcileAccumulationFund(state);
+    expect(state.accumulationFund).toBe(5_000);
   });
 
   it("makes retention rates change distribution, not current production", () => {

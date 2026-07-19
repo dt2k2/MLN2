@@ -1,19 +1,27 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import {
-  clearTutorialStorage,
-  loadTutorialStorage,
-  saveTutorialStorage,
-} from "./storage";
+import { clearTutorialStorage, loadTutorialStorage, saveTutorialStorage } from "./storage";
 import { TUTORIAL_VERSION } from "./types";
 
 class MemoryStorage {
   store = new Map<string, string>();
-  getItem(k: string) { return this.store.get(k) ?? null; }
-  setItem(k: string, v: string) { this.store.set(k, v); }
-  removeItem(k: string) { this.store.delete(k); }
-  clear() { this.store.clear(); }
-  key(i: number) { return Array.from(this.store.keys())[i] ?? null; }
-  get length() { return this.store.size; }
+  getItem(k: string) {
+    return this.store.get(k) ?? null;
+  }
+  setItem(k: string, v: string) {
+    this.store.set(k, v);
+  }
+  removeItem(k: string) {
+    this.store.delete(k);
+  }
+  clear() {
+    this.store.clear();
+  }
+  key(i: number) {
+    return Array.from(this.store.keys())[i] ?? null;
+  }
+  get length() {
+    return this.store.size;
+  }
 }
 
 const memStorage = new MemoryStorage();

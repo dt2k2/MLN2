@@ -22,10 +22,7 @@ interface Props {
 export function PhaseIndicator({ currentPhase }: Props) {
   const currentStep = phaseToStep(currentPhase);
   return (
-    <nav
-      aria-label="Tiến trình ba bước của chặng"
-      className="flex items-center gap-1"
-    >
+    <nav aria-label="Tiến trình ba bước của chặng" className="flex items-center gap-1">
       {([1, 2, 3] as VisualStep[]).map((step, i) => {
         const isCurrent = step === currentStep;
         const isPast = step < currentStep;
@@ -54,10 +51,7 @@ export function PhaseIndicator({ currentPhase }: Props) {
             </div>
             {i < 2 && (
               <span
-                className={cn(
-                  "h-px w-3",
-                  step < currentStep ? "bg-success/40" : "bg-border/40",
-                )}
+                className={cn("h-px w-3", step < currentStep ? "bg-success/40" : "bg-border/40")}
                 aria-hidden
               />
             )}

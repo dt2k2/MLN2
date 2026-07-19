@@ -114,7 +114,8 @@ export function detectHint(ctx: HintTriggerContext): ContextualHintId | null {
     (v) => v > SCALE_MULTI,
   ).length;
   if (prevCount < 2 && nextCount >= 2) return "scale-multi-high";
-  if (prevScale.capital <= SCALE_HIGH && nextScale.capital > SCALE_HIGH) return "scale-capital-high";
+  if (prevScale.capital <= SCALE_HIGH && nextScale.capital > SCALE_HIGH)
+    return "scale-capital-high";
   if (prevScale.labor <= SCALE_HIGH && nextScale.labor > SCALE_HIGH) return "scale-labor-high";
   if (prevScale.market <= SCALE_HIGH && nextScale.market > SCALE_HIGH) return "scale-market-high";
   return null;

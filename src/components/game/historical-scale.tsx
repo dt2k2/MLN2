@@ -13,6 +13,11 @@ const PHASE_TONE: Record<ScalePhase, string> = {
   rupture: "text-destructive border-destructive/70",
 };
 
+function seededUnit(seed: number) {
+  const value = Math.sin(seed * 12.9898) * 43758.5453;
+  return value - Math.floor(value);
+}
+
 export function HistoricalScale({
   state,
   variant = "card",
@@ -32,7 +37,7 @@ export function HistoricalScale({
   useEffect(() => {
     if (!warned.current && crack >= 0.5) {
       warned.current = true;
-      showWarning("Cán cân rạn — mâu thuẫn cơ bản của CNTB lộ diện.");
+      showWarning("Cán cân rạn — áp lực đối kháng đã bước vào vùng đứt gãy.");
     }
   }, [crack]);
 
@@ -199,11 +204,11 @@ export function HistoricalScale({
                     r={0.8}
                     fill={isRupture ? "oklch(0.7 0.2 25)" : "oklch(0.7 0.15 70)"}
                     animate={{
-                      y: [0, -80 - Math.random() * 60, -160],
+                      y: [0, -80 - seededUnit(i + 71) * 60, -160],
                       opacity: [0, 0.9, 0],
                     }}
                     transition={{
-                      duration: 4 + Math.random() * 3,
+                      duration: 4 + seededUnit(i + 131) * 3,
                       repeat: Infinity,
                       delay: i * 0.5,
                       ease: "easeOut",

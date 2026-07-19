@@ -50,7 +50,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         title: "Dư nợ, lãi và tỷ lệ nợ",
         body: (s: GameState) => {
           const ratio = s.debt
-            ? `${((s.debt / Math.max(1, s.cash + s.machineBookValue)) * 100).toFixed(0)}%`
+            ? `${((s.debt / Math.max(1, Math.max(0, s.cash) + s.machineBookValue + s.inventoryBookValue)) * 100).toFixed(0)}%`
             : "0%";
           return `Xưởng đang gánh $${Math.round(s.debt).toLocaleString("vi-VN")} nợ thừa kế. Mỗi quý phải trả lãi, và tỷ lệ Nợ / Tài sản khoảng ${ratio} — nợ càng chiếm phần lớn tài sản, xưởng càng dễ tổn thương khi lợi nhuận giảm hoặc tín dụng bị siết. Trả bớt nợ làm giảm lãi các quý sau; vay thêm làm tăng tiền mặt và nghĩa vụ nợ cùng lúc.`;
         },
@@ -201,10 +201,10 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
       },
       {
         target: "profit-chart",
-        title: "Xu hướng hiệu suất vốn",
+        title: "Xu hướng dôi ra trên tổng vốn",
         body: (s: GameState) => {
           const rate = (s.last.profitRate * 100).toFixed(1);
-          return `Biểu đồ theo dõi lợi nhuận kế toán so với vốn xưởng đã ứng cho từng quý. Quý vừa rồi hiệu suất vốn là ${rate}%. Đường đi lên cho thấy vốn đang sinh lợi tốt hơn; đường đi xuống có thể do chi phí tăng, hàng không bán được, lãi vay hoặc vốn máy tăng nhanh hơn lợi nhuận. Đây là tỷ suất từng quý, không phải cả năm — cần thêm các quý sau mới biết đây là xu hướng tăng hay giảm.`;
+          return `Biểu đồ theo dõi phần giá trị dôi ra so với tổng tư bản đang ứng trước. Quý vừa rồi tỷ lệ này là ${rate}%. Nó khác tỷ suất lợi nhuận thực hiện trên dashboard: biểu đồ nhìn vào m được sản xuất, còn tỷ suất thực hiện chịu thêm việc bán hàng, giá vốn tồn kho và lãi vay. Đây là tỷ suất từng quý, không phải tỷ suất năm.`;
         },
         showIf: (s: GameState) => s.history.length > 0,
         placement: "bottom",

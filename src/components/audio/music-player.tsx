@@ -58,7 +58,7 @@ export function MusicPlayer() {
     if (!audioRef.current) {
       const a = new Audio();
       a.loop = true;
-      a.preload = "auto";
+      a.preload = "none";
       a.volume = 0;
       audioRef.current = a;
     }

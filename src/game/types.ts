@@ -108,6 +108,7 @@ export type EndingId = "revolution" | "bankruptcy" | "monopoly" | "merger" | "re
 export type TimedEffectKind =
   | "outputMultiplier"
   | "demandMultiplier"
+  | "sellPriceMultiplier"
   | "materialPriceMultiplier"
   | "interestRateMultiplier"
   | "workHoursCap";
@@ -154,8 +155,13 @@ export interface QuarterRecord {
   extraProfit: number;
   commodityValue: number;
   revenue: number;
+  openingInventoryBookValue: number;
+  productionCost: number;
+  costOfGoodsSold: number;
+  endingInventoryBookValue: number;
   materialCost: number;
   depreciation: number;
+  machineDisposalGainLoss: number;
   machineBookValue: number;
   constantCapitalAdvanced: number;
   totalCapitalAdvanced: number;
@@ -228,8 +234,10 @@ export interface GameState {
   capitalizedAccumulationThisTurn: number;
   machines: number;
   machineBookValue: number;
+  machineDisposalGainLossThisTurn: number;
   machinesAtTurnStart: number;
   inventory: number;
+  inventoryBookValue: number;
 
   workersActive: number;
   workersIdle: number;

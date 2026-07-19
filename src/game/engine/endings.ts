@@ -7,7 +7,11 @@ export function checkEnding(s: GameState): EndingId | null {
   if (s.cash <= BAL.bankruptcyCashFloor) return "bankruptcy";
   if (s.debtStressStreak >= BAL.bankruptcyStressTurns) return "bankruptcy";
   if (s.turn > BAL.maxTurns) {
-    if (s.marketShare >= BAL.monopolyShare) return "monopoly";
+    if (
+      s.marketShare >= BAL.accumulationEndingShare &&
+      s.machines >= BAL.accumulationEndingMachines
+    )
+      return "monopoly";
     if (
       s.contradiction < BAL.reformContradictionMax &&
       s.health >= BAL.reformHealthMin &&

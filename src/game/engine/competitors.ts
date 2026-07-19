@@ -4,7 +4,7 @@ import type { CompetitorSnapshot, GameState } from "../types";
 const COMPETITORS = [
   { id: "bauer", name: "Bauer & Söhne", growth: 0.005, baseOutput: 820 },
   { id: "schmidt", name: "Schmidt Textil", growth: 0.015, baseOutput: 930 },
-  { id: "krupp", name: "Krupp Textilwerke", growth: 0.025, baseOutput: 1_020 },
+  { id: "krupp", name: "Liên hiệp Dệt Ruhr", growth: 0.025, baseOutput: 1_020 },
 ] as const;
 
 export function createInitialCompetitors(): CompetitorSnapshot[] {

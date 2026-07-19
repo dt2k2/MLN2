@@ -9,4 +9,16 @@ describe("historical scale pressures", () => {
 
     expect(readScale(indebted).capital).toBeGreaterThan(readScale(debtFree).capital);
   });
+
+  it("uses inventory book value when reading debt pressure", () => {
+    const state = initialState(1);
+    state.debt = 60_000;
+    state.inventory = 1_000;
+    state.inventoryBookValue = 1_000;
+    const lowBookValuePressure = readScale(state).capital;
+
+    state.inventoryBookValue = 40_000;
+
+    expect(readScale(state).capital).toBeLessThan(lowBookValuePressure);
+  });
 });

@@ -42,40 +42,42 @@ export function Round1Commodity({ onSimulate, running }: Props) {
         ) : null
       }
     >
-      <div className="flex w-full items-center justify-between gap-8">
-        <Station icon={<Factory className="h-8 w-8" />} label="Xưởng" />
-        <div className="relative flex-1">
-          <div className="mx-auto h-1 w-full max-w-[240px] rounded-full bg-border/50" />
-          <motion.div
-            className="absolute top-1/2 -translate-y-1/2"
-            initial={{ left: "50%", x: "-50%" }}
-            animate={{
-              left: pos === "market" ? "100%" : "50%",
-              x: pos === "market" ? "-100%" : "-50%",
-            }}
-            transition={{ duration: reduce ? 0 : 1.2, ease: "easeInOut" }}
-          >
-            <div className="flex flex-col items-center gap-1">
-              <div className="rounded-md border border-primary/60 bg-panel px-3 py-2 text-primary shadow-lg">
-                <Package className="h-6 w-6" />
+      <div className="flex w-full flex-col">
+        <div className="flex flex-1 items-center justify-between gap-8">
+          <Station icon={<Factory className="h-8 w-8" />} label="Xưởng" />
+          <div className="relative flex-1">
+            <div className="mx-auto h-1 w-full max-w-[240px] rounded-full bg-border/50" />
+            <motion.div
+              className="absolute top-1/2 -translate-y-1/2"
+              initial={{ left: "50%", x: "-50%" }}
+              animate={{
+                left: pos === "market" ? "100%" : "50%",
+                x: pos === "market" ? "-100%" : "-50%",
+              }}
+              transition={{ duration: reduce ? 0 : 1.2, ease: "easeInOut" }}
+            >
+              <div className="flex flex-col items-center gap-1">
+                <div className="rounded-md border border-primary/60 bg-panel px-3 py-2 text-primary shadow-lg">
+                  <Package className="h-6 w-6" />
+                </div>
+                <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  Tấm vải
+                </span>
               </div>
-              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                Tấm vải
-              </span>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
+          <Station icon={<Coins className="h-8 w-8" />} label="Thị trường" />
         </div>
-        <Station icon={<Coins className="h-8 w-8" />} label="Thị trường" />
+        {!running && !exchanged && (
+          <button
+            type="button"
+            onClick={trigger}
+            className="mt-6 cursor-pointer self-center rounded-md border border-primary bg-primary/20 px-4 py-2 font-mono text-xs uppercase tracking-widest text-gold transition hover:bg-primary/30"
+          >
+            <ArrowRight className="mr-1 inline h-3 w-3" /> Đưa ra trao đổi
+          </button>
+        )}
       </div>
-      {!running && !exchanged && (
-        <button
-          type="button"
-          onClick={trigger}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer rounded-md border border-primary bg-primary/20 px-4 py-2 font-mono text-xs uppercase tracking-widest text-gold transition hover:bg-primary/30"
-        >
-          <ArrowRight className="mr-1 inline h-3 w-3" /> Đưa ra trao đổi
-        </button>
-      )}
     </Stage>
   );
 }

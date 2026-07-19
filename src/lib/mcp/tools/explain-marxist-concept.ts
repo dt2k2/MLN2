@@ -16,11 +16,7 @@ export default defineTool({
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: ({ key }) => {
     const info = CONCEPT_INFO[key];
-    const lines = [
-      `# ${info.title} (${info.short})`,
-      "",
-      info.definition,
-    ];
+    const lines = [`# ${info.title} (${info.short})`, "", info.definition];
     if (info.formula) lines.push("", `**Công thức:** ${info.formula}`);
     if (info.quote) lines.push("", `> ${info.quote.text} — ${info.quote.source}`);
     return {

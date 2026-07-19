@@ -1,11 +1,7 @@
 import { create } from "zustand";
 import { TUTORIAL_STEPS, visiblePages } from "./steps";
 import { CONTEXTUAL_HINTS } from "./hints";
-import {
-  clearTutorialStorage,
-  loadTutorialStorage,
-  saveTutorialStorage,
-} from "./storage";
+import { clearTutorialStorage, loadTutorialStorage, saveTutorialStorage } from "./storage";
 import { useGameStore } from "@/game/state";
 import type { GameState } from "@/game/types";
 import type { ContextualHintId, TutorialPage, TutorialStep } from "./types";

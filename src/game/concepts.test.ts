@@ -127,18 +127,27 @@ describe("concept discovery", () => {
     expect(checkQuarterDiscoveries(state).map((item) => item.key)).toContain("relativeSurplus");
   });
 
-  it("requires organic composition to cross the threshold from below", () => {
+  it("requires a high organic composition after mechanization beyond the initial setup", () => {
     const state = initialState(1);
     state.history = [
       record({ turn: 1, organic: 11, machines: 3 }),
-      record({ turn: 2, organic: 12, machines: 4 }),
+      record({ turn: 2, organic: 12, machines: 3 }),
     ];
 
     expect(checkQuarterDiscoveries(state).map((item) => item.key)).not.toContain(
       "organicComposition",
     );
 
-    state.history[0].organic = 9;
+    state.history[1].machines = 4;
+    expect(checkQuarterDiscoveries(state).map((item) => item.key)).toContain("organicComposition");
+  });
+
+  it("recognizes a high ratio reached by first-quarter mechanization on the next quarter", () => {
+    const state = initialState(1);
+    state.history = [
+      record({ turn: 1, organic: 11, machines: 4 }),
+      record({ turn: 2, organic: 11.5, machines: 4 }),
+    ];
     expect(checkQuarterDiscoveries(state).map((item) => item.key)).toContain("organicComposition");
   });
 
@@ -164,13 +173,23 @@ describe("concept discovery", () => {
   it("needs four strict records for three consecutive profit-rate falls", () => {
     const state = initialState(1);
     state.history = [0.4, 0.3, 0.2].map((profitRate, index) =>
-      record({ turn: index + 2, profitRate }),
+      record({ turn: index + 2, profitRate, organic: 8 + index, machines: 3 + index }),
     );
     expect(checkQuarterDiscoveries(state).map((item) => item.key)).not.toContain(
       "fallingProfitRate",
     );
-    state.history.push(record({ turn: 5, profitRate: 0.1 }));
+    state.history.push(record({ turn: 5, profitRate: 0.1, organic: 11, machines: 6 }));
     expect(checkQuarterDiscoveries(state).map((item) => item.key)).toContain("fallingProfitRate");
+  });
+
+  it("does not call a generic profit decline the falling-rate tendency", () => {
+    const state = initialState(1);
+    state.history = [0.4, 0.3, 0.2, 0.1].map((profitRate, index) =>
+      record({ turn: index + 2, profitRate, organic: 8, machines: 3 }),
+    );
+    expect(checkQuarterDiscoveries(state).map((item) => item.key)).not.toContain(
+      "fallingProfitRate",
+    );
   });
 
   it("keeps all fifteen codex entries", () => {
@@ -211,7 +230,6 @@ describe("concept discovery", () => {
     collect(checkQuarterDiscoveries(social));
 
     const structural = initialState(4);
-    structural.contradiction = 80;
     structural.workHours = 10;
     structural.history = [
       record({ turn: 8, organic: 8, machines: 3, profitRate: 0.08 }),
@@ -227,6 +245,8 @@ describe("concept discovery", () => {
         socialLaborTime: 6,
         extraProfit: 500,
         exploitation: 1.2,
+        retainedProfit: 1_500,
+        ownerConsumption: 1_500,
         inventory: 800,
         demand: 1_000,
         industrySupply: 4_500,
@@ -237,7 +257,7 @@ describe("concept discovery", () => {
 
     const rates = initialState(5);
     rates.history = [0.12, 0.11, 0.1, 0.09].map((profitRate, index) =>
-      record({ turn: 9 + index, profitRate }),
+      record({ turn: 9 + index, profitRate, organic: 8 + index, machines: 3 + index }),
     );
     collect(checkQuarterDiscoveries(rates));
 

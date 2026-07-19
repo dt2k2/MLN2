@@ -103,7 +103,7 @@ function Credits() {
         </div>
 
         <div className="mt-12 text-center font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          © MMXXVI · Trust of Iron & Coal · v0.1.0
+          © MMXXVI · Trust of Iron & Coal · v1.0.0
         </div>
       </div>
     </main>
