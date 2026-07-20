@@ -14,7 +14,7 @@ const TRACK_SRC: Record<Exclude<Track, null>, string> = {
 
 const TRACK_VOLUME: Record<Exclude<Track, null>, number> = {
   menu: 0.7,
-  prologue: 0.5,
+  prologue: 0.7,
   ingame: 0.7,
 };
 const FADE_MS = 700;
