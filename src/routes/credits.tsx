@@ -51,7 +51,7 @@ const sections = [
   },
   {
     title: "Hỗ trợ kỹ thuật",
-    items: ["Lovable"],
+    items: ["Lovable, GPT, Claude"],
   },
 ];
 
