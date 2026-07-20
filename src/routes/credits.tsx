@@ -27,10 +27,6 @@ const sections = [
     items: ["Das Kapitalist Studio", "Tổ nghiên cứu Kinh tế Chính trị"],
   },
   {
-    title: "Lập trình & UI",
-    items: ["Kỹ sư giao diện", "Hoạ sĩ minh hoạ công nghiệp", "Kỹ sư mô phỏng"],
-  },
-  {
     title: "Cảm hứng thị giác",
     items: [
       "Frostpunk (11 bit)",
