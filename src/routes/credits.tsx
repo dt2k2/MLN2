@@ -47,7 +47,7 @@ const sections = [
   },
   {
     title: "Hỗ trợ kỹ thuật",
-    items: ["Lovable, GPT, Claude"],
+    items: ["Lovable, GPT, Claude, AI Voice Generative"],
   },
 ];
 
